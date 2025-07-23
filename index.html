@@ -24,13 +24,21 @@
             --sidebar-bg: rgba(255, 255, 255, 0.75);
         }
 
+        /* CORREÇÃO RESPONSIVA: Failsafe para evitar overflow */
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--background);
             background-image: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             background-attachment: fixed;
             color: var(--text);
-            overflow-x: hidden;
         }
 
         .main-container {
@@ -40,7 +48,7 @@
             width: 100%;
             max-width: 1280px;
             margin: 0 auto;
-            padding: 0.5rem;
+            padding: 0.75rem;
         }
 
         @media (min-width: 768px) {
@@ -125,14 +133,13 @@
             animation: smoothEnter 0.4s ease-out forwards;
         }
         
-        /* MELHORIA: Estilos para a lista dentro do modal */
         #modalBody .sub-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9rem;
         }
         #modalBody .sub-table th {
-            display: none; /* Esconde cabeçalhos desnecessários */
+            display: none;
         }
         #modalBody .sub-table tr {
             display: flex;
@@ -239,8 +246,7 @@
             </div>
         </aside>
 
-        <main class="space-y-6">
-            <div class="bg-slate-200/50 p-2 rounded-xl flex items-center justify-start gap-2 overflow-x-auto fade-in-up" style="animation-delay: 0.3s;" role="tablist">
+        <main class="space-y-6 min-w-0"> <div class="bg-slate-200/50 p-2 rounded-xl flex items-center justify-start gap-2 overflow-x-auto fade-in-up" style="animation-delay: 0.3s;" role="tablist">
                  <button class="tab-button active" data-tab="temporadas" role="tab" aria-selected="true">Temporadas</button>
                  <button class="tab-button" data-tab="titulos" role="tab" aria-selected="false">Títulos</button>
                  <button class="tab-button" data-tab="vitorias" role="tab" aria-selected="false">Vitórias/Derrotas</button>
@@ -279,19 +285,19 @@
                             <table class="w-full">
                                 <thead class="text-xs">
                                     <tr>
-                                        <th class="py-3 px-2 text-left">Data</th>
-                                        <th class="py-3 px-2 text-left">Torneio</th>
-                                        <th class="py-3 px-2 text-left">Tipo</th>
-                                        <th class="py-3 px-2 text-left">Superfície</th>
-                                        <th class="py-3 px-2 text-left">Fase</th>
-                                        <th class="py-3 px-2 text-left">Pontos</th>
-                                        <th class="py-3 px-2 text-left">Prêmio</th>
-                                        <th class="py-3 px-2 text-left">V</th>
-                                        <th class="py-3 px-2 text-left">D</th>
-                                        <th class="py-3 px-2 text-left">Ações</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Data</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Torneio</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Tipo</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Superfície</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Fase</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Pontos</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Prêmio</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">V</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">D</th>
+                                        <th class="py-2 px-1 sm:px-2 text-left">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody id="temporadas-tabela" class="text-sm align-middle"></tbody>
+                                <tbody id="temporadas-tabela" class="text-xs sm:text-sm align-middle"></tbody>
                             </table>
                         </div>
                         
@@ -457,20 +463,10 @@
         const closeModalBtn = document.getElementById('closeModalBtn');
         const dataNascimentoJogador = new Date('2011-02-18');
 
-        const recordesMundiais = [
-            { id: 'grandSlams', descricao: 'Mais Títulos de Grand Slam', recordista: 'Novak Djokovic', valor: 24, eval: stats => stats.porTipo['Grand Slam'].t, format: val => `${val} Títulos` }, { id: 'finaisGrandSlam', descricao: 'Mais Finais de Grand Slam', recordista: 'Novak Djokovic', valor: 36, eval: stats => stats.finaisGrandSlam, format: val => `${val} Finais` }, { id: 'atpFinals', descricao: 'Mais Títulos de ATP Finals', recordista: 'Novak Djokovic', valor: 7, eval: stats => stats.porTipo['ATP Finals'].t, format: val => `${val} Títulos` }, { id: 'masters1000', descricao: 'Mais Títulos de Masters 1000', recordista: 'Novak Djokovic', valor: 40, eval: stats => stats.porTipo['ATP Masters 1000'].t, format: val => `${val} Títulos` }, { id: 'totalTitulos', descricao: 'Mais Títulos na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 109, eval: stats => stats.titulosATP, format: val => `${val} Títulos` }, { id: 'totalFinais', descricao: 'Mais Finais na Carreira (ATP)', recordista: 'Roger Federer', valor: 157, eval: stats => stats.finaisATP, format: val => `${val} Finais` }, { id: 'vitoriasCarreira', descricao: 'Mais Vitórias na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 1274, eval: stats => stats.vitoriasATP, format: val => `${val} Vitórias` }, { id: 'partidasCarreira', descricao: 'Mais Partidas Disputadas (ATP)', recordista: 'Jimmy Connors', valor: 1557, eval: stats => stats.vitoriasATP + stats.derrotasATP, format: val => `${val} Partidas` }, { id: 'premiacao', descricao: 'Maior Premiação em Dinheiro', recordista: 'Novak Djokovic', valor: 182000000, eval: stats => stats.premiacao, format: val => val.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }, { id: 'taxaVitorias', descricao: 'Melhor % de Vitórias (mín. 200 jogos)', recordista: 'Novak Djokovic', valor: 0.839, eval: stats => (stats.vitoriasATP + stats.derrotasATP >= 200) ? (stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) : 0, format: val => `${(val * 100).toFixed(2)}%` }, { id: 'titulosSaibro', descricao: 'Mais Títulos no Saibro', recordista: 'Rafael Nadal', valor: 63, eval: stats => stats.porSuperficieATP.Saibro.t, format: val => `${val} Títulos` }, { id: 'titulosRapida', descricao: 'Mais Títulos em Quadra Rápida', recordista: 'Roger Federer', valor: 71, eval: stats => stats.porSuperficieATP.Rápida.t, format: val => `${val} Títulos` }, { id: 'titulosGrama', descricao: 'Mais Títulos na Grama', recordista: 'Roger Federer', valor: 19, eval: stats => stats.porSuperficieATP.Grama.t, format: val => `${val} Títulos` }, { id: 'titulosTemporada', descricao: 'Mais Títulos em uma Temporada', recordista: 'Guillermo Vilas', valor: 16, eval: stats => stats.maxTitulosEmUmAno, format: val => `${val} Títulos` }, { id: 'titulosUnicoTorneio', descricao: 'Mais Títulos em um Único Torneio', recordista: 'Rafael Nadal (Roland Garros)', valor: 14, eval: stats => stats.maxTitulosUnicoTorneio, format: (val, stats) => `${val} Títulos (${stats.nomeTorneioMaisVencido})` }, { id: 'goldenSlam', descricao: 'Career Golden Slam', recordista: 'A. Agassi, R. Nadal', valor: 0, eval: stats => stats.goldenSlam, format: val => 'Conquistado!' }, { id: 'maisJovemGS', descricao: 'Vencedor de GS Mais Jovem', recordista: 'Michael Chang (17a 3m)', valor: (17 * 12 + 3), eval: stats => stats.idadeVencedorSlamMaisJovem, isLowerBetter: true, format: val => `${Math.floor(val/12)}a ${val % 12}m` }, { id: 'maisVelhoGS', descricao: 'Vencedor de GS Mais Velho', recordista: 'Ken Rosewall (37a 2m)', valor: (37 * 12 + 2), eval: stats => stats.idadeVencedorSlamMaisVelho, format: val => `${Math.floor(val/12)}a ${val % 12}m` },
-        ];
-        
-        const fasesPorTorneio = {
-            'Grand Slam': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP Finals': ['Fase de Grupos', 'Semifinal', 'Final', 'Campeão Invicto'], 'Jogos Olímpicos': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Medalha de Bronze', 'Final', 'Campeão'], 'ATP Masters 1000': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP 500': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP 250': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 125': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 100': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 50': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão']
-        };
-        const pontosPorFase = {
-            'Grand Slam': { 'Campeão': 2000, 'Final': 1200, 'Semifinal': 720, 'Quartas de Final': 360, 'Oitavas de Final': 180, 'Terceira Rodada': 90, 'Segunda Rodada': 45, 'Primeira Rodada': 10 }, 'ATP Finals': { 'Campeão Invicto': 1500, 'Final': 500, 'Semifinal': 400, 'Fase de Grupos': 200 }, 'Jogos Olímpicos': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Medalha de Bronze': 270, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Primeira Rodada': 0 }, 'ATP Masters 1000': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Terceira Rodada': 45, 'Segunda Rodada': 25, 'Primeira Rodada': 10 }, 'ATP 500': { 'Campeão': 500, 'Final': 300, 'Semifinal': 180, 'Quartas de Final': 90, 'Oitavas de Final': 45, 'Primeira Rodada': 0 }, 'ATP 250': { 'Campeão': 250, 'Final': 150, 'Semifinal': 90, 'Quartas de Final': 45, 'Oitavas de Final': 20, 'Primeira Rodada': 0 }, 'CH 125': { 'Campeão': 125, 'Final': 75, 'Semifinal': 45, 'Quartas de Final': 25, 'Oitavas de Final': 10, 'Primeira Rodada': 0 }, 'CH 100': { 'Campeão': 100, 'Final': 60, 'Semifinal': 35, 'Quartas de Final': 20, 'Oitavas de Final': 8, 'Primeira Rodada': 0 }, 'CH 75': { 'Campeão': 75, 'Final': 45, 'Semifinal': 25, 'Quartas de Final': 15, 'Oitavas de Final': 6, 'Primeira Rodada': 0 }, 'CH 50': { 'Campeão': 50, 'Final': 30, 'Semifinal': 15, 'Quartas de Final': 8, 'Oitavas de Final': 4, 'Primeira Rodada': 0 }
-        };
-        const vitoriasPorFase = {
-            'Grand Slam': { 'Campeão': 7, 'Final': 6, 'Semifinal': 5, 'Quartas de Final': 4, 'Oitavas de Final': 3, 'Terceira Rodada': 2, 'Segunda Rodada': 1, 'Primeira Rodada': 0 }, 'ATP Finals': { 'Campeão Invicto': 5, 'Final': 3, 'Semifinal': 2, 'Fase de Grupos': 1 }, 'Jogos Olímpicos': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Medalha de Bronze': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Primeira Rodada': 0 }, 'ATP Masters 1000': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Terceira Rodada': 1, 'Segunda Rodada': 1, 'Primeira Rodada': 0 }, 'ATP 500': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'ATP 250': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 125': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 100': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 75': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 50': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }
-        };
-
+        const recordesMundiais = [ { id: 'grandSlams', descricao: 'Mais Títulos de Grand Slam', recordista: 'Novak Djokovic', valor: 24, eval: stats => stats.porTipo['Grand Slam'].t, format: val => `${val} Títulos` }, { id: 'finaisGrandSlam', descricao: 'Mais Finais de Grand Slam', recordista: 'Novak Djokovic', valor: 36, eval: stats => stats.finaisGrandSlam, format: val => `${val} Finais` }, { id: 'atpFinals', descricao: 'Mais Títulos de ATP Finals', recordista: 'Novak Djokovic', valor: 7, eval: stats => stats.porTipo['ATP Finals'].t, format: val => `${val} Títulos` }, { id: 'masters1000', descricao: 'Mais Títulos de Masters 1000', recordista: 'Novak Djokovic', valor: 40, eval: stats => stats.porTipo['ATP Masters 1000'].t, format: val => `${val} Títulos` }, { id: 'totalTitulos', descricao: 'Mais Títulos na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 109, eval: stats => stats.titulosATP, format: val => `${val} Títulos` }, { id: 'totalFinais', descricao: 'Mais Finais na Carreira (ATP)', recordista: 'Roger Federer', valor: 157, eval: stats => stats.finaisATP, format: val => `${val} Finais` }, { id: 'vitoriasCarreira', descricao: 'Mais Vitórias na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 1274, eval: stats => stats.vitoriasATP, format: val => `${val} Vitórias` }, { id: 'partidasCarreira', descricao: 'Mais Partidas Disputadas (ATP)', recordista: 'Jimmy Connors', valor: 1557, eval: stats => stats.vitoriasATP + stats.derrotasATP, format: val => `${val} Partidas` }, { id: 'premiacao', descricao: 'Maior Premiação em Dinheiro', recordista: 'Novak Djokovic', valor: 182000000, eval: stats => stats.premiacao, format: val => val.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }, { id: 'taxaVitorias', descricao: 'Melhor % de Vitórias (mín. 200 jogos)', recordista: 'Novak Djokovic', valor: 0.839, eval: stats => (stats.vitoriasATP + stats.derrotasATP >= 200) ? (stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) : 0, format: val => `${(val * 100).toFixed(2)}%` }, { id: 'titulosSaibro', descricao: 'Mais Títulos no Saibro', recordista: 'Rafael Nadal', valor: 63, eval: stats => stats.porSuperficieATP.Saibro.t, format: val => `${val} Títulos` }, { id: 'titulosRapida', descricao: 'Mais Títulos em Quadra Rápida', recordista: 'Roger Federer', valor: 71, eval: stats => stats.porSuperficieATP.Rápida.t, format: val => `${val} Títulos` }, { id: 'titulosGrama', descricao: 'Mais Títulos na Grama', recordista: 'Roger Federer', valor: 19, eval: stats => stats.porSuperficieATP.Grama.t, format: val => `${val} Títulos` }, { id: 'titulosTemporada', descricao: 'Mais Títulos em uma Temporada', recordista: 'Guillermo Vilas', valor: 16, eval: stats => stats.maxTitulosEmUmAno, format: val => `${val} Títulos` }, { id: 'titulosUnicoTorneio', descricao: 'Mais Títulos em um Único Torneio', recordista: 'Rafael Nadal (Roland Garros)', valor: 14, eval: stats => stats.maxTitulosUnicoTorneio, format: (val, stats) => `${val} Títulos (${stats.nomeTorneioMaisVencido})` }, { id: 'goldenSlam', descricao: 'Career Golden Slam', recordista: 'A. Agassi, R. Nadal', valor: 0, eval: stats => stats.goldenSlam, format: val => 'Conquistado!' }, { id: 'maisJovemGS', descricao: 'Vencedor de GS Mais Jovem', recordista: 'Michael Chang (17a 3m)', valor: (17 * 12 + 3), eval: stats => stats.idadeVencedorSlamMaisJovem, isLowerBetter: true, format: val => `${Math.floor(val/12)}a ${val % 12}m` }, { id: 'maisVelhoGS', descricao: 'Vencedor de GS Mais Velho', recordista: 'Ken Rosewall (37a 2m)', valor: (37 * 12 + 2), eval: stats => stats.idadeVencedorSlamMaisVelho, format: val => `${Math.floor(val/12)}a ${val % 12}m` }, ];
+        const fasesPorTorneio = { 'Grand Slam': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP Finals': ['Fase de Grupos', 'Semifinal', 'Final', 'Campeão Invicto'], 'Jogos Olímpicos': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Medalha de Bronze', 'Final', 'Campeão'], 'ATP Masters 1000': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP 500': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP 250': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 125': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 100': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 50': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'] };
+        const pontosPorFase = { 'Grand Slam': { 'Campeão': 2000, 'Final': 1200, 'Semifinal': 720, 'Quartas de Final': 360, 'Oitavas de Final': 180, 'Terceira Rodada': 90, 'Segunda Rodada': 45, 'Primeira Rodada': 10 }, 'ATP Finals': { 'Campeão Invicto': 1500, 'Final': 500, 'Semifinal': 400, 'Fase de Grupos': 200 }, 'Jogos Olímpicos': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Medalha de Bronze': 270, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Primeira Rodada': 0 }, 'ATP Masters 1000': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Terceira Rodada': 45, 'Segunda Rodada': 25, 'Primeira Rodada': 10 }, 'ATP 500': { 'Campeão': 500, 'Final': 300, 'Semifinal': 180, 'Quartas de Final': 90, 'Oitavas de Final': 45, 'Primeira Rodada': 0 }, 'ATP 250': { 'Campeão': 250, 'Final': 150, 'Semifinal': 90, 'Quartas de Final': 45, 'Oitavas de Final': 20, 'Primeira Rodada': 0 }, 'CH 125': { 'Campeão': 125, 'Final': 75, 'Semifinal': 45, 'Quartas de Final': 25, 'Oitavas de Final': 10, 'Primeira Rodada': 0 }, 'CH 100': { 'Campeão': 100, 'Final': 60, 'Semifinal': 35, 'Quartas de Final': 20, 'Oitavas de Final': 8, 'Primeira Rodada': 0 }, 'CH 75': { 'Campeão': 75, 'Final': 45, 'Semifinal': 25, 'Quartas de Final': 15, 'Oitavas de Final': 6, 'Primeira Rodada': 0 }, 'CH 50': { 'Campeão': 50, 'Final': 30, 'Semifinal': 15, 'Quartas de Final': 8, 'Oitavas de Final': 4, 'Primeira Rodada': 0 } };
+        const vitoriasPorFase = { 'Grand Slam': { 'Campeão': 7, 'Final': 6, 'Semifinal': 5, 'Quartas de Final': 4, 'Oitavas de Final': 3, 'Terceira Rodada': 2, 'Segunda Rodada': 1, 'Primeira Rodada': 0 }, 'ATP Finals': { 'Campeão Invicto': 5, 'Final': 3, 'Semifinal': 2, 'Fase de Grupos': 1 }, 'Jogos Olímpicos': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Medalha de Bronze': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Primeira Rodada': 0 }, 'ATP Masters 1000': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Terceira Rodada': 1, 'Segunda Rodada': 1, 'Primeira Rodada': 0 }, 'ATP 500': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'ATP 250': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 125': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 100': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 75': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 50': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 } };
         function atualizarFases() { const tipoTorneio = document.getElementById('tipo-torneio').value; const faseSelect = document.getElementById('fase-torneio'); faseSelect.innerHTML = ''; (fasesPorTorneio[tipoTorneio] || []).forEach(fase => { const option = document.createElement('option'); option.value = fase; option.textContent = fase; faseSelect.appendChild(option); }); }
         function validarFormulario(data, nome, premiacaoRaw) { let isValid = true; document.getElementById('data-error').style.display = 'none'; document.getElementById('nome-error').style.display = 'none'; document.getElementById('premiacao-error').style.display = 'none'; if (!data) { document.getElementById('data-error').style.display = 'block'; isValid = false; } if (!nome.trim()) { document.getElementById('nome-error').style.display = 'block'; isValid = false; } if (premiacaoRaw !== '' && (isNaN(parseFloat(premiacaoRaw)) || parseFloat(premiacaoRaw) < 0)) { document.getElementById('premiacao-error').style.display = 'block'; isValid = false; } return isValid; }
         async function torneioJaExiste(ano, nome, tipo) { const q = query(collection(db, 'torneios'), where('ano', '==', ano), where('nome', '==', nome), where('tipo', '==', tipo)); const snapshot = await getDocs(q); return !snapshot.empty; }
@@ -486,18 +482,13 @@
         function estimarRanking(pontos) { if (pontos >= 5000) return 10; if (pontos >= 1000) return 50; if (pontos >= 500) return 100; if (pontos >= 250) return 200; if (pontos >= 50) return 500; return 1000; }
         async function carregarTorneios() { try { const snapshot = await getDocs(collection(db, 'torneios')); torneios = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); atualizarTabelas(); } catch (error) { console.error('Erro ao carregar torneios:', error); alert('Erro ao carregar os dados do Firestore.'); } }
         
-        // MELHORIA: Função para formatar a fase com ícones e cores
         function formatarFase(fase) {
             switch (fase) {
                 case 'Campeão':
-                case 'Campeão Invicto':
-                    return `<span class="font-semibold text-amber-500"><i class="fas fa-trophy mr-2"></i>${fase}</span>`;
-                case 'Final':
-                    return `<span class="font-semibold text-slate-500"><i class="fas fa-medal mr-2"></i>${fase}</span>`;
-                case 'Semifinal':
-                    return `<span class="font-semibold text-orange-700"><i class="fas fa-award mr-2"></i>${fase}</span>`;
-                default:
-                    return fase;
+                case 'Campeão Invicto': return `<span class="font-semibold text-amber-500"><i class="fas fa-trophy mr-1 sm:mr-2"></i>${fase}</span>`;
+                case 'Final': return `<span class="font-semibold text-slate-500"><i class="fas fa-medal mr-1 sm:mr-2"></i>${fase}</span>`;
+                case 'Semifinal': return `<span class="font-semibold text-orange-700"><i class="fas fa-award mr-1 sm:mr-2"></i>${fase}</span>`;
+                default: return fase;
             }
         }
 
@@ -511,16 +502,16 @@
                 if (tabelaBody) {
                     const faseFormatada = formatarFase(torneio.fase);
                     tabelaBody.innerHTML += `<tr class="border-b border-slate-200/50 hover:bg-slate-50/50">
-                        <td class="py-3 px-2">${dataFormatada}</td>
-                        <td class="py-3 px-2 font-semibold text-slate-700">${torneio.nome}</td>
-                        <td class="py-3 px-2">${torneio.tipo}</td>
-                        <td class="py-3 px-2">${torneio.superficie}</td>
-                        <td class="py-3 px-2">${faseFormatada}</td>
-                        <td class="py-3 px-2 ${!pontosValidos ? 'text-gray-400 line-through' : ''}">${torneio.pontos}</td>
-                        <td class="py-3 px-2">${(torneio.premiacao || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                        <td class="py-3 px-2 text-green-600 font-semibold">${torneio.vitorias}</td>
-                        <td class="py-3 px-2 text-red-600 font-semibold">${torneio.derrotas}</td>
-                        <td class="py-3 px-2"><button class="delete-btn" data-id="${torneio.id}" aria-label="Excluir torneio"><i class="fas fa-trash"></i></button></td>
+                        <td class="py-3 px-1 sm:px-2">${dataFormatada}</td>
+                        <td class="py-3 px-1 sm:px-2 font-semibold text-slate-700 break-words">${torneio.nome}</td>
+                        <td class="py-3 px-1 sm:px-2">${torneio.tipo}</td>
+                        <td class="py-3 px-1 sm:px-2">${torneio.superficie}</td>
+                        <td class="py-3 px-1 sm:px-2">${faseFormatada}</td>
+                        <td class="py-3 px-1 sm:px-2 ${!pontosValidos ? 'text-gray-400 line-through' : ''}">${torneio.pontos}</td>
+                        <td class="py-3 px-1 sm:px-2">${(torneio.premiacao || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
+                        <td class="py-3 px-1 sm:px-2 text-green-600 font-semibold">${torneio.vitorias}</td>
+                        <td class="py-3 px-1 sm:px-2 text-red-600 font-semibold">${torneio.derrotas}</td>
+                        <td class="py-3 px-1 sm:px-2"><button class="delete-btn" data-id="${torneio.id}" aria-label="Excluir torneio"><i class="fas fa-trash"></i></button></td>
                     </tr>`;
                 }
                 stats.premiacao += (Number(torneio.premiacao) || 0); if (!stats.porAno[torneio.ano]) stats.porAno[torneio.ano] = { vitorias: 0, derrotas: 0 }; stats.porAno[torneio.ano].vitorias += (Number(torneio.vitorias) || 0); stats.porAno[torneio.ano].derrotas += (Number(torneio.derrotas) || 0); if (!stats.porTipo[categoria].torneios[torneio.nome]) { stats.porTipo[categoria].torneios[torneio.nome] = { v: 0, d: 0, anos: [], anosTitulo: [] }; } stats.porTipo[categoria].v += (Number(torneio.vitorias) || 0); stats.porTipo[categoria].d += (Number(torneio.derrotas) || 0); stats.porTipo[categoria].torneios[torneio.nome].v += (Number(torneio.vitorias) || 0); stats.porTipo[categoria].torneios[torneio.nome].d += (Number(torneio.derrotas) || 0); stats.porTipo[categoria].torneios[torneio.nome].anos.push(torneio.ano); if ((torneio.fase === 'Final' || torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') && categoria !== 'Challenger') { stats.finaisATP++; if (categoria === 'Grand Slam') stats.finaisGrandSlam++; } if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') { stats.titulosGeral++; stats.porTipo[categoria].t++; stats.porTipo[categoria].torneios[torneio.nome].anosTitulo.push(torneio.ano); titulosPorAno[torneio.ano] = (titulosPorAno[torneio.ano] || 0) + 1; const nomeNormalizado = torneio.nome.toLowerCase(); titulosPorNome[nomeNormalizado] = (titulosPorNome[nomeNormalizado] || 0) + 1; if (categoria === 'Grand Slam' || categoria === 'Jogos Olímpicos') { const nomesGS = ['australian open', 'roland garros', 'wimbledon', 'us open', 'jogos olímpicos']; if (nomesGS.includes(nomeNormalizado)) titulosGoldenSlam.add(nomeNormalizado); } if (categoria === 'Grand Slam' && torneio.data) { const dataTorneioObj = new Date(torneio.data + 'T00:00:00'); const idadeEmMeses = Math.floor((dataTorneioObj - dataNascimentoJogador) / (1000 * 60 * 60 * 24 * 30.44)); if (stats.idadeVencedorSlamMaisJovem === 0 || idadeEmMeses < stats.idadeVencedorSlamMaisJovem) stats.idadeVencedorSlamMaisJovem = idadeEmMeses; if (idadeEmMeses > stats.idadeVencedorSlamMaisVelho) stats.idadeVencedorSlamMaisVelho = idadeEmMeses; } } if (categoria !== 'Challenger') { stats.vitoriasATP += (Number(torneio.vitorias) || 0); stats.derrotasATP += (Number(torneio.derrotas) || 0); stats.porSuperficieATP[torneio.superficie].v += (Number(torneio.vitorias) || 0); stats.porSuperficieATP[torneio.superficie].d += (Number(torneio.derrotas) || 0); if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') { stats.titulosATP++; stats.porSuperficieATP[torneio.superficie].t++; } }
@@ -528,7 +519,6 @@
 
             if (Object.keys(titulosPorAno).length > 0) stats.maxTitulosEmUmAno = Math.max(...Object.values(titulosPorAno)); if (Object.keys(titulosPorNome).length > 0) { stats.maxTitulosUnicoTorneio = Math.max(...Object.values(titulosPorNome)); stats.nomeTorneioMaisVencido = Object.keys(titulosPorNome).reduce((a, b) => titulosPorNome[a] > titulosPorNome[b] ? a : b); } if (titulosGoldenSlam.size === 5) stats.goldenSlam = 1;
             
-            // CORREÇÃO: Removido '~' e alterado para 'pts'
             document.getElementById('ranking').textContent = stats.pontos > 0 ? `${estimarRanking(stats.pontos)}º (${stats.pontos} pts)` : 'Sem ranking';
             
             document.getElementById('premiacao').textContent = stats.premiacao.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); document.getElementById('titulos-total').textContent = stats.titulosGeral; document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`; document.getElementById('titulos-total-resumo').textContent = stats.titulosATP; document.getElementById('titulos-saibro').textContent = stats.porSuperficieATP.Saibro.t; document.getElementById('titulos-rapida').textContent = stats.porSuperficieATP.Rápida.t; document.getElementById('titulos-grama').textContent = stats.porSuperficieATP.Grama.t; document.getElementById('total-vitorias').textContent = stats.vitoriasATP; document.getElementById('total-derrotas').textContent = stats.derrotasATP; document.getElementById('taxa-vitorias').textContent = stats.vitoriasATP + stats.derrotasATP > 0 ? `${((stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) * 100).toFixed(1)}%` : '0%'; document.getElementById('vitorias-saibro').textContent = `${stats.porSuperficieATP.Saibro.v} / ${stats.porSuperficieATP.Saibro.d}`; document.getElementById('vitorias-rapida').textContent = `${stats.porSuperficieATP.Rápida.v} / ${stats.porSuperficieATP.Rápida.d}`; document.getElementById('vitorias-grama').textContent = `${stats.porSuperficieATP.Grama.v} / ${stats.porSuperficieATP.Grama.d}`;
@@ -551,6 +541,7 @@
             inicializarAbas(); inicializarGraficos(); inicializarToggleButtons(); calcularIdade(); atualizarFases();
         }
         document.addEventListener('DOMContentLoaded', inicializar);
+
     </script>
 </body>
 </html>
