@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fernando Lapa - Sistema de Tenista</title>
+    <title>Fernando Lapa - Dashboard de Tênis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"></script>
@@ -20,451 +20,194 @@
             --border: #e5e7eb;
             --error: #ef4444;
             --success: #22c55e;
-            --card-bg: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --sidebar-bg: rgba(255, 255, 255, 0.75);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 1rem;
+            background-color: var(--background);
+            background-image: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background-attachment: fixed;
             color: var(--text);
             overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: url('https://source.unsplash.com/1600x900/?tennis') center/cover no-repeat;
-            opacity: 0.08;
-            z-index: -1;
-        }
-
-        .container {
-            background: var(--card-bg);
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            max-width: 1400px;
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
             width: 100%;
-            padding: 2rem;
-            margin: 1.5rem;
-            animation: slideIn 0.6s ease-out;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0.5rem;
         }
 
-        @keyframes slideIn {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        @media (min-width: 768px) {
+            .main-container {
+                padding: 1.5rem;
+            }
         }
 
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            border-bottom: 2px solid var(--border);
-            margin-bottom: 2rem;
-            overflow-x: auto;
-            scrollbar-width: none;
+        @media (min-width: 1024px) {
+            .main-container {
+                grid-template-columns: 320px 1fr;
+            }
         }
-
-        .tabs::-webkit-scrollbar {
-            display: none;
+        
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
         }
 
         .tab-button {
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1.25rem;
             font-weight: 600;
-            font-size: 0.95rem;
-            background: transparent;
-            border: none;
-            color: var(--text);
+            font-size: 0.9rem;
+            border-radius: 0.75rem;
+            border: 2px solid transparent;
+            color: #4b5563;
             cursor: pointer;
-            position: relative;
             transition: all 0.3s ease;
             white-space: nowrap;
         }
 
-        .tab-button::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 3px;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-
         .tab-button.active, .tab-button:hover {
-            color: var(--accent);
-        }
-
-        .tab-button.active::after, .tab-button:hover::after {
-            width: 100%;
-        }
-
-        .tab-button:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
+            color: var(--primary);
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.5s ease;
         }
-
         .tab-content.active {
             display: block;
+            animation: smoothEnter 0.5s ease-out forwards;
+        }
+        
+        .form-collapsible {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        .form-collapsible.open {
+            max-height: 1000px;
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .btn {
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.5s ease, height 0.5s ease;
-        }
-
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .btn:hover, .btn:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            outline: none;
-        }
-
-        .delete-btn {
-            color: var(--error);
-            transition: all 0.3s ease;
-        }
-
-        .delete-btn:hover, .delete-btn:focus {
-            color: #b91c1c;
-            transform: scale(1.1);
-        }
-
-        .toggle-btn {
-            background: transparent;
-            border: none;
-            color: var(--primary);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 0.5rem;
-        }
-
-        .toggle-btn:hover, .toggle-btn:focus {
-            color: var(--accent);
-            transform: scale(1.1);
-            outline: none;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--card-bg);
-            border-radius: 0.75rem;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        th:hover {
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-        }
-
-        tr:nth-child(even) {
-            background: #f9fafb;
-        }
-
-        tr:hover {
-            background: #e0f2fe;
-            transition: background 0.2s ease;
-        }
-
-        input, select {
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            padding: 0.75rem;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2);
-            outline: none;
-        }
-
-        .error-message {
-            color: var(--error);
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
-            display: none;
-        }
-
-        .success-message {
-            color: var(--success);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .sub-table {
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-            width: 100%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        }
-        
-        .record-card {
-            border-left: 5px solid var(--accent);
-        }
-
-        .chart-container {
-            max-width: 100%;
-            margin-top: 2rem;
-            background: var(--card-bg);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-            animation: fadeInBackdrop 0.3s ease;
+        @keyframes smoothEnter {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal-content {
-            background: var(--card-bg);
-            border-radius: 1rem;
-            max-width: 800px;
+            animation: smoothEnter 0.4s ease-out forwards;
+        }
+        
+        /* MELHORIA: Estilos para a lista dentro do modal */
+        #modalBody .sub-table {
             width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.7);
-            opacity: 0;
-            animation: modalPopIn 0.3s ease forwards;
+            border-collapse: collapse;
+            font-size: 0.9rem;
         }
-
-        @keyframes modalPopIn {
-            to { transform: scale(1); opacity: 1; }
+        #modalBody .sub-table th {
+            display: none; /* Esconde cabeçalhos desnecessários */
         }
-
-        @keyframes fadeInBackdrop {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content.closing {
-            animation: modalPopOut 0.2s ease forwards;
-        }
-
-        @keyframes modalPopOut {
-            from { transform: scale(1); opacity: 1; }
-            to { transform: scale(0.7); opacity: 0; }
-        }
-
-        .modal-header {
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem 1rem 0 0;
+        #modalBody .sub-table tr {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0.75rem 0.25rem;
+            border-bottom: 1px solid var(--border);
         }
-
-        .modal-close {
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: color 0.3s ease;
+        #modalBody .sub-table tr:last-child {
+            border-bottom: none;
         }
-
-        .modal-close:hover {
-            color: var(--accent);
+        #modalBody .sub-table td {
+            padding: 0;
+            border: none;
         }
-
-        @media (max-width: 1024px) {
-            .container {
-                padding: 1.5rem;
-                margin: 1rem;
-            }
-
-            th, td {
-                font-size: 0.9rem;
-                padding: 0.75rem;
-            }
+        #modalBody .sub-table td:first-child {
+            font-weight: 600;
+            color: var(--text);
         }
-
-        @media (max-width: 768px) {
-            .tabs {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .tab-button {
-                width: 100%;
-                text-align: center;
-                padding: 1rem;
-                border-radius: 0.5rem;
-            }
-
-            .grid-cols-4, .grid-cols-3, .grid-cols-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 1rem;
-                margin: 0.5rem;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            th, td {
-                font-size: 0.8rem;
-                padding: 0.5rem;
-            }
+        #modalBody .sub-table td:last-child {
+            font-weight: 500;
+            color: #4b5563;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1 class="text-3xl md:text-4xl font-bold text-center text-white mb-8">Sistema de Fernando Lapa</h1>
-        <div class="tabs" role="tablist">
-            <button class="tab-button active" data-tab="geral" role="tab" aria-selected="true">Informações Gerais</button>
-            <button class="tab-button" data-tab="temporadas" role="tab" aria-selected="false">Temporadas</button>
-            <button class="tab-button" data-tab="titulos" role="tab" aria-selected="false">Títulos na Carreira</button>
-            <button class="tab-button" data-tab="vitorias" role="tab" aria-selected="false">Vitórias e Derrotas</button>
-            <button class="tab-button" data-tab="recordes" role="tab" aria-selected="false">Recordes</button>
-        </div>
-
-        <div id="geral" class="tab-content active" role="tabpanel">
-            <h2 class="text-2xl font-semibold mb-6">Informações Gerais</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="card">
-                    <p><strong>Nome:</strong> Fernando Lapa</p>
+<body class="bg-slate-50">
+    <div class="main-container">
+        <aside class="space-y-6">
+            <div class="glass-card p-6 text-center fade-in-up">
+                <img src="https://ui-avatars.com/api/?name=Fernando+Lapa&background=1e40af&color=fff&size=96&bold=true&rounded=true" alt="Avatar Fernando Lapa" class="mx-auto mb-4 border-4 border-white/50 rounded-full shadow-lg">
+                <h1 class="text-2xl font-bold text-slate-800">Fernando Lapa</h1>
+                <p class="text-sm text-slate-600">Tenista Profissional</p>
+                <div class="text-xs text-slate-500 mt-2">
+                    <i class="fa-solid fa-cake-candles mr-1"></i> 18/02/2011 (<span id="idade">14</span> anos)
                 </div>
-                <div class="card">
-                    <p><strong>Data de Nascimento:</strong> 18/02/2011 (<span id="idade">14 anos</span>)</p>
-                </div>
-                <div class="card">
-                    <p><strong>Onde Mora:</strong> Florianópolis, SC, Brasil</p>
-                </div>
-                <div class="card">
-                    <p><strong>Onde Nasceu:</strong> Florianópolis, SC, Brasil</p>
-                </div>
-                <div class="card">
-                    <p><strong>Ranking Mundial Atual:</strong> <span id="ranking">Sem ranking</span></p>
-                </div>
-                <div class="card">
-                    <p><strong>Premiação na Carreira:</strong> <span id="premiacao">$0.00</span></p>
-                </div>
-                <div class="card">
-                    <p><strong>Títulos na Carreira:</strong> <span id="titulos-total">0</span></p>
-                </div>
-                <div class="card">
-                    <p><strong>Vitórias/Derrotas (ATP):</strong> <span id="vitorias-derrotas">0 / 0</span></p>
+                <div class="text-xs text-slate-500 mt-1">
+                    <i class="fa-solid fa-location-dot mr-1"></i> Florianópolis, SC, Brasil
                 </div>
             </div>
-            <div class="chart-container">
-                <canvas id="geralChart"></canvas>
-            </div>
-        </div>
 
-        <div id="temporadas" class="tab-content" role="tabpanel">
-            <h2 class="text-2xl font-semibold mb-6">Temporadas</h2>
-
-            <div class="flex items-center gap-4 mb-4 bg-slate-100 p-3 rounded-lg">
-                <label for="season-filter" class="font-semibold text-gray-700">Filtrar Estatísticas por Temporada:</label>
-                <select id="season-filter" class="p-2 border rounded-md focus:ring-accent focus:border-accent"></select>
+            <div class="glass-card p-6 space-y-4 fade-in-up" style="animation-delay: 0.1s;">
+                <h2 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4">Estatísticas</h2>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-ranking-star w-5 mr-2 text-primary"></i>Ranking</span>
+                    <span id="ranking" class="font-bold text-slate-700">Sem ranking</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-sack-dollar w-5 mr-2 text-secondary"></i>Prêmios</span>
+                    <span id="premiacao" class="font-bold text-slate-700">$0.00</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-trophy w-5 mr-2 text-accent"></i>Títulos</span>
+                    <span id="titulos-total" class="font-bold text-slate-700">0</span>
+                </div>
+                 <div class="flex items-center justify-between text-sm">
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-right-left w-5 mr-2 text-green-500"></i>V/D (ATP)</span>
+                    <span id="vitorias-derrotas" class="font-bold text-slate-700">0 / 0</span>
+                </div>
             </div>
-            <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                <p><strong>Vitórias (ATP):</strong> <span id="temporadas-vitorias">0</span></p>
-                <p><strong>Derrotas (ATP):</strong> <span id="temporadas-derrotas">0</span></p>
-                <p><strong>Títulos (ATP):</strong> <span id="temporadas-titulos">0</span></p>
-                <p><strong id="temporadas-premiacao-label">Premiação Total (Carreira):</strong> <span id="temporadas-premiacao">$0.00</span></p>
-            </div>
 
-            <p id="success-message" class="success-message">Torneio adicionado com sucesso!</p>
-            
-            <form id="torneio-form" class="mb-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <input type="date" id="data-torneio" class="w-full" aria-label="Data do torneio">
+            <div class="glass-card p-4 fade-in-up" style="animation-delay: 0.2s;">
+                 <button id="toggle-form-btn" class="w-full flex justify-between items-center p-2 font-bold text-slate-800">
+                    <span><i class="fa-solid fa-plus-circle mr-2"></i>Adicionar Torneio</span>
+                    <i id="form-icon" class="fa-solid fa-chevron-down transition-transform"></i>
+                </button>
+                <div id="add-tournament-collapsible" class="form-collapsible">
+                    <p id="success-message" class="hidden success-message text-center mt-4">Torneio adicionado!</p>
+                    <form id="torneio-form" class="mt-4 space-y-4 p-2">
+                        <input type="date" id="data-torneio" class="w-full text-sm" aria-label="Data do torneio">
                         <p id="data-error" class="error-message">Selecione uma data válida.</p>
-                    </div>
-                    <div>
-                        <input type="text" id="nome-torneio" placeholder="Nome do Torneio" class="w-full" aria-label="Nome do torneio">
+                        
+                        <input type="text" id="nome-torneio" placeholder="Nome do Torneio" class="w-full text-sm" aria-label="Nome do torneio">
                         <p id="nome-error" class="error-message">Insira o nome do torneio.</p>
-                    </div>
-                    <div>
-                        <select id="tipo-torneio" class="w-full" aria-label="Tipo do torneio">
+                        
+                        <select id="tipo-torneio" class="w-full text-sm" aria-label="Tipo do torneio">
                             <option value="Grand Slam">Grand Slam</option>
                             <option value="ATP Finals">ATP Finals</option>
                             <option value="ATP Masters 1000">ATP Masters 1000</option>
@@ -476,790 +219,338 @@
                             <option value="CH 75">Challenger 75</option>
                             <option value="CH 50">Challenger 50</option>
                         </select>
-                    </div>
-                    <div>
-                        <select id="superficie-torneio" class="w-full" aria-label="Superfície do torneio">
+                        
+                        <select id="superficie-torneio" class="w-full text-sm" aria-label="Superfície do torneio">
                             <option value="Saibro">Saibro</option>
                             <option value="Rápida">Rápida</option>
                             <option value="Grama">Grama</option>
                         </select>
-                    </div>
-                    <div>
-                        <select id="fase-torneio" class="w-full" aria-label="Fase do torneio"></select>
-                    </div>
-                    <div>
-                        <input type="number" id="pontos-manual-torneio" placeholder="Pontos (Opcional)" class="w-full" aria-label="Pontuação manual do torneio" min="0">
-                    </div>
-                    <div>
-                        <input type="text" id="premiacao-torneio" inputmode="numeric" placeholder="Premiação" class="w-full" aria-label="Premiação do torneio">
+                        
+                        <select id="fase-torneio" class="w-full text-sm" aria-label="Fase do torneio"></select>
+                        
+                        <input type="number" id="pontos-manual-torneio" placeholder="Pontos (Opcional)" class="w-full text-sm" aria-label="Pontuação manual do torneio" min="0">
+                        
+                        <input type="text" id="premiacao-torneio" inputmode="numeric" placeholder="Premiação" class="w-full text-sm" aria-label="Premiação do torneio">
                         <p id="premiacao-error" class="error-message">Insira um valor válido.</p>
-                    </div>
-                </div>
-                <button type="submit" class="btn mt-4">Adicionar Torneio</button>
-            </form>
 
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr>
-                            <th data-sort="data">Data</th>
-                            <th data-sort="nome">Torneio</th>
-                            <th data-sort="tipo">Tipo</th>
-                            <th data-sort="superficie">Superfície</th>
-                            <th data-sort="fase">Fase</th>
-                            <th data-sort="pontos">Pontos</th>
-                            <th data-sort="premiacao">Premiação (USD)</th>
-                            <th data-sort="vitorias">Vitórias</th>
-                            <th data-sort="derrotas">Derrotas</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="temporadas-tabela"></tbody>
-                </table>
+                        <button type="submit" class="btn w-full">Adicionar</button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <main class="space-y-6">
+            <div class="bg-slate-200/50 p-2 rounded-xl flex items-center justify-start gap-2 overflow-x-auto fade-in-up" style="animation-delay: 0.3s;" role="tablist">
+                 <button class="tab-button active" data-tab="temporadas" role="tab" aria-selected="true">Temporadas</button>
+                 <button class="tab-button" data-tab="titulos" role="tab" aria-selected="false">Títulos</button>
+                 <button class="tab-button" data-tab="vitorias" role="tab" aria-selected="false">Vitórias/Derrotas</button>
+                 <button class="tab-button" data-tab="recordes" role="tab" aria-selected="false">Recordes</button>
             </div>
             
-            <div class="mt-8 pt-6 border-t">
-                <h3 class="text-xl font-semibold mb-4">Gerenciar Dados</h3>
-                <div class="flex flex-wrap gap-4 items-center">
-                    <button id="export-btn" class="btn">Exportar para Arquivo</button>
-                    <label for="import-file" class="btn cursor-pointer">Importar de Arquivo</label>
-                    <input type="file" id="import-file" class="hidden" accept=".json, .txt">
-                </div>
-                <p class="text-sm text-gray-600 mt-2">Salve seus dados em um arquivo para transferir para outro computador ou fazer backup.</p>
-            </div>
-        </div>
+            <div class="fade-in-up" style="animation-delay: 0.4s;">
+                <div id="temporadas" class="tab-content active" role="tabpanel">
+                    <div class="glass-card p-4 md:p-6">
+                        <h2 class="text-2xl font-bold mb-6 text-slate-800">Histórico de Temporadas</h2>
 
-        <div id="titulos" class="tab-content" role="tabpanel">
-            <h2 class="text-2xl font-semibold mb-6">Títulos na Carreira</h2>
-            <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                <p class="font-semibold"><strong>Total de Títulos (ATP):</strong> <span id="titulos-total-resumo">0</span></p>
-                <p><strong>Grand Slams:</strong> <span id="titulos-grand-slam">0</span>
-                    <button class="toggle-btn" data-target="grand-slam-torneios" data-title="Títulos - Grand Slam" aria-label="Ver detalhes dos títulos de Grand Slam"><i class="fas fa-plus"></i></button>
-                </p>
-                <div id="grand-slam-torneios" class="hidden"></div>
-                <p><strong>ATP Finals:</strong> <span id="titulos-atp-finals">0</span>
-                    <button class="toggle-btn" data-target="atp-finals-torneios" data-title="Títulos - ATP Finals" aria-label="Ver detalhes dos títulos de ATP Finals"><i class="fas fa-plus"></i></button>
-                </p>
-                <div id="atp-finals-torneios" class="hidden"></div>
-                <p><strong>Jogos Olímpicos:</strong> <span id="titulos-jogos-olímpicos">0</span>
-                    <button class="toggle-btn" data-target="jogos-olímpicos-torneios" data-title="Títulos - Jogos Olímpicos" aria-label="Ver detalhes dos títulos de Jogos Olímpicos"><i class="fas fa-plus"></i></button>
-                </p>
-                <div id="jogos-olímpicos-torneios" class="hidden"></div>
-                <p><strong>ATP Masters 1000:</strong> <span id="titulos-atp-masters-1000">0</span>
-                    <button class="toggle-btn" data-target="atp-masters-1000-torneios" data-title="Títulos - ATP Masters 1000" aria-label="Ver detalhes dos títulos de ATP Masters 1000"><i class="fas fa-plus"></i></button>
-                </p>
-                <div id="atp-masters-1000-torneios" class="hidden"></div>
-                <p><strong>ATP 500:</strong> <span id="titulos-atp-500">0</span>
-                    <button class="toggle-btn" data-target="atp-500-torneios" data-title="Títulos - ATP 500" aria-label="Ver detalhes dos títulos de ATP 500"><i class="fas fa-plus"></i></button>
-                </p>
-                <div id="atp-500-torneios" class="hidden"></div>
-                <p><strong>ATP 250:</strong> <span id="titulos-atp-250">0</span>
-                    <button class="toggle-btn" data-target="atp-250-torneios" data-title="Títulos - ATP 250" aria-label="Ver detalhes dos títulos de ATP 250"><i class="fas fa-plus"></i></button>
-                </p>
-                <div id="atp-250-torneios" class="hidden"></div>
-                <p><strong>Challenger:</strong> <span id="titulos-challenger">0</span>
-                    <button class="toggle-btn" data-target="challenger-torneios" data-title="Títulos - Challenger" aria-label="Ver detalhes dos títulos de Challenger"><i class="fas fa-plus"></i></button>
-                </p>
-                <div id="challenger-torneios" class="hidden"></div>
-                <p class="font-semibold mt-4">Títulos por Superfície (ATP):</p>
-                <ul class="list-disc pl-6">
-                    <li>Saibro: <span id="titulos-saibro">0</span></li>
-                    <li>Rápida: <span id="titulos-rapida">0</span></li>
-                    <li>Grama: <span id="titulos-grama">0</span></li>
-                </ul>
+                        <div class="flex items-center gap-4 mb-4 bg-slate-100 p-3 rounded-lg">
+                            <label for="season-filter" class="font-semibold text-gray-700 text-sm">Filtrar por Temporada:</label>
+                            <select id="season-filter" class="p-2 border rounded-md focus:ring-accent focus:border-accent"></select>
+                        </div>
+                        <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-xs text-slate-500">Vitórias (ATP)</p>
+                                <p id="temporadas-vitorias" class="font-bold text-lg text-green-600">0</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-xs text-slate-500">Derrotas (ATP)</p>
+                                <p id="temporadas-derrotas" class="font-bold text-lg text-red-600">0</p>
+                            </div>
+                             <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-xs text-slate-500">Títulos (ATP)</p>
+                                <p id="temporadas-titulos" class="font-bold text-lg text-amber-500">0</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p id="temporadas-premiacao-label" class="text-xs text-slate-500">Premiação</p>
+                                <p id="temporadas-premiacao" class="font-bold text-lg text-blue-700">$0.00</p>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="text-xs">
+                                    <tr>
+                                        <th class="py-3 px-2 text-left">Data</th>
+                                        <th class="py-3 px-2 text-left">Torneio</th>
+                                        <th class="py-3 px-2 text-left">Tipo</th>
+                                        <th class="py-3 px-2 text-left">Superfície</th>
+                                        <th class="py-3 px-2 text-left">Fase</th>
+                                        <th class="py-3 px-2 text-left">Pontos</th>
+                                        <th class="py-3 px-2 text-left">Prêmio</th>
+                                        <th class="py-3 px-2 text-left">V</th>
+                                        <th class="py-3 px-2 text-left">D</th>
+                                        <th class="py-3 px-2 text-left">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="temporadas-tabela" class="text-sm align-middle"></tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-slate-200">
+                             <h3 class="text-lg font-semibold mb-4 text-slate-700">Gerenciar Dados</h3>
+                             <div class="flex flex-wrap gap-4 items-center">
+                                 <button id="export-btn" class="btn">Exportar</button>
+                                 <label for="import-file" class="btn cursor-pointer">Importar</label>
+                                 <input type="file" id="import-file" class="hidden" accept=".json, .txt">
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="titulos" class="tab-content" role="tabpanel">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-card p-4 md:p-6">
+                            <h2 class="text-2xl font-bold mb-6 text-slate-800">Resumo de Títulos</h2>
+                             <p class="font-semibold text-lg">Total de Títulos (ATP): <span id="titulos-total-resumo" class="text-primary">0</span></p>
+                             <div class="mt-4 space-y-2 text-sm">
+                                <p><strong>Grand Slams:</strong> <span id="titulos-grand-slam">0</span>
+                                    <button class="toggle-btn" data-target="grand-slam-torneios" data-title="Títulos - Grand Slam"><i class="fas fa-plus"></i></button>
+                                </p>
+                                <div id="grand-slam-torneios" class="hidden"></div>
+                                <p><strong>ATP Finals:</strong> <span id="titulos-atp-finals">0</span>
+                                    <button class="toggle-btn" data-target="atp-finals-torneios" data-title="Títulos - ATP Finals"><i class="fas fa-plus"></i></button>
+                                </p>
+                                <div id="atp-finals-torneios" class="hidden"></div>
+                                <p><strong>Jogos Olímpicos:</strong> <span id="titulos-jogos-olímpicos">0</span>
+                                    <button class="toggle-btn" data-target="jogos-olímpicos-torneios" data-title="Títulos - Jogos Olímpicos"><i class="fas fa-plus"></i></button>
+                                </p>
+                                <div id="jogos-olímpicos-torneios" class="hidden"></div>
+                                <p><strong>ATP Masters 1000:</strong> <span id="titulos-atp-masters-1000">0</span>
+                                    <button class="toggle-btn" data-target="atp-masters-1000-torneios" data-title="Títulos - ATP Masters 1000"><i class="fas fa-plus"></i></button>
+                                </p>
+                                <div id="atp-masters-1000-torneios" class="hidden"></div>
+                                <p><strong>ATP 500:</strong> <span id="titulos-atp-500">0</span>
+                                    <button class="toggle-btn" data-target="atp-500-torneios" data-title="Títulos - ATP 500"><i class="fas fa-plus"></i></button>
+                                </p>
+                                <div id="atp-500-torneios" class="hidden"></div>
+                                <p><strong>ATP 250:</strong> <span id="titulos-atp-250">0</span>
+                                    <button class="toggle-btn" data-target="atp-250-torneios" data-title="Títulos - ATP 250"><i class="fas fa-plus"></i></button>
+                                </p>
+                                <div id="atp-250-torneios" class="hidden"></div>
+                                <p><strong>Challenger:</strong> <span id="titulos-challenger">0</span>
+                                    <button class="toggle-btn" data-target="challenger-torneios" data-title="Títulos - Challenger"><i class="fas fa-plus"></i></button>
+                                </p>
+                                <div id="challenger-torneios" class="hidden"></div>
+                             </div>
+                             <p class="font-semibold mt-6 pt-4 border-t border-slate-200">Títulos por Superfície (ATP):</p>
+                             <ul class="list-disc pl-6 text-sm">
+                                 <li>Saibro: <span id="titulos-saibro">0</span></li>
+                                 <li>Rápida: <span id="titulos-rapida">0</span></li>
+                                 <li>Grama: <span id="titulos-grama">0</span></li>
+                             </ul>
+                        </div>
+                         <div class="glass-card p-4 md:p-6">
+                            <h3 class="text-xl font-bold mb-4 text-slate-800">Distribuição de Títulos</h3>
+                            <canvas id="titulosChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="vitorias" class="tab-content" role="tabpanel">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-card p-4 md:p-6">
+                            <h2 class="text-2xl font-bold mb-6 text-slate-800">Vitórias e Derrotas</h2>
+                            <p><strong>Total (ATP):</strong> <span id="total-vitorias" class="text-green-600">0</span> Vitórias / <span id="total-derrotas" class="text-red-600">0</span> Derrotas</p>
+                            <p><strong>Taxa de Vitórias (ATP):</strong> <span id="taxa-vitorias" class="font-bold text-primary">0%</span></p>
+
+                            <p class="font-semibold mt-6 pt-4 border-t border-slate-200">Por Tipo de Torneio:</p>
+                            <div class="text-sm space-y-1 mt-2">
+                                <div>Grand Slam: <span id="vitorias-grand-slam">0 / 0</span>
+                                 <button class="toggle-btn" data-target="vitorias-grand-slam-torneios" data-title="Vitórias/Derrotas - Grand Slam"><i class="fas fa-plus"></i></button>
+                                 <div id="vitorias-grand-slam-torneios" class="hidden"></div>
+                                </div>
+                                <div>ATP Finals: <span id="vitorias-atp-finals">0 / 0</span>
+                                 <button class="toggle-btn" data-target="vitorias-atp-finals-torneios" data-title="Vitórias/Derrotas - ATP Finals"><i class="fas fa-plus"></i></button>
+                                 <div id="vitorias-atp-finals-torneios" class="hidden"></div>
+                                </div>
+                                 <div>Jogos Olímpicos: <span id="vitorias-jogos-olímpicos">0 / 0</span>
+                                 <button class="toggle-btn" data-target="vitorias-jogos-olímpicos-torneios" data-title="Vitórias/Derrotas - Jogos Olímpicos"><i class="fas fa-plus"></i></button>
+                                 <div id="vitorias-jogos-olímpicos-torneios" class="hidden"></div>
+                                </div>
+                                <div>ATP Masters 1000: <span id="vitorias-atp-masters-1000">0 / 0</span>
+                                 <button class="toggle-btn" data-target="vitorias-atp-masters-1000-torneios" data-title="Vitórias/Derrotas - ATP Masters 1000"><i class="fas fa-plus"></i></button>
+                                 <div id="vitorias-atp-masters-1000-torneios" class="hidden"></div>
+                                </div>
+                                <div>ATP 500: <span id="vitorias-atp-500">0 / 0</span>
+                                 <button class="toggle-btn" data-target="vitorias-atp-500-torneios" data-title="Vitórias/Derrotas - ATP 500"><i class="fas fa-plus"></i></button>
+                                 <div id="vitorias-atp-500-torneios" class="hidden"></div>
+                                </div>
+                                <div>ATP 250: <span id="vitorias-atp-250">0 / 0</span>
+                                 <button class="toggle-btn" data-target="vitorias-atp-250-torneios" data-title="Vitórias/Derrotas - ATP 250"><i class="fas fa-plus"></i></button>
+                                 <div id="vitorias-atp-250-torneios" class="hidden"></div>
+                                </div>
+                                <div>Challenger: <span id="vitorias-challenger">0 / 0</span>
+                                 <button class="toggle-btn" data-target="vitorias-challenger-torneios" data-title="Vitórias/Derrotas - Challenger"><i class="fas fa-plus"></i></button>
+                                 <div id="vitorias-challenger-torneios" class="hidden"></div>
+                                </div>
+                            </div>
+
+                            <p class="font-semibold mt-6 pt-4 border-t border-slate-200">Por Superfície (ATP):</p>
+                             <ul class="list-disc pl-6 text-sm">
+                                 <li>Saibro: <span id="vitorias-saibro">0 / 0</span></li>
+                                 <li>Rápida: <span id="vitorias-rapida">0 / 0</span></li>
+                                 <li>Grama: <span id="vitorias-grama">0 / 0</span></li>
+                             </ul>
+                        </div>
+                        <div class="glass-card p-4 md:p-6">
+                            <h3 class="text-xl font-bold mb-4 text-slate-800">Desempenho por Superfície</h3>
+                            <canvas id="vitoriasChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="recordes" class="tab-content" role="tabpanel">
+                     <div class="glass-card p-4 md:p-6">
+                        <h2 class="text-2xl font-bold mb-6 text-slate-800">Recordes na Carreira</h2>
+                        <div id="recordes-conquistados" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <p class="text-gray-500 md:col-span-2">Nenhum recorde mundial quebrado ainda. Continue treinando!</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="chart-container">
-                <canvas id="titulosChart"></canvas>
-            </div>
-        </div>
-        <div id="vitorias" class="tab-content" role="tabpanel">
-            <h2 class="text-2xl font-semibold mb-6">Vitórias e Derrotas</h2>
-            <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                <p><strong>Total de Vitórias (ATP):</strong> <span id="total-vitorias">0</span></p>
-                <p><strong>Total de Derrotas (ATP):</strong> <span id="total-derrotas">0</span></p>
-                <p><strong>Taxa de Vitórias (ATP):</strong> <span id="taxa-vitorias">0%</span></p>
-                <p class="font-semibold mt-4">Vitórias/Derrotas por Tipo de Torneio:</p>
-                <ul class="list-disc pl-6">
-                    <li>
-                        Grand Slam: <span id="vitorias-grand-slam">0 / 0</span>
-                        <button class="toggle-btn" data-target="vitorias-grand-slam-torneios" data-title="Vitórias/Derrotas - Grand Slam" aria-label="Expandir torneios Grand Slam">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <div id="vitorias-grand-slam-torneios" class="hidden"></div>
-                    </li>
-                    <li>
-                        ATP Finals: <span id="vitorias-atp-finals">0 / 0</span>
-                        <button class="toggle-btn" data-target="vitorias-atp-finals-torneios" data-title="Vitórias/Derrotas - ATP Finals" aria-label="Expandir torneios ATP Finals">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <div id="vitorias-atp-finals-torneios" class="hidden"></div>
-                    </li>
-                    <li>
-                        Jogos Olímpicos: <span id="vitorias-jogos-olímpicos">0 / 0</span>
-                        <button class="toggle-btn" data-target="vitorias-jogos-olímpicos-torneios" data-title="Vitórias/Derrotas - Jogos Olímpicos" aria-label="Expandir torneios Jogos Olímpicos">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <div id="vitorias-jogos-olímpicos-torneios" class="hidden"></div>
-                    </li>
-                    <li>
-                        ATP Masters 1000: <span id="vitorias-atp-masters-1000">0 / 0</span>
-                        <button class="toggle-btn" data-target="vitorias-atp-masters-1000-torneios" data-title="Vitórias/Derrotas - ATP Masters 1000" aria-label="Expandir torneios ATP Masters 1000">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <div id="vitorias-atp-masters-1000-torneios" class="hidden"></div>
-                    </li>
-                    <li>
-                        ATP 500: <span id="vitorias-atp-500">0 / 0</span>
-                        <button class="toggle-btn" data-target="vitorias-atp-500-torneios" data-title="Vitórias/Derrotas - ATP 500" aria-label="Expandir torneios ATP 500">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <div id="vitorias-atp-500-torneios" class="hidden"></div>
-                    </li>
-                    <li>
-                        ATP 250: <span id="vitorias-atp-250">0 / 0</span>
-                        <button class="toggle-btn" data-target="vitorias-atp-250-torneios" data-title="Vitórias/Derrotas - ATP 250" aria-label="Expandir torneios ATP 250">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <div id="vitorias-atp-250-torneios" class="hidden"></div>
-                    </li>
-                    <li>
-                        Challenger: <span id="vitorias-challenger">0 / 0</span>
-                        <button class="toggle-btn" data-target="vitorias-challenger-torneios" data-title="Vitórias/Derrotas - Challenger" aria-label="Expandir torneios Challenger">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <div id="vitorias-challenger-torneios" class="hidden"></div>
-                    </li>
-                </ul>
-                <p class="font-semibold mt-4">Vitórias/Derrotas por Superfície (ATP):</p>
-                <ul class="list-disc pl-6">
-                    <li>Saibro: <span id="vitorias-saibro">0 / 0</span></li>
-                    <li>Rápida: <span id="vitorias-rapida">0 / 0</span></li>
-                    <li>Grama: <span id="vitorias-grama">0 / 0</span></li>
-                </ul>
-            </div>
-            <div class="chart-container">
-                <canvas id="vitoriasChart"></canvas>
-            </div>
-        </div>
-        <div id="recordes" class="tab-content" role="tabpanel">
-            <h2 class="text-2xl font-semibold mb-6">Recordes na Carreira</h2>
-            <div id="recordes-conquistados" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <p class="text-gray-500 md:col-span-2">Nenhum recorde mundial quebrado ainda. Continue treinando!</p>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <div id="torneioModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div id="torneioModal" class="fixed inset-0 z-50 items-center justify-center bg-black/60 hidden">
+        <div class="modal-content glass-card max-w-2xl w-full">
+            <div class="flex justify-between items-center p-4 border-b">
                 <h3 id="modalTitle" class="text-xl font-bold">Detalhes</h3>
-                <button id="closeModalBtn" class="modal-close">×</button>
+                <button id="closeModalBtn" class="text-2xl">&times;</button>
             </div>
             <div id="modalBody" class="p-6"></div>
         </div>
     </div>
 
     <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
-import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-
-// Configuração do Firebase com suas credenciais
-const firebaseConfig = {
-    apiKey: "AIzaSyBIWmpJcoCiD3jTWROFcjSZDgXcxafsgtA",
-    authDomain: "tenis-456fc.firebaseapp.com",
-    projectId: "tenis-456fc",
-    storageBucket: "tenis-456fc.appspot.com",
-    messagingSenderId: "21965853527",
-    appId: "1:21965853527:web:38a9edbe0eb2438679e412",
-    measurementId: "G-ZJ5MP3RLD9"
-};
-
-
-// Inicializar o Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storageKey = 'torneios_final_com_import_v1';
-let torneios = [];
-let sortDirection = {};
-let geralChart, titulosChart, vitoriasChart;
-
-const modal = document.getElementById('torneioModal');
-const modalTitle = document.getElementById('modalTitle');
-const modalBody = document.getElementById('modalBody');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const dataNascimentoJogador = new Date('2011-02-18');
-
-// Base de dados de recordes do tênis mundial
-const recordesMundiais = [
-    { id: 'grandSlams', descricao: 'Mais Títulos de Grand Slam', recordista: 'Novak Djokovic', valor: 24, eval: stats => stats.porTipo['Grand Slam'].t, format: val => `${val} Títulos` },
-    { id: 'finaisGrandSlam', descricao: 'Mais Finais de Grand Slam', recordista: 'Novak Djokovic', valor: 36, eval: stats => stats.finaisGrandSlam, format: val => `${val} Finais` },
-    { id: 'atpFinals', descricao: 'Mais Títulos de ATP Finals', recordista: 'Novak Djokovic', valor: 7, eval: stats => stats.porTipo['ATP Finals'].t, format: val => `${val} Títulos` },
-    { id: 'masters1000', descricao: 'Mais Títulos de Masters 1000', recordista: 'Novak Djokovic', valor: 40, eval: stats => stats.porTipo['ATP Masters 1000'].t, format: val => `${val} Títulos` },
-    { id: 'totalTitulos', descricao: 'Mais Títulos na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 109, eval: stats => stats.titulosATP, format: val => `${val} Títulos` },
-    { id: 'totalFinais', descricao: 'Mais Finais na Carreira (ATP)', recordista: 'Roger Federer', valor: 157, eval: stats => stats.finaisATP, format: val => `${val} Finais` },
-    { id: 'vitoriasCarreira', descricao: 'Mais Vitórias na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 1274, eval: stats => stats.vitoriasATP, format: val => `${val} Vitórias` },
-    { id: 'partidasCarreira', descricao: 'Mais Partidas Disputadas (ATP)', recordista: 'Jimmy Connors', valor: 1557, eval: stats => stats.vitoriasATP + stats.derrotasATP, format: val => `${val} Partidas` },
-    { id: 'premiacao', descricao: 'Maior Premiação em Dinheiro', recordista: 'Novak Djokovic', valor: 182000000, eval: stats => stats.premiacao, format: val => val.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) },
-    { id: 'taxaVitorias', descricao: 'Melhor % de Vitórias (mín. 200 jogos)', recordista: 'Novak Djokovic', valor: 0.839, eval: stats => (stats.vitoriasATP + stats.derrotasATP >= 200) ? (stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) : 0, format: val => `${(val * 100).toFixed(2)}%` },
-    { id: 'titulosSaibro', descricao: 'Mais Títulos no Saibro', recordista: 'Rafael Nadal', valor: 63, eval: stats => stats.porSuperficieATP.Saibro.t, format: val => `${val} Títulos` },
-    { id: 'titulosRapida', descricao: 'Mais Títulos em Quadra Rápida', recordista: 'Roger Federer', valor: 71, eval: stats => stats.porSuperficieATP.Rápida.t, format: val => `${val} Títulos` },
-    { id: 'titulosGrama', descricao: 'Mais Títulos na Grama', recordista: 'Roger Federer', valor: 19, eval: stats => stats.porSuperficieATP.Grama.t, format: val => `${val} Títulos` },
-    { id: 'titulosTemporada', descricao: 'Mais Títulos em uma Temporada', recordista: 'Guillermo Vilas', valor: 16, eval: stats => stats.maxTitulosEmUmAno, format: val => `${val} Títulos` },
-    { id: 'titulosUnicoTorneio', descricao: 'Mais Títulos em um Único Torneio', recordista: 'Rafael Nadal (Roland Garros)', valor: 14, eval: stats => stats.maxTitulosUnicoTorneio, format: (val, stats) => `${val} Títulos (${stats.nomeTorneioMaisVencido})` },
-    { id: 'goldenSlam', descricao: 'Career Golden Slam', recordista: 'A. Agassi, R. Nadal', valor: 0, eval: stats => stats.goldenSlam, format: val => 'Conquistado!' },
-    { id: 'maisJovemGS', descricao: 'Vencedor de GS Mais Jovem', recordista: 'Michael Chang (17a 3m)', valor: (17 * 12 + 3), eval: stats => stats.idadeVencedorSlamMaisJovem, isLowerBetter: true, format: val => `${Math.floor(val/12)}a ${val % 12}m` },
-    { id: 'maisVelhoGS', descricao: 'Vencedor de GS Mais Velho', recordista: 'Ken Rosewall (37a 2m)', valor: (37 * 12 + 2), eval: stats => stats.idadeVencedorSlamMaisVelho, format: val => `${Math.floor(val/12)}a ${val % 12}m` },
-];
-
-// Pontos, Fases, Vitórias
-const fasesPorTorneio = {
-    'Grand Slam': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'],
-    'ATP Finals': ['Fase de Grupos', 'Semifinal', 'Final', 'Campeão Invicto'],
-    'Jogos Olímpicos': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Medalha de Bronze', 'Final', 'Campeão'],
-    'ATP Masters 1000': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'],
-    'ATP 500': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'],
-    'ATP 250': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'],
-    'CH 125': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'],
-    'CH 100': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'],
-    'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'],
-    'CH 50': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão']
-};
-const pontosPorFase = {
-    'Grand Slam': { 'Campeão': 2000, 'Final': 1200, 'Semifinal': 720, 'Quartas de Final': 360, 'Oitavas de Final': 180, 'Terceira Rodada': 90, 'Segunda Rodada': 45, 'Primeira Rodada': 10 },
-    'ATP Finals': { 'Campeão Invicto': 1500, 'Final': 500, 'Semifinal': 400, 'Fase de Grupos': 200 },
-    'Jogos Olímpicos': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Medalha de Bronze': 270, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Primeira Rodada': 0 },
-    'ATP Masters 1000': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Terceira Rodada': 45, 'Segunda Rodada': 25, 'Primeira Rodada': 10 },
-    'ATP 500': { 'Campeão': 500, 'Final': 300, 'Semifinal': 180, 'Quartas de Final': 90, 'Oitavas de Final': 45, 'Primeira Rodada': 0 },
-    'ATP 250': { 'Campeão': 250, 'Final': 150, 'Semifinal': 90, 'Quartas de Final': 45, 'Oitavas de Final': 20, 'Primeira Rodada': 0 },
-    'CH 125': { 'Campeão': 125, 'Final': 75, 'Semifinal': 45, 'Quartas de Final': 25, 'Oitavas de Final': 10, 'Primeira Rodada': 0 },
-    'CH 100': { 'Campeão': 100, 'Final': 60, 'Semifinal': 35, 'Quartas de Final': 20, 'Oitavas de Final': 8, 'Primeira Rodada': 0 },
-    'CH 75': { 'Campeão': 75, 'Final': 45, 'Semifinal': 25, 'Quartas de Final': 15, 'Oitavas de Final': 6, 'Primeira Rodada': 0 },
-    'CH 50': { 'Campeão': 50, 'Final': 30, 'Semifinal': 15, 'Quartas de Final': 8, 'Oitavas de Final': 4, 'Primeira Rodada': 0 }
-};
-const vitoriasPorFase = {
-    'Grand Slam': { 'Campeão': 7, 'Final': 6, 'Semifinal': 5, 'Quartas de Final': 4, 'Oitavas de Final': 3, 'Terceira Rodada': 2, 'Segunda Rodada': 1, 'Primeira Rodada': 0 },
-    'ATP Finals': { 'Campeão Invicto': 5, 'Final': 3, 'Semifinal': 2, 'Fase de Grupos': 1 },
-    'Jogos Olímpicos': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Medalha de Bronze': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Primeira Rodada': 0 },
-    'ATP Masters 1000': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Terceira Rodada': 1, 'Segunda Rodada': 1, 'Primeira Rodada': 0 },
-    'ATP 500': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 },
-    'ATP 250': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 },
-    'CH 125': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 },
-    'CH 100': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 },
-    'CH 75': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 },
-    'CH 50': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }
-};
-
-function atualizarFases() {
-    const tipoTorneio = document.getElementById('tipo-torneio').value;
-    const faseSelect = document.getElementById('fase-torneio');
-    faseSelect.innerHTML = '';
-    (fasesPorTorneio[tipoTorneio] || []).forEach(fase => {
-        const option = document.createElement('option');
-        option.value = fase;
-        option.textContent = fase;
-        faseSelect.appendChild(option);
-    });
-}
-
-function validarFormulario(data, nome, premiacaoRaw) {
-    let isValid = true;
-    document.getElementById('data-error').style.display = 'none';
-    document.getElementById('nome-error').style.display = 'none';
-    document.getElementById('premiacao-error').style.display = 'none';
-    
-    if (!data) { document.getElementById('data-error').style.display = 'block'; isValid = false; }
-    if (!nome.trim()) { document.getElementById('nome-error').style.display = 'block'; isValid = false; }
-    if (premiacaoRaw !== '' && (isNaN(parseFloat(premiacaoRaw)) || parseFloat(premiacaoRaw) < 0)) {
-        document.getElementById('premiacao-error').style.display = 'block';
-        isValid = false;
-    }
-    return isValid;
-}
-
-async function torneioJaExiste(ano, nome, tipo) {
-    const q = query(collection(db, 'torneios'), where('ano', '==', ano), where('nome', '==', nome), where('tipo', '==', tipo));
-    const snapshot = await getDocs(q);
-    return !snapshot.empty;
-}
-
-async function deletarTorneio(id) {
-    if (confirm('Deseja realmente excluir o torneio?')) {
-        try {
-            await deleteDoc(doc(db, 'torneios', id));
-            torneios = torneios.filter(t => t.id !== id);
-            atualizarTabelas();
-        } catch (error) {
-            console.error('Erro ao excluir torneio:', error);
-            alert('Erro ao excluir torneio.');
-        }
-    }
-}
-
-function ordenarTabela(coluna) {
-    sortDirection[coluna] = !sortDirection[coluna];
-    torneios.sort((a, b) => {
-        let valA = a[coluna], valB = b[coluna];
-        if (coluna === 'premiacao') { valA = parseFloat(valA); valB = parseFloat(valB); }
-        if (coluna === 'data') { valA = new Date(a.data); valB = new Date(b.data); }
-        if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIWmpJcoCiD3jTWROFcjSZDgXcxafsgtA",
+            authDomain: "tenis-456fc.firebaseapp.com",
+            projectId: "tenis-456fc",
+            storageBucket: "tenis-456fc.appspot.com",
+            messagingSenderId: "21965853527",
+            appId: "1:21965853527:web:38a9edbe0eb2438679e412",
+            measurementId: "G-ZJ5MP3RLD9"
+        };
         
-        if (valA < valB) return sortDirection[coluna] ? 1 : -1;
-        if (valA > valB) return sortDirection[coluna] ? -1 : 1;
-        return 0;
-    });
-    atualizarTabelas();
-}
-
-function openModal(title, contentHTML) {
-    modalTitle.textContent = title;
-    modalBody.innerHTML = contentHTML;
-    modal.style.display = 'flex';
-}
-
-function closeModal() {
-    const modalContent = modal.querySelector('.modal-content');
-    modalContent.classList.add('closing');
-    setTimeout(() => {
-        modal.style.display = 'none';
-        modalContent.classList.remove('closing');
-    }, 200);
-}
-
-function inicializarToggleButtons() {
-    document.querySelectorAll('.toggle-btn').forEach(button => {
-        if (button.dataset.listenerAttached) return;
-        button.addEventListener('click', () => {
-            const targetId = button.dataset.target;
-            const title = button.dataset.title;
-            const contentContainer = document.getElementById(targetId);
-            if (contentContainer && contentContainer.innerHTML.trim() !== '') openModal(title, contentContainer.innerHTML);
-            else openModal(title, '<p class="text-center p-4">Nenhum torneio para exibir nesta categoria.</p>');
-        });
-        button.dataset.listenerAttached = 'true';
-    });
-}
-
-function inicializarGraficos() {
-    if (geralChart) geralChart.destroy();
-    if (titulosChart) titulosChart.destroy();
-    if (vitoriasChart) vitoriasChart.destroy();
-    const ctxGeral = document.getElementById('geralChart').getContext('2d');
-    geralChart = new Chart(ctxGeral, {
-        type: 'bar',
-        data: { labels: ['Títulos', 'Vitórias', 'Derrotas', 'Premiação (x1000)'], datasets: [{ label: 'Estatísticas Gerais', data: [0, 0, 0, 0], backgroundColor: ['#facc15', '#10b981', '#ef4444', '#1e3a8a'], }] },
-        options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
-    });
-    const ctxTitulos = document.getElementById('titulosChart').getContext('2d');
-    titulosChart = new Chart(ctxTitulos, {
-        type: 'pie',
-        data: { labels: ['Grand Slam', 'ATP Finals', 'Masters 1000', 'ATP 500', 'ATP 250', 'Challenger', 'Olímpicos'], datasets: [{ data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: ['#facc15', '#10b981', '#1e3a8a', '#22d3ee', '#f97316', '#6b7280', '#8b5cf6'] }] }
-    });
-    const ctxVitorias = document.getElementById('vitoriasChart').getContext('2d');
-    vitoriasChart = new Chart(ctxVitorias, {
-        type: 'bar',
-        data: { labels: ['Saibro', 'Rápida', 'Grama'], datasets: [ { label: 'Vitórias', data: [0, 0, 0], backgroundColor: '#10b981' }, { label: 'Derrotas', data: [0, 0, 0], backgroundColor: '#ef4444' } ] },
-        options: { scales: { y: { beginAtZero: true } } }
-    });
-}
-
-function atualizarGraficos(stats) {
-    if (!geralChart) return;
-    geralChart.data.datasets[0].data = [stats.titulosGeral, stats.vitoriasATP, stats.derrotasATP, stats.premiacao / 1000];
-    geralChart.update();
-    titulosChart.data.datasets[0].data = [ stats.porTipo['Grand Slam'].t, stats.porTipo['ATP Finals'].t, stats.porTipo['ATP Masters 1000'].t, stats.porTipo['ATP 500'].t, stats.porTipo['ATP 250'].t, stats.porTipo['Challenger'].t, stats.porTipo['Jogos Olímpicos'].t ];
-    titulosChart.update();
-    vitoriasChart.data.datasets[0].data = [stats.porSuperficieATP.Saibro.v, stats.porSuperficieATP.Rápida.v, stats.porSuperficieATP.Grama.v];
-    vitoriasChart.data.datasets[1].data = [stats.porSuperficieATP.Saibro.d, stats.porSuperficieATP.Rápida.d, stats.porSuperficieATP.Grama.d];
-    vitoriasChart.update();
-}
-
-function atualizarStatsTemporada() {
-    const selectedAno = document.getElementById('season-filter').value;
-    const premiacaoLabel = document.getElementById('temporadas-premiacao-label');
-    let torneiosFiltrados = torneios;
-    if (selectedAno !== 'all') {
-        torneiosFiltrados = torneios.filter(t => t.ano == selectedAno);
-        premiacaoLabel.textContent = `Premiação (${selectedAno}):`;
-    } else {
-        premiacaoLabel.textContent = 'Premiação Total (Carreira):';
-    }
-    const statsTemporada = { vitoriasATP: 0, derrotasATP: 0, titulosATP: 0, premiacao: 0 };
-    torneiosFiltrados.forEach(torneio => {
-        statsTemporada.premiacao += (Number(torneio.premiacao) || 0);
-        if (!torneio.tipo.startsWith('CH')) {
-            statsTemporada.vitoriasATP += (Number(torneio.vitorias) || 0);
-            statsTemporada.derrotasATP += (Number(torneio.derrotas) || 0);
-            if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') {
-                statsTemporada.titulosATP++;
-            }
-        }
-    });
-    document.getElementById('temporadas-vitorias').textContent = statsTemporada.vitoriasATP;
-    document.getElementById('temporadas-derrotas').textContent = statsTemporada.derrotasATP;
-    document.getElementById('temporadas-titulos').textContent = statsTemporada.titulosATP;
-    document.getElementById('temporadas-premiacao').textContent = statsTemporada.premiacao.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-}
-
-function atualizarAbaRecordes(stats) {
-    const container = document.getElementById('recordes-conquistados');
-    const recordesQuebradosHTML = [];
-    recordesMundiais.forEach(recorde => {
-        const valorJogador = recorde.eval(stats);
-        let recordeQuebrado = false;
-        if (recorde.isLowerBetter) { 
-            if (valorJogador > 0 && valorJogador < recorde.valor) {
-                recordeQuebrado = true;
-            }
-        } else { 
-            if (valorJogador > recorde.valor) {
-                recordeQuebrado = true;
-            }
-        }
-        if (recordeQuebrado) {
-            const valorFormatadoJogador = recorde.format(valorJogador, stats);
-            const valorFormatadoRecorde = recorde.id === 'premiacao' ? recorde.valor.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : 
-                                          recorde.id === 'taxaVitorias' ? `${(recorde.valor * 100).toFixed(2)}%` : 
-                                          recorde.id === 'goldenSlam' ? 'Não Conquistado' :
-                                          recorde.isLowerBetter ? recorde.format(recorde.valor) : recorde.valor;
-            recordesQuebradosHTML.push(`
-                <div class="card record-card">
-                    <h3 class="font-bold text-lg text-primary">${recorde.descricao}</h3>
-                    <p class="my-1"><strong>Novo Recorde:</strong> <span class="text-secondary font-semibold">${valorFormatadoJogador}</span></p>
-                    <p class="text-sm text-gray-600">Recorde anterior: ${valorFormatadoRecorde} (${recorde.recordista})</p>
-                </div>
-            `);
-        }
-    });
-    if (recordesQuebradosHTML.length > 0) {
-        container.innerHTML = recordesQuebradosHTML.join('');
-    } else {
-        container.innerHTML = '<p class="text-gray-500 md:col-span-2">Nenhum recorde mundial quebrado ainda. Continue treinando!</p>';
-    }
-}
-
-function estimarRanking(pontos) {
-    if (pontos >= 5000) return 10;
-    if (pontos >= 1000) return 50;
-    if (pontos >= 500) return 100;
-    if (pontos >= 250) return 200;
-    if (pontos >= 50) return 500;
-    return 1000;
-}
-
-async function carregarTorneios() {
-    try {
-        const snapshot = await getDocs(collection(db, 'torneios'));
-        torneios = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        atualizarTabelas();
-    } catch (error) {
-        console.error('Erro ao carregar torneios:', error);
-        alert('Erro ao carregar os dados do Firestore.');
-    }
-}
-
-async function atualizarTabelas() {
-    const stats = {
-        pontos: 0, premiacao: 0, titulosGeral: 0, titulosATP: 0, vitoriasATP: 0, derrotasATP: 0, maxTitulosEmUmAno: 0,
-        finaisATP: 0, finaisGrandSlam: 0, maxTitulosUnicoTorneio: 0, nomeTorneioMaisVencido: '-', goldenSlam: 0,
-        idadeVencedorSlamMaisJovem: 0, idadeVencedorSlamMaisVelho: 0,
-        porTipo: {
-            'Grand Slam': { v: 0, d: 0, t: 0, torneios: {} }, 'ATP Finals': { v: 0, d: 0, t: 0, torneios: {} }, 'ATP Masters 1000': { v: 0, d: 0, t: 0, torneios: {} },
-            'ATP 500': { v: 0, d: 0, t: 0, torneios: {} }, 'ATP 250': { v: 0, d: 0, t: 0, torneios: {} }, 'Challenger': { v: 0, d: 0, t: 0, torneios: {} }, 'Jogos Olímpicos': { v: 0, d: 0, t: 0, torneios: {} }
-        },
-        porSuperficieATP: { 'Saibro': { v: 0, d: 0, t: 0 }, 'Rápida': { v: 0, d: 0, t: 0 }, 'Grama': { v: 0, d: 0, t: 0 } },
-        porAno: {}
-    };
-    
-    const hoje = new Date();
-    const titulosPorAno = {};
-    const titulosPorNome = {};
-    const titulosGoldenSlam = new Set();
-    const tabelaBody = document.getElementById('temporadas-tabela');
-    if (tabelaBody) tabelaBody.innerHTML = '';
-
-    torneios.forEach(torneio => {
-        const categoria = torneio.tipo.startsWith('CH') ? 'Challenger' : torneio.tipo;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         
-        let pontosValidos = false;
-        let dataFormatada = torneio.ano; 
-        if (torneio.data) {
-            const dataTorneio = new Date(torneio.data + 'T00:00:00'); 
-            const dataExpiracao = new Date(dataTorneio);
-            dataExpiracao.setDate(dataExpiracao.getDate() + 365);
-            pontosValidos = hoje <= dataExpiracao;
-            dataFormatada = dataTorneio.toLocaleDateString('pt-BR');
-        }
+        let torneios = [];
+        let sortDirection = {};
+        let titulosChart, vitoriasChart;
 
-        if (pontosValidos) {
-            stats.pontos += (Number(torneio.pontos) || 0);
-        }
+        const modal = document.getElementById('torneioModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const dataNascimentoJogador = new Date('2011-02-18');
+
+        const recordesMundiais = [
+            { id: 'grandSlams', descricao: 'Mais Títulos de Grand Slam', recordista: 'Novak Djokovic', valor: 24, eval: stats => stats.porTipo['Grand Slam'].t, format: val => `${val} Títulos` }, { id: 'finaisGrandSlam', descricao: 'Mais Finais de Grand Slam', recordista: 'Novak Djokovic', valor: 36, eval: stats => stats.finaisGrandSlam, format: val => `${val} Finais` }, { id: 'atpFinals', descricao: 'Mais Títulos de ATP Finals', recordista: 'Novak Djokovic', valor: 7, eval: stats => stats.porTipo['ATP Finals'].t, format: val => `${val} Títulos` }, { id: 'masters1000', descricao: 'Mais Títulos de Masters 1000', recordista: 'Novak Djokovic', valor: 40, eval: stats => stats.porTipo['ATP Masters 1000'].t, format: val => `${val} Títulos` }, { id: 'totalTitulos', descricao: 'Mais Títulos na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 109, eval: stats => stats.titulosATP, format: val => `${val} Títulos` }, { id: 'totalFinais', descricao: 'Mais Finais na Carreira (ATP)', recordista: 'Roger Federer', valor: 157, eval: stats => stats.finaisATP, format: val => `${val} Finais` }, { id: 'vitoriasCarreira', descricao: 'Mais Vitórias na Carreira (ATP)', recordista: 'Jimmy Connors', valor: 1274, eval: stats => stats.vitoriasATP, format: val => `${val} Vitórias` }, { id: 'partidasCarreira', descricao: 'Mais Partidas Disputadas (ATP)', recordista: 'Jimmy Connors', valor: 1557, eval: stats => stats.vitoriasATP + stats.derrotasATP, format: val => `${val} Partidas` }, { id: 'premiacao', descricao: 'Maior Premiação em Dinheiro', recordista: 'Novak Djokovic', valor: 182000000, eval: stats => stats.premiacao, format: val => val.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }, { id: 'taxaVitorias', descricao: 'Melhor % de Vitórias (mín. 200 jogos)', recordista: 'Novak Djokovic', valor: 0.839, eval: stats => (stats.vitoriasATP + stats.derrotasATP >= 200) ? (stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) : 0, format: val => `${(val * 100).toFixed(2)}%` }, { id: 'titulosSaibro', descricao: 'Mais Títulos no Saibro', recordista: 'Rafael Nadal', valor: 63, eval: stats => stats.porSuperficieATP.Saibro.t, format: val => `${val} Títulos` }, { id: 'titulosRapida', descricao: 'Mais Títulos em Quadra Rápida', recordista: 'Roger Federer', valor: 71, eval: stats => stats.porSuperficieATP.Rápida.t, format: val => `${val} Títulos` }, { id: 'titulosGrama', descricao: 'Mais Títulos na Grama', recordista: 'Roger Federer', valor: 19, eval: stats => stats.porSuperficieATP.Grama.t, format: val => `${val} Títulos` }, { id: 'titulosTemporada', descricao: 'Mais Títulos em uma Temporada', recordista: 'Guillermo Vilas', valor: 16, eval: stats => stats.maxTitulosEmUmAno, format: val => `${val} Títulos` }, { id: 'titulosUnicoTorneio', descricao: 'Mais Títulos em um Único Torneio', recordista: 'Rafael Nadal (Roland Garros)', valor: 14, eval: stats => stats.maxTitulosUnicoTorneio, format: (val, stats) => `${val} Títulos (${stats.nomeTorneioMaisVencido})` }, { id: 'goldenSlam', descricao: 'Career Golden Slam', recordista: 'A. Agassi, R. Nadal', valor: 0, eval: stats => stats.goldenSlam, format: val => 'Conquistado!' }, { id: 'maisJovemGS', descricao: 'Vencedor de GS Mais Jovem', recordista: 'Michael Chang (17a 3m)', valor: (17 * 12 + 3), eval: stats => stats.idadeVencedorSlamMaisJovem, isLowerBetter: true, format: val => `${Math.floor(val/12)}a ${val % 12}m` }, { id: 'maisVelhoGS', descricao: 'Vencedor de GS Mais Velho', recordista: 'Ken Rosewall (37a 2m)', valor: (37 * 12 + 2), eval: stats => stats.idadeVencedorSlamMaisVelho, format: val => `${Math.floor(val/12)}a ${val % 12}m` },
+        ];
         
-        if (tabelaBody) {
-            tabelaBody.innerHTML += `<tr>
-                <td>${dataFormatada}</td>
-                <td>${torneio.nome}</td>
-                <td>${torneio.tipo}</td>
-                <td>${torneio.superficie}</td>
-                <td>${torneio.fase}</td>
-                <td class="${!pontosValidos ? 'text-gray-400 line-through' : ''}">${torneio.pontos}</td>
-                <td>${(torneio.premiacao || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                <td>${torneio.vitorias}</td>
-                <td>${torneio.derrotas}</td>
-                <td><button class="delete-btn" data-id="${torneio.id}" aria-label="Excluir torneio"><i class="fas fa-trash"></i></button></td>
-            </tr>`;
-        }
-        
-        stats.premiacao += (Number(torneio.premiacao) || 0);
-        if (!stats.porAno[torneio.ano]) stats.porAno[torneio.ano] = { vitorias: 0, derrotas: 0 };
-        stats.porAno[torneio.ano].vitorias += (Number(torneio.vitorias) || 0);
-        stats.porAno[torneio.ano].derrotas += (Number(torneio.derrotas) || 0);
-
-        if (!stats.porTipo[categoria].torneios[torneio.nome]) {
-            stats.porTipo[categoria].torneios[torneio.nome] = { v: 0, d: 0, anos: [], anosTitulo: [] };
-        }
-        stats.porTipo[categoria].v += (Number(torneio.vitorias) || 0);
-        stats.porTipo[categoria].d += (Number(torneio.derrotas) || 0);
-        stats.porTipo[categoria].torneios[torneio.nome].v += (Number(torneio.vitorias) || 0);
-        stats.porTipo[categoria].torneios[torneio.nome].d += (Number(torneio.derrotas) || 0);
-        stats.porTipo[categoria].torneios[torneio.nome].anos.push(torneio.ano);
-
-        if ((torneio.fase === 'Final' || torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') && categoria !== 'Challenger') {
-            stats.finaisATP++;
-            if (categoria === 'Grand Slam') stats.finaisGrandSlam++;
-        }
-
-        if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') {
-            stats.titulosGeral++;
-            stats.porTipo[categoria].t++;
-            stats.porTipo[categoria].torneios[torneio.nome].anosTitulo.push(torneio.ano);
-            titulosPorAno[torneio.ano] = (titulosPorAno[torneio.ano] || 0) + 1;
-            const nomeNormalizado = torneio.nome.toLowerCase();
-            titulosPorNome[nomeNormalizado] = (titulosPorNome[nomeNormalizado] || 0) + 1;
-
-            if (categoria === 'Grand Slam' || categoria === 'Jogos Olímpicos') {
-                const nomesGS = ['australian open', 'roland garros', 'wimbledon', 'us open', 'jogos olímpicos'];
-                if (nomesGS.includes(nomeNormalizado)) titulosGoldenSlam.add(nomeNormalizado);
-            }
-            
-            if (categoria === 'Grand Slam' && torneio.data) {
-                const dataTorneioObj = new Date(torneio.data + 'T00:00:00');
-                const idadeEmMeses = Math.floor((dataTorneioObj - dataNascimentoJogador) / (1000 * 60 * 60 * 24 * 30.44));
-                if (stats.idadeVencedorSlamMaisJovem === 0 || idadeEmMeses < stats.idadeVencedorSlamMaisJovem) stats.idadeVencedorSlamMaisJovem = idadeEmMeses;
-                if (idadeEmMeses > stats.idadeVencedorSlamMaisVelho) stats.idadeVencedorSlamMaisVelho = idadeEmMeses;
-            }
-        }
-
-        if (categoria !== 'Challenger') {
-            stats.vitoriasATP += (Number(torneio.vitorias) || 0);
-            stats.derrotasATP += (Number(torneio.derrotas) || 0);
-            stats.porSuperficieATP[torneio.superficie].v += (Number(torneio.vitorias) || 0);
-            stats.porSuperficieATP[torneio.superficie].d += (Number(torneio.derrotas) || 0);
-            if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') {
-                stats.titulosATP++;
-                stats.porSuperficieATP[torneio.superficie].t++;
-            }
-        }
-    });
-
-    if (Object.keys(titulosPorAno).length > 0) stats.maxTitulosEmUmAno = Math.max(...Object.values(titulosPorAno));
-    if (Object.keys(titulosPorNome).length > 0) {
-        stats.maxTitulosUnicoTorneio = Math.max(...Object.values(titulosPorNome));
-        stats.nomeTorneioMaisVencido = Object.keys(titulosPorNome).reduce((a, b) => titulosPorNome[a] > titulosPorNome[b] ? a : b);
-    }
-    if (titulosGoldenSlam.size === 5) stats.goldenSlam = 1;
-    
-    document.getElementById('ranking').textContent = stats.pontos > 0 ? `~${estimarRanking(stats.pontos)}º (${stats.pontos} pontos)` : 'Sem ranking';
-    document.getElementById('premiacao').textContent = stats.premiacao.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    document.getElementById('titulos-total').textContent = stats.titulosGeral;
-    document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
-    document.getElementById('titulos-total-resumo').textContent = stats.titulosATP;
-    document.getElementById('titulos-saibro').textContent = stats.porSuperficieATP.Saibro.t;
-    document.getElementById('titulos-rapida').textContent = stats.porSuperficieATP.Rápida.t;
-    document.getElementById('titulos-grama').textContent = stats.porSuperficieATP.Grama.t;
-    document.getElementById('total-vitorias').textContent = stats.vitoriasATP;
-    document.getElementById('total-derrotas').textContent = stats.derrotasATP;
-    document.getElementById('taxa-vitorias').textContent = stats.vitoriasATP + stats.derrotasATP > 0 ? `${((stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) * 100).toFixed(2)}%` : '0%';
-    document.getElementById('vitorias-saibro').textContent = `${stats.porSuperficieATP.Saibro.v} / ${stats.porSuperficieATP.Saibro.d}`;
-    document.getElementById('vitorias-rapida').textContent = `${stats.porSuperficieATP.Rápida.v} / ${stats.porSuperficieATP.Rápida.d}`;
-    document.getElementById('vitorias-grama').textContent = `${stats.porSuperficieATP.Grama.v} / ${stats.porSuperficieATP.Grama.d}`;
-    Object.keys(stats.porTipo).forEach(tipo => {
-        const tipoId = tipo.toLowerCase().replace(/ /g, '-');
-        const catStats = stats.porTipo[tipo];
-        const elemTitulos = document.getElementById(`titulos-${tipoId}`);
-        const elemVitorias = document.getElementById(`vitorias-${tipoId}`);
-        if (elemTitulos) elemTitulos.textContent = catStats.t;
-        if (elemVitorias) elemVitorias.textContent = `${catStats.v} / ${catStats.d}`;
-        const titulosContainer = document.getElementById(`${tipoId}-torneios`);
-        if (titulosContainer) {
-            titulosContainer.innerHTML = '';
-            if (Object.values(catStats.torneios).some(t => t.anosTitulo.length > 0)) titulosContainer.innerHTML = `<table class="sub-table"><thead><tr><th>Torneio</th><th>Anos dos Títulos</th></tr></thead><tbody>${Object.entries(catStats.torneios).filter(([, t]) => t.anosTitulo.length > 0).map(([nome, t]) => `<tr><td>${nome}</td><td>${[...new Set(t.anosTitulo)].sort().join(', ')}</td></tr>`).join('')}</tbody></table>`;
-        }
-        const vitoriasContainer = document.getElementById(`vitorias-${tipoId}-torneios`);
-        if (vitoriasContainer) {
-            vitoriasContainer.innerHTML = '';
-            if (Object.keys(catStats.torneios).length > 0) vitoriasContainer.innerHTML = `<table class="sub-table"><thead><tr><th>Torneio</th><th>Anos</th><th>Vitórias</th><th>Derrotas</th></tr></thead><tbody>${Object.entries(catStats.torneios).map(([nome, t]) => `<tr><td>${nome}</td><td>${[...new Set(t.anos)].sort().join(', ')}</td><td>${t.v}</td><td>${t.d}</td></tr>`).join('')}</tbody></table>`;
-        }
-    });
-
-    const seasonFilter = document.getElementById('season-filter');
-    const anosUnicos = [...new Set(torneios.map(t => t.ano))].sort((a, b) => b - a);
-    const anoAtual = new Date().getFullYear();
-
-    seasonFilter.innerHTML = '<option value="all">Todas as Temporadas</option>';
-    anosUnicos.forEach(ano => {
-        seasonFilter.innerHTML += `<option value="${ano}">${ano}</option>`;
-    });
-
-    if (anosUnicos.includes(anoAtual)) {
-        seasonFilter.value = anoAtual;
-    } else {
-        seasonFilter.value = 'all';
-    }
-    
-    atualizarStatsTemporada();
-    atualizarGraficos(stats);
-    atualizarAbaRecordes(stats);
-
-    // Adicionar ouvintes para botões de exclusão
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const id = button.getAttribute('data-id');
-            deletarTorneio(id);
-        });
-    });
-}
-
-function inicializarAbas() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            tabContents.forEach(content => content.classList.remove('active'));
-            const activeTab = document.getElementById(button.dataset.tab);
-            if (activeTab) activeTab.classList.add('active');
-        });
-    });
-}
-
-function calcularIdade() {
-    const hoje = new Date();
-    let idade = hoje.getFullYear() - dataNascimentoJogador.getFullYear();
-    const mes = hoje.getMonth() - dataNascimentoJogador.getMonth();
-    if (mes < 0 || (mes === 0 && hoje.getDate() < dataNascimentoJogador.getDate())) idade--;
-    document.getElementById('idade').textContent = `${idade} anos`;
-}
-
-function inicializar() {
-    // Carregar torneios do Firestore
-    carregarTorneios();
-
-    document.getElementById('torneio-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const data = document.getElementById('data-torneio').value;
-        const nome = document.getElementById('nome-torneio').value;
-        const tipo = document.getElementById('tipo-torneio').value;
-        const superficie = document.getElementById('superficie-torneio').value;
-        const fase = document.getElementById('fase-torneio').value;
-        const pontosManual = document.getElementById('pontos-manual-torneio').value;
-        const premiacaoRaw = document.getElementById('premiacao-torneio').value.replace(/[^0-9.]/g, '');
-        
-        if (!validarFormulario(data, nome, premiacaoRaw)) return;
-
-        const ano = new Date(data).getFullYear();
-        if (await torneioJaExiste(ano, nome, tipo)) {
-            alert('Este torneio já foi registrado para o ano selecionado.');
-            return;
-        }
-
-        const pontos = pontosManual ? parseInt(pontosManual) : pontosPorFase[tipo][fase] || 0;
-        const vitorias = vitoriasPorFase[tipo][fase] || 0;
-        const derrotas = ['Campeão', 'Campeão Invicto'].includes(fase) ? 0 : 1;
-
-        const torneio = {
-            data,
-            ano,
-            nome,
-            tipo,
-            superficie,
-            fase,
-            pontos,
-            premiacao: parseFloat(premiacaoRaw) || 0,
-            vitorias,
-            derrotas
+        const fasesPorTorneio = {
+            'Grand Slam': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP Finals': ['Fase de Grupos', 'Semifinal', 'Final', 'Campeão Invicto'], 'Jogos Olímpicos': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Medalha de Bronze', 'Final', 'Campeão'], 'ATP Masters 1000': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP 500': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'ATP 250': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 125': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 100': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão'], 'CH 50': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final', 'Campeão']
+        };
+        const pontosPorFase = {
+            'Grand Slam': { 'Campeão': 2000, 'Final': 1200, 'Semifinal': 720, 'Quartas de Final': 360, 'Oitavas de Final': 180, 'Terceira Rodada': 90, 'Segunda Rodada': 45, 'Primeira Rodada': 10 }, 'ATP Finals': { 'Campeão Invicto': 1500, 'Final': 500, 'Semifinal': 400, 'Fase de Grupos': 200 }, 'Jogos Olímpicos': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Medalha de Bronze': 270, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Primeira Rodada': 0 }, 'ATP Masters 1000': { 'Campeão': 1000, 'Final': 600, 'Semifinal': 360, 'Quartas de Final': 180, 'Oitavas de Final': 90, 'Terceira Rodada': 45, 'Segunda Rodada': 25, 'Primeira Rodada': 10 }, 'ATP 500': { 'Campeão': 500, 'Final': 300, 'Semifinal': 180, 'Quartas de Final': 90, 'Oitavas de Final': 45, 'Primeira Rodada': 0 }, 'ATP 250': { 'Campeão': 250, 'Final': 150, 'Semifinal': 90, 'Quartas de Final': 45, 'Oitavas de Final': 20, 'Primeira Rodada': 0 }, 'CH 125': { 'Campeão': 125, 'Final': 75, 'Semifinal': 45, 'Quartas de Final': 25, 'Oitavas de Final': 10, 'Primeira Rodada': 0 }, 'CH 100': { 'Campeão': 100, 'Final': 60, 'Semifinal': 35, 'Quartas de Final': 20, 'Oitavas de Final': 8, 'Primeira Rodada': 0 }, 'CH 75': { 'Campeão': 75, 'Final': 45, 'Semifinal': 25, 'Quartas de Final': 15, 'Oitavas de Final': 6, 'Primeira Rodada': 0 }, 'CH 50': { 'Campeão': 50, 'Final': 30, 'Semifinal': 15, 'Quartas de Final': 8, 'Oitavas de Final': 4, 'Primeira Rodada': 0 }
+        };
+        const vitoriasPorFase = {
+            'Grand Slam': { 'Campeão': 7, 'Final': 6, 'Semifinal': 5, 'Quartas de Final': 4, 'Oitavas de Final': 3, 'Terceira Rodada': 2, 'Segunda Rodada': 1, 'Primeira Rodada': 0 }, 'ATP Finals': { 'Campeão Invicto': 5, 'Final': 3, 'Semifinal': 2, 'Fase de Grupos': 1 }, 'Jogos Olímpicos': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Medalha de Bronze': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Primeira Rodada': 0 }, 'ATP Masters 1000': { 'Campeão': 6, 'Final': 5, 'Semifinal': 4, 'Quartas de Final': 3, 'Oitavas de Final': 2, 'Terceira Rodada': 1, 'Segunda Rodada': 1, 'Primeira Rodada': 0 }, 'ATP 500': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'ATP 250': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 125': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 100': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 75': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }, 'CH 50': { 'Campeão': 5, 'Final': 4, 'Semifinal': 3, 'Quartas de Final': 2, 'Oitavas de Final': 1, 'Primeira Rodada': 0 }
         };
 
-        try {
-            const docRef = await addDoc(collection(db, 'torneios'), torneio);
-            torneios.push({ id: docRef.id, ...torneio });
-            atualizarTabelas();
-            document.getElementById('success-message').style.display = 'block';
-            setTimeout(() => document.getElementById('success-message').style.display = 'none', 3000);
-            document.getElementById('torneio-form').reset();
-            atualizarFases();
-        } catch (error) {
-            console.error('Erro ao adicionar torneio:', error);
-            alert('Erro ao adicionar torneio ao Firestore.');
-        }
-    });
-
-    document.getElementById('tipo-torneio').addEventListener('change', atualizarFases);
-    document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => ordenarTabela(th.dataset.sort));
-    });
-    document.getElementById('season-filter').addEventListener('change', atualizarStatsTemporada);
-    closeModalBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-    
-    document.getElementById('export-btn').addEventListener('click', () => {
-        const dataStr = JSON.stringify(torneios, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'torneios.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-
-    document.getElementById('import-file').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+        function atualizarFases() { const tipoTorneio = document.getElementById('tipo-torneio').value; const faseSelect = document.getElementById('fase-torneio'); faseSelect.innerHTML = ''; (fasesPorTorneio[tipoTorneio] || []).forEach(fase => { const option = document.createElement('option'); option.value = fase; option.textContent = fase; faseSelect.appendChild(option); }); }
+        function validarFormulario(data, nome, premiacaoRaw) { let isValid = true; document.getElementById('data-error').style.display = 'none'; document.getElementById('nome-error').style.display = 'none'; document.getElementById('premiacao-error').style.display = 'none'; if (!data) { document.getElementById('data-error').style.display = 'block'; isValid = false; } if (!nome.trim()) { document.getElementById('nome-error').style.display = 'block'; isValid = false; } if (premiacaoRaw !== '' && (isNaN(parseFloat(premiacaoRaw)) || parseFloat(premiacaoRaw) < 0)) { document.getElementById('premiacao-error').style.display = 'block'; isValid = false; } return isValid; }
+        async function torneioJaExiste(ano, nome, tipo) { const q = query(collection(db, 'torneios'), where('ano', '==', ano), where('nome', '==', nome), where('tipo', '==', tipo)); const snapshot = await getDocs(q); return !snapshot.empty; }
+        async function deletarTorneio(id) { if (confirm('Deseja realmente excluir o torneio?')) { try { await deleteDoc(doc(db, 'torneios', id)); torneios = torneios.filter(t => t.id !== id); atualizarTabelas(); } catch (error) { console.error('Erro ao excluir torneio:', error); alert('Erro ao excluir torneio.'); } } }
+        function ordenarTabela(coluna) { sortDirection[coluna] = !sortDirection[coluna]; torneios.sort((a, b) => { let valA = a[coluna], valB = b[coluna]; if (coluna === 'premiacao') { valA = parseFloat(valA); valB = parseFloat(valB); } if (coluna === 'data') { valA = new Date(a.data); valB = new Date(b.data); } if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); } if (valA < valB) return sortDirection[coluna] ? 1 : -1; if (valA > valB) return sortDirection[coluna] ? -1 : 1; return 0; }); atualizarTabelas(); }
+        function openModal(title, contentHTML) { modalTitle.textContent = title; modalBody.innerHTML = contentHTML; modal.style.display = 'flex'; }
+        function closeModal() { modal.style.display = 'none'; }
+        function inicializarToggleButtons() { document.querySelectorAll('.toggle-btn').forEach(button => { if (button.dataset.listenerAttached) return; button.addEventListener('click', () => { const targetId = button.dataset.target; const title = button.dataset.title; const contentContainer = document.getElementById(targetId); if (contentContainer && contentContainer.innerHTML.trim() !== '') { openModal(title, contentContainer.innerHTML); } else { openModal(title, '<p class="text-center p-4">Nenhum torneio para exibir nesta categoria.</p>'); } }); button.dataset.listenerAttached = 'true'; }); }
+        function inicializarGraficos() { if (titulosChart) titulosChart.destroy(); if (vitoriasChart) vitoriasChart.destroy(); const ctxTitulos = document.getElementById('titulosChart').getContext('2d'); titulosChart = new Chart(ctxTitulos, { type: 'pie', data: { labels: ['Grand Slam', 'ATP Finals', 'Masters 1000', 'ATP 500', 'ATP 250', 'Challenger', 'Olímpicos'], datasets: [{ data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: ['#facc15', '#10b981', '#1e3a8a', '#22d3ee', '#f97316', '#6b7280', '#8b5cf6'] }] } }); const ctxVitorias = document.getElementById('vitoriasChart').getContext('2d'); vitoriasChart = new Chart(ctxVitorias, { type: 'bar', data: { labels: ['Saibro', 'Rápida', 'Grama'], datasets: [ { label: 'Vitórias', data: [0, 0, 0], backgroundColor: '#10b981' }, { label: 'Derrotas', data: [0, 0, 0], backgroundColor: '#ef4444' } ] }, options: { scales: { y: { beginAtZero: true } } } }); }
+        function atualizarGraficos(stats) { if (!titulosChart || !vitoriasChart) return; titulosChart.data.datasets[0].data = [ stats.porTipo['Grand Slam'].t, stats.porTipo['ATP Finals'].t, stats.porTipo['ATP Masters 1000'].t, stats.porTipo['ATP 500'].t, stats.porTipo['ATP 250'].t, stats.porTipo['Challenger'].t, stats.porTipo['Jogos Olímpicos'].t ]; titulosChart.update(); vitoriasChart.data.datasets[0].data = [stats.porSuperficieATP.Saibro.v, stats.porSuperficieATP.Rápida.v, stats.porSuperficieATP.Grama.v]; vitoriasChart.data.datasets[1].data = [stats.porSuperficieATP.Saibro.d, stats.porSuperficieATP.Rápida.d, stats.porSuperficieATP.Grama.d]; vitoriasChart.update(); }
+        function atualizarStatsTemporada() { const selectedAno = document.getElementById('season-filter').value; const premiacaoLabel = document.getElementById('temporadas-premiacao-label'); let torneiosFiltrados = torneios; if (selectedAno !== 'all') { torneiosFiltrados = torneios.filter(t => t.ano == selectedAno); premiacaoLabel.textContent = `Prêmios (${selectedAno})`; } else { premiacaoLabel.textContent = 'Prêmios (Carreira)'; } const statsTemporada = { vitoriasATP: 0, derrotasATP: 0, titulosATP: 0, premiacao: 0 }; torneiosFiltrados.forEach(torneio => { statsTemporada.premiacao += (Number(torneio.premiacao) || 0); if (!torneio.tipo.startsWith('CH')) { statsTemporada.vitoriasATP += (Number(torneio.vitorias) || 0); statsTemporada.derrotasATP += (Number(torneio.derrotas) || 0); if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') { statsTemporada.titulosATP++; } } }); document.getElementById('temporadas-vitorias').textContent = statsTemporada.vitoriasATP; document.getElementById('temporadas-derrotas').textContent = statsTemporada.derrotasATP; document.getElementById('temporadas-titulos').textContent = statsTemporada.titulosATP; document.getElementById('temporadas-premiacao').textContent = statsTemporada.premiacao.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
+        function atualizarAbaRecordes(stats) { const container = document.getElementById('recordes-conquistados'); const recordesQuebradosHTML = []; recordesMundiais.forEach(recorde => { const valorJogador = recorde.eval(stats); let recordeQuebrado = false; if (recorde.isLowerBetter) { if (valorJogador > 0 && valorJogador < recorde.valor) { recordeQuebrado = true; } } else { if (valorJogador > recorde.valor) { recordeQuebrado = true; } } if (recordeQuebrado) { const valorFormatadoJogador = recorde.format(valorJogador, stats); const valorFormatadoRecorde = recorde.id === 'premiacao' ? recorde.valor.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : recorde.id === 'taxaVitorias' ? `${(recorde.valor * 100).toFixed(2)}%` : recorde.id === 'goldenSlam' ? 'Não Conquistado' : recorde.isLowerBetter ? recorde.format(recorde.valor) : recorde.valor; recordesQuebradosHTML.push( `<div class="glass-card p-4"><h3 class="font-bold text-md text-primary">${recorde.descricao}</h3><p class="my-1 text-sm"><strong>Novo Recorde:</strong> <span class="text-secondary font-semibold">${valorFormatadoJogador}</span></p><p class="text-xs text-gray-600">Recorde anterior: ${valorFormatadoRecorde} (${recorde.recordista})</p></div>` ); } }); if (recordesQuebradosHTML.length > 0) { container.innerHTML = recordesQuebradosHTML.join(''); } else { container.innerHTML = '<p class="text-gray-500 md:col-span-2">Nenhum recorde mundial quebrado ainda. Continue treinando!</p>'; } }
+        function estimarRanking(pontos) { if (pontos >= 5000) return 10; if (pontos >= 1000) return 50; if (pontos >= 500) return 100; if (pontos >= 250) return 200; if (pontos >= 50) return 500; return 1000; }
+        async function carregarTorneios() { try { const snapshot = await getDocs(collection(db, 'torneios')); torneios = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); atualizarTabelas(); } catch (error) { console.error('Erro ao carregar torneios:', error); alert('Erro ao carregar os dados do Firestore.'); } }
         
-        try {
-            const text = await file.text();
-            const importedTorneios = JSON.parse(text);
-            if (!Array.isArray(importedTorneios)) throw new Error('Formato inválido.');
-
-            for (const torneio of importedTorneios) {
-                if (!torneio.data || !torneio.nome || !torneio.tipo || !torneio.superficie || !torneio.fase) {
-                    alert('Alguns torneios no arquivo possuem dados incompletos.');
-                    return;
-                }
-                if (await torneioJaExiste(torneio.ano, torneio.nome, torneio.tipo)) continue;
-                const docRef = await addDoc(collection(db, 'torneios'), torneio);
-                torneios.push({ id: docRef.id, ...torneio });
+        // MELHORIA: Função para formatar a fase com ícones e cores
+        function formatarFase(fase) {
+            switch (fase) {
+                case 'Campeão':
+                case 'Campeão Invicto':
+                    return `<span class="font-semibold text-amber-500"><i class="fas fa-trophy mr-2"></i>${fase}</span>`;
+                case 'Final':
+                    return `<span class="font-semibold text-slate-500"><i class="fas fa-medal mr-2"></i>${fase}</span>`;
+                case 'Semifinal':
+                    return `<span class="font-semibold text-orange-700"><i class="fas fa-award mr-2"></i>${fase}</span>`;
+                default:
+                    return fase;
             }
-            atualizarTabelas();
-            alert('Torneios importados com sucesso!');
-            e.target.value = '';
-        } catch (error) {
-            console.error('Erro ao importar torneios:', error);
-            alert('Erro ao importar arquivo. Verifique o formato.');
         }
-    });
 
-    inicializarAbas();
-    inicializarGraficos();
-    inicializarToggleButtons();
-    calcularIdade();
-    atualizarFases();
-}
+        async function atualizarTabelas() {
+            const stats = { pontos: 0, premiacao: 0, titulosGeral: 0, titulosATP: 0, vitoriasATP: 0, derrotasATP: 0, maxTitulosEmUmAno: 0, finaisATP: 0, finaisGrandSlam: 0, maxTitulosUnicoTorneio: 0, nomeTorneioMaisVencido: '-', goldenSlam: 0, idadeVencedorSlamMaisJovem: 0, idadeVencedorSlamMaisVelho: 0, porTipo: { 'Grand Slam': { v: 0, d: 0, t: 0, torneios: {} }, 'ATP Finals': { v: 0, d: 0, t: 0, torneios: {} }, 'ATP Masters 1000': { v: 0, d: 0, t: 0, torneios: {} }, 'ATP 500': { v: 0, d: 0, t: 0, torneios: {} }, 'ATP 250': { v: 0, d: 0, t: 0, torneios: {} }, 'Challenger': { v: 0, d: 0, t: 0, torneios: {} }, 'Jogos Olímpicos': { v: 0, d: 0, t: 0, torneios: {} } }, porSuperficieATP: { 'Saibro': { v: 0, d: 0, t: 0 }, 'Rápida': { v: 0, d: 0, t: 0 }, 'Grama': { v: 0, d: 0, t: 0 } }, porAno: {} };
+            const hoje = new Date(); const titulosPorAno = {}; const titulosPorNome = {}; const titulosGoldenSlam = new Set(); const tabelaBody = document.getElementById('temporadas-tabela'); if (tabelaBody) tabelaBody.innerHTML = '';
+            torneios.forEach(torneio => {
+                const categoria = torneio.tipo.startsWith('CH') ? 'Challenger' : torneio.tipo;
+                let pontosValidos = false; let dataFormatada = torneio.ano; if (torneio.data) { const dataTorneio = new Date(torneio.data + 'T00:00:00'); const dataExpiracao = new Date(dataTorneio); dataExpiracao.setDate(dataExpiracao.getDate() + 365); pontosValidos = hoje <= dataExpiracao; dataFormatada = dataTorneio.toLocaleDateString('pt-BR'); }
+                if (pontosValidos) { stats.pontos += (Number(torneio.pontos) || 0); }
+                if (tabelaBody) {
+                    const faseFormatada = formatarFase(torneio.fase);
+                    tabelaBody.innerHTML += `<tr class="border-b border-slate-200/50 hover:bg-slate-50/50">
+                        <td class="py-3 px-2">${dataFormatada}</td>
+                        <td class="py-3 px-2 font-semibold text-slate-700">${torneio.nome}</td>
+                        <td class="py-3 px-2">${torneio.tipo}</td>
+                        <td class="py-3 px-2">${torneio.superficie}</td>
+                        <td class="py-3 px-2">${faseFormatada}</td>
+                        <td class="py-3 px-2 ${!pontosValidos ? 'text-gray-400 line-through' : ''}">${torneio.pontos}</td>
+                        <td class="py-3 px-2">${(torneio.premiacao || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
+                        <td class="py-3 px-2 text-green-600 font-semibold">${torneio.vitorias}</td>
+                        <td class="py-3 px-2 text-red-600 font-semibold">${torneio.derrotas}</td>
+                        <td class="py-3 px-2"><button class="delete-btn" data-id="${torneio.id}" aria-label="Excluir torneio"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;
+                }
+                stats.premiacao += (Number(torneio.premiacao) || 0); if (!stats.porAno[torneio.ano]) stats.porAno[torneio.ano] = { vitorias: 0, derrotas: 0 }; stats.porAno[torneio.ano].vitorias += (Number(torneio.vitorias) || 0); stats.porAno[torneio.ano].derrotas += (Number(torneio.derrotas) || 0); if (!stats.porTipo[categoria].torneios[torneio.nome]) { stats.porTipo[categoria].torneios[torneio.nome] = { v: 0, d: 0, anos: [], anosTitulo: [] }; } stats.porTipo[categoria].v += (Number(torneio.vitorias) || 0); stats.porTipo[categoria].d += (Number(torneio.derrotas) || 0); stats.porTipo[categoria].torneios[torneio.nome].v += (Number(torneio.vitorias) || 0); stats.porTipo[categoria].torneios[torneio.nome].d += (Number(torneio.derrotas) || 0); stats.porTipo[categoria].torneios[torneio.nome].anos.push(torneio.ano); if ((torneio.fase === 'Final' || torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') && categoria !== 'Challenger') { stats.finaisATP++; if (categoria === 'Grand Slam') stats.finaisGrandSlam++; } if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') { stats.titulosGeral++; stats.porTipo[categoria].t++; stats.porTipo[categoria].torneios[torneio.nome].anosTitulo.push(torneio.ano); titulosPorAno[torneio.ano] = (titulosPorAno[torneio.ano] || 0) + 1; const nomeNormalizado = torneio.nome.toLowerCase(); titulosPorNome[nomeNormalizado] = (titulosPorNome[nomeNormalizado] || 0) + 1; if (categoria === 'Grand Slam' || categoria === 'Jogos Olímpicos') { const nomesGS = ['australian open', 'roland garros', 'wimbledon', 'us open', 'jogos olímpicos']; if (nomesGS.includes(nomeNormalizado)) titulosGoldenSlam.add(nomeNormalizado); } if (categoria === 'Grand Slam' && torneio.data) { const dataTorneioObj = new Date(torneio.data + 'T00:00:00'); const idadeEmMeses = Math.floor((dataTorneioObj - dataNascimentoJogador) / (1000 * 60 * 60 * 24 * 30.44)); if (stats.idadeVencedorSlamMaisJovem === 0 || idadeEmMeses < stats.idadeVencedorSlamMaisJovem) stats.idadeVencedorSlamMaisJovem = idadeEmMeses; if (idadeEmMeses > stats.idadeVencedorSlamMaisVelho) stats.idadeVencedorSlamMaisVelho = idadeEmMeses; } } if (categoria !== 'Challenger') { stats.vitoriasATP += (Number(torneio.vitorias) || 0); stats.derrotasATP += (Number(torneio.derrotas) || 0); stats.porSuperficieATP[torneio.superficie].v += (Number(torneio.vitorias) || 0); stats.porSuperficieATP[torneio.superficie].d += (Number(torneio.derrotas) || 0); if (torneio.fase === 'Campeão' || torneio.fase === 'Campeão Invicto') { stats.titulosATP++; stats.porSuperficieATP[torneio.superficie].t++; } }
+            });
 
-document.addEventListener('DOMContentLoaded', inicializar);
+            if (Object.keys(titulosPorAno).length > 0) stats.maxTitulosEmUmAno = Math.max(...Object.values(titulosPorAno)); if (Object.keys(titulosPorNome).length > 0) { stats.maxTitulosUnicoTorneio = Math.max(...Object.values(titulosPorNome)); stats.nomeTorneioMaisVencido = Object.keys(titulosPorNome).reduce((a, b) => titulosPorNome[a] > titulosPorNome[b] ? a : b); } if (titulosGoldenSlam.size === 5) stats.goldenSlam = 1;
+            
+            // CORREÇÃO: Removido '~' e alterado para 'pts'
+            document.getElementById('ranking').textContent = stats.pontos > 0 ? `${estimarRanking(stats.pontos)}º (${stats.pontos} pts)` : 'Sem ranking';
+            
+            document.getElementById('premiacao').textContent = stats.premiacao.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); document.getElementById('titulos-total').textContent = stats.titulosGeral; document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`; document.getElementById('titulos-total-resumo').textContent = stats.titulosATP; document.getElementById('titulos-saibro').textContent = stats.porSuperficieATP.Saibro.t; document.getElementById('titulos-rapida').textContent = stats.porSuperficieATP.Rápida.t; document.getElementById('titulos-grama').textContent = stats.porSuperficieATP.Grama.t; document.getElementById('total-vitorias').textContent = stats.vitoriasATP; document.getElementById('total-derrotas').textContent = stats.derrotasATP; document.getElementById('taxa-vitorias').textContent = stats.vitoriasATP + stats.derrotasATP > 0 ? `${((stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) * 100).toFixed(1)}%` : '0%'; document.getElementById('vitorias-saibro').textContent = `${stats.porSuperficieATP.Saibro.v} / ${stats.porSuperficieATP.Saibro.d}`; document.getElementById('vitorias-rapida').textContent = `${stats.porSuperficieATP.Rápida.v} / ${stats.porSuperficieATP.Rápida.d}`; document.getElementById('vitorias-grama').textContent = `${stats.porSuperficieATP.Grama.v} / ${stats.porSuperficieATP.Grama.d}`;
+            Object.keys(stats.porTipo).forEach(tipo => { const tipoId = tipo.toLowerCase().replace(/ /g, '-'); const catStats = stats.porTipo[tipo]; const elemTitulos = document.getElementById(`titulos-${tipoId}`); const elemVitorias = document.getElementById(`vitorias-${tipoId}`); if (elemTitulos) elemTitulos.textContent = catStats.t; if (elemVitorias) elemVitorias.textContent = `${catStats.v} / ${catStats.d}`; const titulosContainer = document.getElementById(`${tipoId}-torneios`); if (titulosContainer) { titulosContainer.innerHTML = ''; if (Object.values(catStats.torneios).some(t => t.anosTitulo.length > 0)) { titulosContainer.innerHTML = `<table class="sub-table"><thead><tr><th>Torneio</th><th>Anos dos Títulos</th></tr></thead><tbody>${Object.entries(catStats.torneios).filter(([, t]) => t.anosTitulo.length > 0).map(([nome, t]) => `<tr><td>${nome}</td><td>${[...new Set(t.anosTitulo)].sort().join(', ')}</td></tr>`).join('')}</tbody></table>`; } } const vitoriasContainer = document.getElementById(`vitorias-${tipoId}-torneios`); if (vitoriasContainer) { vitoriasContainer.innerHTML = ''; if (Object.keys(catStats.torneios).length > 0) { vitoriasContainer.innerHTML = `<table class="sub-table"><thead><tr><th>Torneio</th><th>Anos</th><th>Vitórias</th><th>Derrotas</th></tr></thead><tbody>${Object.entries(catStats.torneios).map(([nome, t]) => `<tr><td>${nome}</td><td>${[...new Set(t.anos)].sort().join(', ')}</td><td>${t.v}</td><td>${t.d}</td></tr>`).join('')}</tbody></table>`; } } });
+            const seasonFilter = document.getElementById('season-filter'); const anosUnicos = [...new Set(torneios.map(t => t.ano))].sort((a, b) => b - a); const anoAtual = new Date().getFullYear(); seasonFilter.innerHTML = '<option value="all">Todas as Temporadas</option>'; anosUnicos.forEach(ano => { seasonFilter.innerHTML += `<option value="${ano}">${ano}</option>`; }); if (anosUnicos.includes(anoAtual)) { seasonFilter.value = anoAtual; } else { seasonFilter.value = 'all'; }
+            atualizarStatsTemporada(); atualizarGraficos(stats); atualizarAbaRecordes(stats);
+            document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', () => { const id = button.getAttribute('data-id'); deletarTorneio(id); }); });
+        }
 
+        function inicializarAbas() { const tabButtons = document.querySelectorAll('.tab-button'); const tabContents = document.querySelectorAll('.tab-content'); tabButtons.forEach(button => { button.addEventListener('click', () => { tabButtons.forEach(btn => btn.classList.remove('active')); button.classList.add('active'); tabContents.forEach(content => content.classList.remove('active')); const activeTab = document.getElementById(button.dataset.tab); if (activeTab) activeTab.classList.add('active'); }); }); }
+        function calcularIdade() { const hoje = new Date(); let idade = hoje.getFullYear() - dataNascimentoJogador.getFullYear(); const mes = hoje.getMonth() - dataNascimentoJogador.getMonth(); if (mes < 0 || (mes === 0 && hoje.getDate() < dataNascimentoJogador.getDate())) { idade--; } document.getElementById('idade').textContent = `${idade}`; }
+        
+        function inicializar() {
+            carregarTorneios();
+            document.getElementById('torneio-form').addEventListener('submit', async function(e) { e.preventDefault(); const data = document.getElementById('data-torneio').value; const nome = document.getElementById('nome-torneio').value; const tipo = document.getElementById('tipo-torneio').value; const superficie = document.getElementById('superficie-torneio').value; const fase = document.getElementById('fase-torneio').value; const pontosManual = document.getElementById('pontos-manual-torneio').value; const premiacaoRaw = document.getElementById('premiacao-torneio').value.replace(/[^0-9.]/g, ''); if (!validarFormulario(data, nome, premiacaoRaw)) return; const ano = new Date(data).getFullYear(); if (await torneioJaExiste(ano, nome, tipo)) { alert('Este torneio já foi registrado para o ano selecionado.'); return; } const pontos = pontosManual ? parseInt(pontosManual) : pontosPorFase[tipo][fase] || 0; const vitorias = vitoriasPorFase[tipo][fase] || 0; const derrotas = ['Campeão', 'Campeão Invicto'].includes(fase) ? 0 : 1; const torneio = { data, ano, nome, tipo, superficie, fase, pontos, premiacao: parseFloat(premiacaoRaw) || 0, vitorias, derrotas }; try { const docRef = await addDoc(collection(db, 'torneios'), torneio); torneios.push({ id: docRef.id, ...torneio }); atualizarTabelas(); const successMsg = document.getElementById('success-message'); successMsg.style.display = 'block'; setTimeout(() => { successMsg.style.display = 'none'; }, 3000); document.getElementById('torneio-form').reset(); atualizarFases(); } catch (error) { console.error('Erro ao adicionar torneio:', error); alert('Erro ao adicionar torneio ao Firestore.'); } });
+            const toggleBtn = document.getElementById('toggle-form-btn'); const formCollapsible = document.getElementById('add-tournament-collapsible'); const formIcon = document.getElementById('form-icon'); toggleBtn.addEventListener('click', () => { formCollapsible.classList.toggle('open'); formIcon.classList.toggle('fa-chevron-down'); formIcon.classList.toggle('fa-chevron-up'); });
+            document.getElementById('tipo-torneio').addEventListener('change', atualizarFases); document.querySelectorAll('th[data-sort]').forEach(th => { th.addEventListener('click', () => ordenarTabela(th.dataset.sort)); }); document.getElementById('season-filter').addEventListener('change', atualizarStatsTemporada); closeModalBtn.addEventListener('click', closeModal); modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+            document.getElementById('export-btn').addEventListener('click', () => { const dataStr = JSON.stringify(torneios, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'torneios_fernando_lapa.json'; a.click(); URL.revokeObjectURL(url); });
+            document.getElementById('import-file').addEventListener('change', async function(e) { const file = e.target.files[0]; if (!file) return; try { const text = await file.text(); const importedTorneios = JSON.parse(text); if (!Array.isArray(importedTorneios)) throw new Error('Formato inválido.'); for (const torneio of importedTorneios) { if (!torneio.data || !torneio.nome || !torneio.tipo || !torneio.superficie || !torneio.fase) { alert('Alguns torneios no arquivo possuem dados incompletos.'); return; } if (await torneioJaExiste(torneio.ano, torneio.nome, torneio.tipo)) continue; const docRef = await addDoc(collection(db, 'torneios'), torneio); torneios.push({ id: docRef.id, ...torneio }); } atualizarTabelas(); alert('Torneios importados com sucesso!'); e.target.value = ''; } catch (error) { console.error('Erro ao importar torneios:', error); alert('Erro ao importar arquivo. Verifique o formato.'); } });
+            inicializarAbas(); inicializarGraficos(); inicializarToggleButtons(); calcularIdade(); atualizarFases();
+        }
+        document.addEventListener('DOMContentLoaded', inicializar);
     </script>
 </body>
 </html>
