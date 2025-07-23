@@ -267,7 +267,20 @@
         
         const tournamentTypes = ['Grand Slam', 'ATP Finals', 'ATP Masters 1000', 'ATP 500', 'ATP 250', 'Jogos Olímpicos', 'CH 125', 'CH 100', 'CH 75', 'CH 50'];
         const surfaces = ['Saibro', 'Rápida', 'Grama'];
-        const roundsByTournament = { 'Default': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'], 'ATP Finals': ['Fase de Grupos 1', 'Fase de Grupos 2', 'Fase de Grupos 3', 'Semifinal', 'Final'] };
+        // ESTRUTURA DE DADOS DAS FASES DOS TORNEIOS
+        const roundsByTournamentType = {
+            'Grand Slam': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'ATP Masters 1000': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'ATP 500': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'ATP 250': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'Jogos Olímpicos': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Disputa Bronze', 'Final'],
+            'ATP Finals': ['Fase de Grupos 1', 'Fase de Grupos 2', 'Fase de Grupos 3', 'Semifinal', 'Final'],
+            'CH 125': ['Primeira Rodada', 'Segunda Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'CH 100': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'CH 50': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'Default': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final']
+        };
 
         // --- MODAL & UI HELPERS ---
         function openModal(title, bodyHTML, footerHTML = '') {
@@ -297,11 +310,7 @@
                 const snapshot = await getDocs(collection(db, 'torneios'));
                 allTournaments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
-            } catch (error) {
-                console.error("Erro ao carregar torneios: ", error);
-                document.getElementById('no-tournaments-msg').textContent = 'Erro ao carregar dados. Verifique o console.';
-                document.getElementById('no-tournaments-msg').style.display = 'block';
-            }
+            } catch (error) { console.error("Erro ao carregar torneios: ", error); document.getElementById('no-tournaments-msg').textContent = 'Erro ao carregar dados.'; document.getElementById('no-tournaments-msg').style.display = 'block'; }
         }
         async function updateTournamentInDb(id, data) {
             try {
@@ -310,7 +319,7 @@
                 if (index > -1) { allTournaments[index] = { ...allTournaments[index], ...data }; }
                 updateUI();
                 closeModal();
-            } catch (error) { console.error("Erro ao atualizar torneio: ", error); alert('Ocorreu um erro ao atualizar o torneio.'); }
+            } catch (error) { console.error("Erro ao atualizar torneio: ", error); alert('Ocorreu um erro ao atualizar.'); }
         }
         async function deleteTournamentFromDb(id) {
             if (confirm('Tem certeza que deseja excluir este torneio e toda a sua campanha?')) {
@@ -318,20 +327,18 @@
                     await deleteDoc(doc(db, 'torneios', id));
                     allTournaments = allTournaments.filter(t => t.id !== id);
                     updateUI();
-                } catch (error) { console.error("Erro ao excluir torneio: ", error); alert('Ocorreu um erro ao excluir o torneio.'); }
+                } catch (error) { console.error("Erro ao excluir torneio: ", error); alert('Ocorreu um erro ao excluir.'); }
             }
         }
         async function handleSaveNewTournament() {
             const form = document.getElementById('create-tournament-form');
             if (!form.checkValidity()) { form.reportValidity(); return; }
-            
             const dataInicio = document.getElementById('torneio-data-inicio').value;
-            const dataFim = document.getElementById('torneio-data-fim').value;
             const newTournament = {
                 nome: document.getElementById('torneio-nome').value.trim(),
                 tipo: document.getElementById('torneio-tipo').value,
                 superficie: document.getElementById('torneio-superficie').value,
-                dataInicio, dataFim,
+                dataInicio, dataFim: document.getElementById('torneio-data-fim').value,
                 ano: new Date(dataInicio + 'T00:00:00').getFullYear(),
                 pontos: 0, premiacao: 0, faseFinal: '', status: 'Em Andamento',
                 jogos: [{
@@ -341,14 +348,12 @@
                     resultado: document.getElementById('jogo-resultado').value,
                 }]
             };
-
             if (newTournament.jogos[0].resultado === 'D') {
                 newTournament.status = 'Finalizado';
                 newTournament.faseFinal = 'Primeira Rodada';
                 newTournament.pontos = Number(document.getElementById('torneio-pontos').value) || 0;
                 newTournament.premiacao = Number(document.getElementById('torneio-premiacao').value) || 0;
             }
-
             try {
                 const docRef = await addDoc(collection(db, 'torneios'), newTournament);
                 allTournaments.push({ id: docRef.id, ...newTournament });
@@ -358,7 +363,7 @@
         }
 
         // --- MODAL RENDERING ---
-        function openCreateTournamentModal() {
+        function openCreateTournamentModal() { /* Sem alterações, mantido como está */
             const body = `
                 <form id="create-tournament-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -387,57 +392,44 @@
             `;
             const footer = `<button id="save-tournament-btn" class="btn btn-secondary">Salvar e Continuar</button>`;
             openModal('Criar Novo Torneio', body, footer);
-            
-            const resultSelect = document.getElementById('jogo-resultado');
-            const finalDetails = document.getElementById('final-details-create');
-            const saveBtn = document.getElementById('save-tournament-btn');
+            const resultSelect = document.getElementById('jogo-resultado'), finalDetails = document.getElementById('final-details-create'), saveBtn = document.getElementById('save-tournament-btn');
             resultSelect.addEventListener('change', () => {
                 const isLoss = resultSelect.value === 'D';
                 finalDetails.classList.toggle('hidden', !isLoss);
                 saveBtn.textContent = isLoss ? 'Salvar e Finalizar' : 'Salvar e Continuar';
-                saveBtn.classList.toggle('btn-danger', isLoss);
-                saveBtn.classList.toggle('btn-secondary', !isLoss);
+                saveBtn.classList.toggle('btn-danger', isLoss); saveBtn.classList.toggle('btn-secondary', !isLoss);
             });
             saveBtn.addEventListener('click', handleSaveNewTournament);
         }
         function openManageTournamentModal(torneioId) {
             const torneio = allTournaments.find(t => t.id === torneioId);
             if (!torneio) return;
-
-            // CORREÇÃO: Nome do tenista no confronto
             const matchesHistory = (torneio.jogos || []).map(jogo => `
                 <div class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
-                    <div>
-                        <p class="font-bold">${jogo.rodada}</p>
-                        <p class="text-sm text-slate-600">Fernando Lapa (BRA) vs. ${jogo.adversario} - <span class="font-semibold">${jogo.placar}</span></p>
-                    </div>
+                    <div><p class="font-bold">${jogo.rodada}</p><p class="text-sm text-slate-600">Fernando Lapa (BRA) vs. ${jogo.adversario} - <span class="font-semibold">${jogo.placar}</span></p></div>
                     <span class="text-lg font-bold ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
                 </div>`).join('');
             let body = `<div class="space-y-3">${matchesHistory}</div>`;
-            let footer = '';
-
             if (torneio.status === 'Finalizado') {
-                body += `
-                    <div class="mt-6 pt-4 border-t text-center space-y-2">
-                        <p class="text-lg font-bold">Campanha Finalizada</p>
-                        <p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p>
-                        <p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p>
-                    </div>`;
-                openModal(`Detalhes: ${torneio.nome}`, body);
-                return;
+                body += `<div class="mt-6 pt-4 border-t text-center space-y-2"><p class="text-lg font-bold">Campanha Finalizada</p><p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p><p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p></div>`;
+                openModal(`Detalhes: ${torneio.nome}`, body); return;
             }
-            
-            const nextRoundIndex = (torneio.jogos || []).length;
-            const rounds = roundsByTournament[torneio.tipo] || roundsByTournament['Default'];
-            const nextRoundName = rounds[nextRoundIndex] || `Rodada ${nextRoundIndex + 1}`;
-            const isFinal = nextRoundName === 'Final';
+            // MELHORIA: Lógica para selecionar a próxima fase
+            const lastPlayedRound = torneio.jogos[torneio.jogos.length - 1].rodada;
+            const allPossibleRounds = roundsByTournamentType[torneio.tipo] || roundsByTournamentType['Default'];
+            const lastPlayedIndex = allPossibleRounds.indexOf(lastPlayedRound);
+            const remainingRounds = allPossibleRounds.slice(lastPlayedIndex + 1);
 
             body += `
                 <form id="update-tournament-form" class="space-y-4 pt-6 mt-6 border-t">
-                    <h4 class="text-md font-semibold">Próximo Jogo: <span class="text-primary">${nextRoundName}</span></h4>
+                    <h4 class="text-md font-semibold">Próximo Jogo</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label for="next-round" class="block text-sm font-medium">Fase do Torneio</label>
+                            <select id="next-round" class="form-select mt-1">${remainingRounds.map(r => `<option value="${r}">${r}</option>`).join('')}</select>
+                        </div>
                         <div><label for="next-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="next-adversario" class="form-input mt-1" required></div>
-                        <div><label for="next-placar" class="block text-sm font-medium">Placar</label><input type="text" id="next-placar" class="form-input mt-1" required></div>
+                        <div class="md:col-span-2"><label for="next-placar" class="block text-sm font-medium">Placar</label><input type="text" id="next-placar" class="form-input mt-1" required></div>
                     </div>
                     <div id="final-details-update" class="hidden space-y-4 pt-4 mt-4 border-t">
                          <h4 id="final-title-update" class="text-md font-semibold"></h4>
@@ -447,31 +439,26 @@
                         </div>
                     </div>
                 </form>`;
-            footer = isFinal 
-                ? `<button id="win-final-btn" class="btn btn-secondary"><i class="fas fa-trophy mr-2"></i>Declarar Campeão</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>`
-                : `<button id="win-match-btn" class="btn btn-secondary">Salvar Vitória</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>`;
+            const footer = `<button id="win-match-btn" class="btn btn-secondary">Salvar Vitória</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>`;
             openModal(`Gerenciar: ${torneio.nome}`, body, footer);
 
             const handleUpdate = (result) => {
                  const form = document.getElementById('update-tournament-form');
-                 const adversario = form.querySelector('#next-adversario').value.trim();
-                 const placar = form.querySelector('#next-placar').value.trim();
-                 if (!adversario || !placar) { alert('Preencha os campos de adversário e placar.'); return; }
+                 const nextRoundName = form.querySelector('#next-round').value; // Pega o valor da fase selecionada
+                 if (!nextRoundName) { alert('Não há mais fases neste torneio.'); return; }
+                 const adversario = form.querySelector('#next-adversario').value.trim(), placar = form.querySelector('#next-placar').value.trim();
+                 if (!adversario || !placar) { alert('Preencha adversário e placar.'); return; }
+                 const isFinal = nextRoundName === 'Final';
                  const newMatch = { rodada: nextRoundName, adversario, placar, resultado: result };
                  const updatedJogos = [...(torneio.jogos || []), newMatch];
                  let updatedData = { jogos: updatedJogos };
                  if (result === 'D' || (result === 'V' && isFinal)) {
-                     updatedData = { 
-                         ...updatedData, status: 'Finalizado', faseFinal: result === 'V' ? 'Campeão' : nextRoundName,
-                         pontos: Number(form.querySelector('#update-pontos').value) || 0,
-                         premiacao: Number(form.querySelector('#update-premiacao').value) || 0
-                     };
+                     updatedData = { ...updatedData, status: 'Finalizado', faseFinal: result === 'V' ? 'Campeão' : nextRoundName, pontos: Number(form.querySelector('#update-pontos').value) || 0, premiacao: Number(form.querySelector('#update-premiacao').value) || 0 };
                  }
                  updateTournamentInDb(torneioId, updatedData);
             };
             const setupFinalizationUI = (isWin) => {
-                const finalDetails = document.getElementById('final-details-update');
-                const title = document.getElementById('final-title-update');
+                const finalDetails = document.getElementById('final-details-update'), title = document.getElementById('final-title-update');
                 if (finalDetails.classList.contains('hidden')) {
                     finalDetails.classList.remove('hidden');
                     title.textContent = isWin ? 'Finalizar (Campeão!)' : 'Finalizar com Derrota';
@@ -479,58 +466,39 @@
                     return false;
                 } return true;
             };
-            document.getElementById('lose-match-btn')?.addEventListener('click', () => { if(setupFinalizationUI(false)) handleUpdate('D'); });
-            document.getElementById('win-match-btn')?.addEventListener('click', () => handleUpdate('V'));
-            document.getElementById('win-final-btn')?.addEventListener('click', () => { if(setupFinalizationUI(true)) handleUpdate('V'); });
+            const winBtn = document.getElementById('win-match-btn'), loseBtn = document.getElementById('lose-match-btn');
+            winBtn.addEventListener('click', () => {
+                const nextRound = document.getElementById('next-round').value;
+                if(nextRound === 'Final') { if (setupFinalizationUI(true)) handleUpdate('V'); } 
+                else { handleUpdate('V'); }
+            });
+            loseBtn.addEventListener('click', () => { if (setupFinalizationUI(false)) handleUpdate('D'); });
         }
         function handleCategoryDetailsClick(e) {
-            const button = e.target.closest('.details-btn');
-            if (!button) return;
+            const button = e.target.closest('.details-btn'); if (!button) return;
             const { category, view } = button.dataset;
-
-            const filteredTournaments = allTournaments.filter(t => {
-                if (t.tipo !== category) return false;
-                if (view === 'titles' && t.faseFinal !== 'Campeão') return false;
-                return true;
-            });
-            
+            const filteredTournaments = allTournaments.filter(t => { if (t.tipo !== category) return false; if (view === 'titles' && t.faseFinal !== 'Campeão') return false; return true; });
             let modalTitleText = view === 'titles' ? `Títulos - ${category}` : `Campanhas - ${category}`;
-            
-            if (filteredTournaments.length === 0) {
-                openModal(modalTitleText, '<p class="text-center p-4">Nenhum resultado para exibir.</p>');
-                return;
-            }
-            
-            // CORREÇÃO: Adicionar campanha V-D no modal
+            if (filteredTournaments.length === 0) { openModal(modalTitleText, '<p class="text-center p-4">Nenhum resultado.</p>'); return; }
             const listHTML = filteredTournaments.map(t => {
-                const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
-                const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
-                return `
-                <div class="p-3 border-b last:border-b-0">
-                    <p class="font-bold">${t.ano} - ${t.nome}</p>
-                    <p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p>
-                </div>
-            `}).join('');
+                const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length, derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
+                return `<div class="p-3 border-b last:border-b-0"><p class="font-bold">${t.ano} - ${t.nome}</p><p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p></div>`
+            }).join('');
             openModal(modalTitleText, `<div class="space-y-2">${listHTML}</div>`);
         }
 
         // --- STATS CALCULATION & UI UPDATES ---
         function updateUI() {
             const stats = calculateAllStats();
-            updateSeasonFilter();
-            renderMainTable();
-            updateStatsForSeason();
-            updateStatsPanels(stats);
-            updateCharts(stats);
-            updateTabs(stats);
+            updateSeasonFilter(); renderMainTable(); updateStatsForSeason();
+            updateStatsPanels(stats); updateCharts(stats); updateTabs(stats);
             populateOpponentDatalist();
         }
-        function calculateAllStats() {
+        function calculateAllStats() { /* Sem alterações, mantido como está */
             const stats = { rankingPoints: 0, premiacao: 0, titulos: 0, vitoriasATP: 0, derrotasATP: 0, porTipo: {}, porSuperficie: {} };
             tournamentTypes.forEach(t => { stats.porTipo[t] = { v: 0, d: 0, t: 0 }; });
             surfaces.forEach(s => { stats.porSuperficie[s] = { v: 0, d: 0, t: 0, atp_v: 0, atp_d: 0, atp_t: 0 }; });
             const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
             allTournaments.forEach(t => {
                 stats.premiacao += Number(t.premiacao) || 0;
                 if (t.dataFim && new Date(t.dataFim) >= oneYearAgo) { stats.rankingPoints += Number(t.pontos) || 0; }
@@ -560,8 +528,8 @@
             document.getElementById('titulos-total').textContent = stats.titulos;
             document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
         }
-        function updateTabs(stats) {
-             const titulosATP = Object.entries(stats.porTipo).filter(([key]) => key && !key.startsWith("CH")).reduce((sum, [, val]) => sum + val.t, 0);
+        function updateTabs(stats) { /* Sem alterações, mantido como está */
+            const titulosATP = Object.entries(stats.porTipo).filter(([key]) => key && !key.startsWith("CH")).reduce((sum, [, val]) => sum + val.t, 0);
              document.getElementById('titulos-total-resumo').textContent = titulosATP;
              document.getElementById('titulos-list').innerHTML = tournamentTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-category="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
              document.getElementById('titulos-saibro').textContent = stats.porSuperficie.Saibro.atp_t;
@@ -576,15 +544,15 @@
              document.getElementById('vitorias-rapida').textContent = `${stats.porSuperficie.Rápida.atp_v} / ${stats.porSuperficie.Rápida.atp_d}`;
              document.getElementById('vitorias-grama').textContent = `${stats.porSuperficie.Grama.atp_v} / ${stats.porSuperficie.Grama.atp_d}`;
         }
-        function updateCharts(stats) {
-             if (titulosChart) { titulosChart.data.datasets[0].data = tournamentTypes.map(t => stats.porTipo[t]?.t || 0); titulosChart.update(); }
+        function updateCharts(stats) { /* Sem alterações, mantido como está */
+            if (titulosChart) { titulosChart.data.datasets[0].data = tournamentTypes.map(t => stats.porTipo[t]?.t || 0); titulosChart.update(); }
              if (vitoriasChart) {
                 vitoriasChart.data.datasets[0].data = surfaces.map(s => stats.porSuperficie[s]?.atp_v || 0);
                 vitoriasChart.data.datasets[1].data = surfaces.map(s => stats.porSuperficie[s]?.atp_d || 0);
                 vitoriasChart.update();
              }
         }
-        function renderMainTable() {
+        function renderMainTable() { /* Sem alterações, mantido como está */
             const tableBody = document.getElementById('temporadas-tabela');
             const noDataMsg = document.getElementById('no-tournaments-msg');
             const season = document.getElementById('season-filter').value;
@@ -616,7 +584,7 @@
                  select.value = anos[0];
              }
         }
-        function updateStatsForSeason() {
+        function updateStatsForSeason() { /* Sem alterações, mantido como está */
             const season = document.getElementById('season-filter').value;
             if (!season) return;
             const filtered = (season === 'all') ? allTournaments : allTournaments.filter(t => t.ano == season);
@@ -644,49 +612,35 @@
         function displayH2HResults() {
             const opponentName = document.getElementById('h2h-search').value;
             const resultsDiv = document.getElementById('h2h-results');
-            if (!opponentName) {
-                resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Selecione um adversário para ver o histórico de confrontos.</p>`;
-                return;
-            }
-            let wins = 0, losses = 0;
-            const matches = [];
+            if (!opponentName) { resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Selecione um adversário.</p>`; return; }
+            let wins = 0, losses = 0; const matches = [];
             allTournaments.forEach(t => {
                 (t.jogos || []).forEach(j => {
                     if (j.adversario.toLowerCase() === opponentName.toLowerCase()) {
-                        if (j.resultado === 'V') wins++;
-                        else losses++;
+                        if (j.resultado === 'V') wins++; else losses++;
                         matches.push({ ...t, ...j });
                     }
                 });
             });
             matches.sort((a,b) => new Date(b.dataInicio) - new Date(a.dataInicio));
-            let html = `<div class="text-center mb-6"><p class="text-lg font-bold">Fernando Lapa <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentName}</p></div>`;
+            let html = `<div class="text-center mb-6"><p class="text-2xl font-bold">Fernando Lapa <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentName}</p></div>`;
             if (matches.length > 0) {
                 html += `
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                    <div class="overflow-x-auto"><table class="w-full text-sm">
                         <thead class="text-xs bg-slate-100"><tr>
                             <th class="py-2 px-2 text-left">Ano</th><th class="py-2 px-2 text-left">Torneio</th>
                             <th class="py-2 px-2 text-left">Rodada</th><th class="py-2 px-2 text-left">Superfície</th>
                             <th class="py-2 px-2 text-left">Placar</th><th class="py-2 px-2 text-left">Resultado</th>
                         </tr></thead><tbody>
                         ${matches.map(m => `
-                            <tr class="border-b">
-                                <td class="py-2 px-2">${m.ano}</td><td class="py-2 px-2 font-semibold">${m.nome}</td>
+                            <tr class="border-b"><td class="py-2 px-2">${m.ano}</td><td class="py-2 px-2 font-semibold">${m.nome}</td>
                                 <td class="py-2 px-2">${m.rodada}</td><td class="py-2 px-2">${m.superficie}</td>
-                                <td class="py-2 px-2">${m.placar}</td>
-                                <td class="py-2 px-2 font-bold ${m.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${m.resultado === 'V' ? 'Vitória' : 'Derrota'}</td>
-                            </tr>
-                        `).join('')}
-                        </tbody></table>
-                    </div>
-                `;
-            } else {
-                html += `<p class="text-center text-slate-500 py-8">Nenhum confronto encontrado com ${opponentName}.</p>`;
-            }
+                                <td class="py-2 px-2">${m.placar}</td><td class="py-2 px-2 font-bold ${m.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${m.resultado === 'V' ? 'Vitória' : 'Derrota'}</td>
+                            </tr>`).join('')}
+                        </tbody></table></div>`;
+            } else { html += `<p class="text-center text-slate-500 py-8">Nenhum confronto encontrado.</p>`; }
             resultsDiv.innerHTML = html;
         }
-
         // --- INITIALIZATION ---
         function initialize() {
             document.getElementById('create-tournament-btn').addEventListener('click', openCreateTournamentModal);
@@ -696,9 +650,7 @@
             document.getElementById('h2h-search').addEventListener('change', displayH2HResults);
             document.getElementById('titulos-list').addEventListener('click', handleCategoryDetailsClick);
             document.getElementById('vitorias-list').addEventListener('click', handleCategoryDetailsClick);
-            
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
+            const tabButtons = document.querySelectorAll('.tab-button'), tabContents = document.querySelectorAll('.tab-content');
             tabButtons.forEach(button => button.addEventListener('click', () => {
                 tabButtons.forEach(btn => btn.classList.remove('active')); button.classList.add('active');
                 tabContents.forEach(content => content.classList.remove('active'));
