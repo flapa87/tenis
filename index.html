@@ -182,9 +182,7 @@
                              <p class="font-semibold text-lg">Total de Títulos (ATP): <span id="titulos-total-resumo" class="text-primary">0</span></p>
                              <div id="titulos-list" class="mt-4 space-y-2 text-sm"></div>
                              <p class="font-semibold mt-6 pt-4 border-t border-slate-200">Títulos por Superfície (ATP):</p>
-                             <ul class="list-disc pl-6 text-sm">
-                                 <li>Saibro: <span id="titulos-saibro">0</span></li> <li>Rápida: <span id="titulos-rapida">0</span></li> <li>Grama: <span id="titulos-grama">0</span></li>
-                             </ul>
+                             <ul id="titulos-surface-list" class="list-disc pl-6 text-sm"></ul>
                         </div>
                          <div class="glass-card p-4 md:p-6"><h3 class="text-xl font-bold mb-4 text-slate-800">Distribuição de Títulos</h3><canvas id="titulosChart"></canvas></div>
                     </div>
@@ -199,9 +197,7 @@
                             <p class="font-semibold mt-6 pt-4 border-t border-slate-200">Por Tipo de Torneio:</p>
                             <div id="vitorias-list" class="text-sm space-y-1 mt-2"></div>
                             <p class="font-semibold mt-6 pt-4 border-t border-slate-200">Por Superfície (ATP):</p>
-                             <ul class="list-disc pl-6 text-sm">
-                                 <li>Saibro: <span id="vitorias-saibro">0 / 0</span></li> <li>Rápida: <span id="vitorias-rapida">0 / 0</span></li> <li>Grama: <span id="vitorias-grama">0 / 0</span></li>
-                             </ul>
+                             <ul id="vitorias-surface-list" class="list-disc pl-6 text-sm"></ul>
                         </div>
                         <div class="glass-card p-4 md:p-6"><h3 class="text-xl font-bold mb-4 text-slate-800">Desempenho por Superfície</h3><canvas id="vitoriasChart"></canvas></div>
                     </div>
@@ -265,9 +261,8 @@
         const modalFooter = document.getElementById('modalFooter');
         const closeModalBtn = document.getElementById('closeModalBtn');
         
-        const tournamentTypes = ['Grand Slam', 'ATP Finals', 'ATP Masters 1000', 'ATP 500', 'ATP 250', 'Jogos Olímpicos', 'CH 125', 'CH 100', 'CH 75', 'CH 50'];
+        const tournamentTypes = ['Grand Slam', 'ATP Finals', 'ATP Masters 1000', 'ATP 500', 'ATP 250', 'Jogos Olímpicos', 'CH 175', 'CH 125', 'CH 100', 'CH 90', 'CH 75'];
         const surfaces = ['Saibro', 'Rápida', 'Grama'];
-        // ESTRUTURA DE DADOS DAS FASES DOS TORNEIOS
         const roundsByTournamentType = {
             'Grand Slam': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'ATP Masters 1000': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
@@ -275,10 +270,11 @@
             'ATP 250': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'Jogos Olímpicos': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Disputa Bronze', 'Final'],
             'ATP Finals': ['Fase de Grupos 1', 'Fase de Grupos 2', 'Fase de Grupos 3', 'Semifinal', 'Final'],
+            'CH 175': ['Primeira Rodada', 'Segunda Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'CH 125': ['Primeira Rodada', 'Segunda Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'CH 100': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'CH 90': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
-            'CH 50': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'Default': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final']
         };
 
@@ -363,7 +359,7 @@
         }
 
         // --- MODAL RENDERING ---
-        function openCreateTournamentModal() { /* Sem alterações, mantido como está */
+        function openCreateTournamentModal() {
             const body = `
                 <form id="create-tournament-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -414,12 +410,10 @@
                 body += `<div class="mt-6 pt-4 border-t text-center space-y-2"><p class="text-lg font-bold">Campanha Finalizada</p><p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p><p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p></div>`;
                 openModal(`Detalhes: ${torneio.nome}`, body); return;
             }
-            // MELHORIA: Lógica para selecionar a próxima fase
             const lastPlayedRound = torneio.jogos[torneio.jogos.length - 1].rodada;
             const allPossibleRounds = roundsByTournamentType[torneio.tipo] || roundsByTournamentType['Default'];
             const lastPlayedIndex = allPossibleRounds.indexOf(lastPlayedRound);
             const remainingRounds = allPossibleRounds.slice(lastPlayedIndex + 1);
-
             body += `
                 <form id="update-tournament-form" class="space-y-4 pt-6 mt-6 border-t">
                     <h4 class="text-md font-semibold">Próximo Jogo</h4>
@@ -444,8 +438,8 @@
 
             const handleUpdate = (result) => {
                  const form = document.getElementById('update-tournament-form');
-                 const nextRoundName = form.querySelector('#next-round').value; // Pega o valor da fase selecionada
-                 if (!nextRoundName) { alert('Não há mais fases neste torneio.'); return; }
+                 const nextRoundName = form.querySelector('#next-round').value;
+                 if (!nextRoundName) { alert('Não há mais fases neste torneio para selecionar.'); return; }
                  const adversario = form.querySelector('#next-adversario').value.trim(), placar = form.querySelector('#next-placar').value.trim();
                  if (!adversario || !placar) { alert('Preencha adversário e placar.'); return; }
                  const isFinal = nextRoundName === 'Final';
@@ -474,17 +468,67 @@
             });
             loseBtn.addEventListener('click', () => { if (setupFinalizationUI(false)) handleUpdate('D'); });
         }
-        function handleCategoryDetailsClick(e) {
+        function handleDetailsClick(e) {
             const button = e.target.closest('.details-btn'); if (!button) return;
-            const { category, view } = button.dataset;
-            const filteredTournaments = allTournaments.filter(t => { if (t.tipo !== category) return false; if (view === 'titles' && t.faseFinal !== 'Campeão') return false; return true; });
-            let modalTitleText = view === 'titles' ? `Títulos - ${category}` : `Campanhas - ${category}`;
-            if (filteredTournaments.length === 0) { openModal(modalTitleText, '<p class="text-center p-4">Nenhum resultado.</p>'); return; }
-            const listHTML = filteredTournaments.map(t => {
-                const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length, derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
-                return `<div class="p-3 border-b last:border-b-0"><p class="font-bold">${t.ano} - ${t.nome}</p><p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p></div>`
-            }).join('');
-            openModal(modalTitleText, `<div class="space-y-2">${listHTML}</div>`);
+            const { filterType, filterValue, view } = button.dataset;
+            
+            let originalTournaments;
+            if (filterType === 'category') {
+                originalTournaments = allTournaments.filter(t => t.tipo === filterValue);
+            } else if (filterType === 'surface') {
+                originalTournaments = allTournaments.filter(t => t.superficie === filterValue);
+            }
+            
+            if (view === 'titles') {
+                originalTournaments = originalTournaments.filter(t => t.faseFinal === 'Campeão');
+            }
+
+            const seasons = [...new Set(originalTournaments.map(t => t.ano))].sort((a,b) => b-a);
+            const tournamentNames = [...new Set(originalTournaments.map(t => t.nome))].sort();
+            const modalTitleText = view === 'titles' ? `Títulos - ${filterValue}` : `Campanhas - ${filterValue}`;
+            
+            const body = `
+                <div class="flex flex-wrap gap-4 mb-4 p-2 bg-slate-100 rounded-lg">
+                    <div class="flex-1 min-w-[150px]"><label class="text-xs font-semibold">Torneio:</label><select id="modal-tournament-filter" class="form-select text-sm"><option value="all">Todos</option>${tournamentNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select></div>
+                    <div class="flex-1 min-w-[150px]"><label class="text-xs font-semibold">Temporada:</label><select id="modal-season-filter" class="form-select text-sm"><option value="all">Carreira</option>${seasons.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div>
+                </div>
+                <div id="modal-results-content" class="space-y-2"></div>
+            `;
+            openModal(modalTitleText, body);
+
+            const renderModalContent = () => {
+                const seasonFilter = document.getElementById('modal-season-filter').value;
+                const tournamentFilter = document.getElementById('modal-tournament-filter').value;
+                let filtered = originalTournaments;
+
+                if (seasonFilter !== 'all') filtered = filtered.filter(t => t.ano == seasonFilter);
+                if (tournamentFilter !== 'all') filtered = filtered.filter(t => t.nome === tournamentFilter);
+                
+                let contentHTML = '';
+                if (filtered.length === 0) {
+                    contentHTML = '<p class="text-center p-4">Nenhum resultado para exibir.</p>';
+                } else if (tournamentFilter !== 'all' && seasonFilter === 'all') {
+                    let aggWins = 0, aggLosses = 0, aggTitles = 0;
+                    filtered.forEach(t => {
+                        aggWins += (t.jogos || []).filter(j => j.resultado === 'V').length;
+                        aggLosses += (t.jogos || []).filter(j => j.resultado === 'D').length;
+                        if (t.faseFinal === 'Campeão') aggTitles++;
+                    });
+                    contentHTML += `<div class="p-3 bg-slate-50 rounded-lg mb-4 text-center"><h4 class="font-bold">Resumo em ${tournamentFilter}</h4><p>${aggTitles} Título(s) | ${aggWins}V / ${aggLosses}D</p></div>`;
+                }
+
+                contentHTML += filtered.map(t => {
+                    const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
+                    const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
+                    return `<div class="p-3 border-b last:border-b-0"><p class="font-bold">${t.ano} - ${t.nome}</p><p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p></div>`;
+                }).join('');
+
+                document.getElementById('modal-results-content').innerHTML = contentHTML;
+            };
+
+            document.getElementById('modal-season-filter').addEventListener('change', renderModalContent);
+            document.getElementById('modal-tournament-filter').addEventListener('change', renderModalContent);
+            renderModalContent();
         }
 
         // --- STATS CALCULATION & UI UPDATES ---
@@ -494,7 +538,7 @@
             updateStatsPanels(stats); updateCharts(stats); updateTabs(stats);
             populateOpponentDatalist();
         }
-        function calculateAllStats() { /* Sem alterações, mantido como está */
+        function calculateAllStats() {
             const stats = { rankingPoints: 0, premiacao: 0, titulos: 0, vitoriasATP: 0, derrotasATP: 0, porTipo: {}, porSuperficie: {} };
             tournamentTypes.forEach(t => { stats.porTipo[t] = { v: 0, d: 0, t: 0 }; });
             surfaces.forEach(s => { stats.porSuperficie[s] = { v: 0, d: 0, t: 0, atp_v: 0, atp_d: 0, atp_t: 0 }; });
@@ -528,31 +572,26 @@
             document.getElementById('titulos-total').textContent = stats.titulos;
             document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
         }
-        function updateTabs(stats) { /* Sem alterações, mantido como está */
-            const titulosATP = Object.entries(stats.porTipo).filter(([key]) => key && !key.startsWith("CH")).reduce((sum, [, val]) => sum + val.t, 0);
+        function updateTabs(stats) {
+             const titulosATP = Object.entries(stats.porTipo).filter(([key]) => key && !key.startsWith("CH")).reduce((sum, [, val]) => sum + val.t, 0);
              document.getElementById('titulos-total-resumo').textContent = titulosATP;
-             document.getElementById('titulos-list').innerHTML = tournamentTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-category="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
-             document.getElementById('titulos-saibro').textContent = stats.porSuperficie.Saibro.atp_t;
-             document.getElementById('titulos-rapida').textContent = stats.porSuperficie.Rápida.atp_t;
-             document.getElementById('titulos-grama').textContent = stats.porSuperficie.Grama.atp_t;
-
+             document.getElementById('titulos-list').innerHTML = tournamentTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
+             document.getElementById('titulos-surface-list').innerHTML = surfaces.map(s => `<li class="flex justify-between items-center">${s}: <span>${stats.porSuperficie[s]?.atp_t || 0} <button class="details-btn" data-filter-type="surface" data-filter-value="${s}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></li>`).join('');
              document.getElementById('total-vitorias').textContent = stats.vitoriasATP;
              document.getElementById('total-derrotas').textContent = stats.derrotasATP;
              document.getElementById('taxa-vitorias').textContent = (stats.vitoriasATP + stats.derrotasATP > 0) ? `${((stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) * 100).toFixed(1)}%` : '0%';
-             document.getElementById('vitorias-list').innerHTML = tournamentTypes.map(type => `<div class="flex justify-between items-center">${type}: <span>${stats.porTipo[type]?.v || 0} / ${stats.porTipo[type]?.d || 0} <button class="details-btn" data-category="${type}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></div>`).join('');
-             document.getElementById('vitorias-saibro').textContent = `${stats.porSuperficie.Saibro.atp_v} / ${stats.porSuperficie.Saibro.atp_d}`;
-             document.getElementById('vitorias-rapida').textContent = `${stats.porSuperficie.Rápida.atp_v} / ${stats.porSuperficie.Rápida.atp_d}`;
-             document.getElementById('vitorias-grama').textContent = `${stats.porSuperficie.Grama.atp_v} / ${stats.porSuperficie.Grama.atp_d}`;
+             document.getElementById('vitorias-list').innerHTML = tournamentTypes.map(type => `<div class="flex justify-between items-center">${type}: <span>${stats.porTipo[type]?.v || 0} / ${stats.porTipo[type]?.d || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></div>`).join('');
+             document.getElementById('vitorias-surface-list').innerHTML = surfaces.map(s => `<li class="flex justify-between items-center">${s}: <span>${stats.porSuperficie[s]?.atp_v || 0} / ${stats.porSuperficie[s]?.atp_d || 0} <button class="details-btn" data-filter-type="surface" data-filter-value="${s}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></li>`).join('');
         }
-        function updateCharts(stats) { /* Sem alterações, mantido como está */
-            if (titulosChart) { titulosChart.data.datasets[0].data = tournamentTypes.map(t => stats.porTipo[t]?.t || 0); titulosChart.update(); }
+        function updateCharts(stats) {
+             if (titulosChart) { titulosChart.data.datasets[0].data = tournamentTypes.map(t => stats.porTipo[t]?.t || 0); titulosChart.update(); }
              if (vitoriasChart) {
                 vitoriasChart.data.datasets[0].data = surfaces.map(s => stats.porSuperficie[s]?.atp_v || 0);
                 vitoriasChart.data.datasets[1].data = surfaces.map(s => stats.porSuperficie[s]?.atp_d || 0);
                 vitoriasChart.update();
              }
         }
-        function renderMainTable() { /* Sem alterações, mantido como está */
+        function renderMainTable() {
             const tableBody = document.getElementById('temporadas-tabela');
             const noDataMsg = document.getElementById('no-tournaments-msg');
             const season = document.getElementById('season-filter').value;
@@ -584,7 +623,7 @@
                  select.value = anos[0];
              }
         }
-        function updateStatsForSeason() { /* Sem alterações, mantido como está */
+        function updateStatsForSeason() {
             const season = document.getElementById('season-filter').value;
             if (!season) return;
             const filtered = (season === 'all') ? allTournaments : allTournaments.filter(t => t.ano == season);
@@ -605,18 +644,23 @@
         }
         // --- H2H FUNCTIONS ---
         function populateOpponentDatalist() {
-            const opponents = new Set();
-            allTournaments.forEach(t => (t.jogos || []).forEach(j => opponents.add(j.adversario)));
-            document.getElementById('opponent-list').innerHTML = [...opponents].map(op => `<option value="${op}"></option>`).join('');
+            const opponentMap = new Map();
+            allTournaments.forEach(t => (t.jogos || []).forEach(j => {
+                const normalized = j.adversario.trim().toLowerCase();
+                if (!opponentMap.has(normalized)) {
+                    opponentMap.set(normalized, j.adversario.trim());
+                }
+            }));
+            document.getElementById('opponent-list').innerHTML = [...opponentMap.values()].sort().map(op => `<option value="${op}"></option>`).join('');
         }
         function displayH2HResults() {
-            const opponentName = document.getElementById('h2h-search').value;
+            const opponentName = document.getElementById('h2h-search').value.trim();
             const resultsDiv = document.getElementById('h2h-results');
             if (!opponentName) { resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Selecione um adversário.</p>`; return; }
             let wins = 0, losses = 0; const matches = [];
             allTournaments.forEach(t => {
                 (t.jogos || []).forEach(j => {
-                    if (j.adversario.toLowerCase() === opponentName.toLowerCase()) {
+                    if (j.adversario.trim().toLowerCase() === opponentName.toLowerCase()) {
                         if (j.resultado === 'V') wins++; else losses++;
                         matches.push({ ...t, ...j });
                     }
@@ -648,15 +692,18 @@
             modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             document.getElementById('season-filter').addEventListener('change', () => { renderMainTable(); updateStatsForSeason(); });
             document.getElementById('h2h-search').addEventListener('change', displayH2HResults);
-            document.getElementById('titulos-list').addEventListener('click', handleCategoryDetailsClick);
-            document.getElementById('vitorias-list').addEventListener('click', handleCategoryDetailsClick);
+            document.getElementById('titulos-list').addEventListener('click', handleDetailsClick);
+            document.getElementById('vitorias-list').addEventListener('click', handleDetailsClick);
+            document.getElementById('titulos-surface-list').addEventListener('click', handleDetailsClick);
+            document.getElementById('vitorias-surface-list').addEventListener('click', handleDetailsClick);
+
             const tabButtons = document.querySelectorAll('.tab-button'), tabContents = document.querySelectorAll('.tab-content');
             tabButtons.forEach(button => button.addEventListener('click', () => {
                 tabButtons.forEach(btn => btn.classList.remove('active')); button.classList.add('active');
                 tabContents.forEach(content => content.classList.remove('active'));
                 document.getElementById(button.dataset.tab).classList.add('active');
             }));
-            const chartColors = ['#facc15', '#10b981', '#1e3a8a', '#22d3ee', '#f97316', '#8b5cf6', '#6b7280', '#a1a1aa', '#71717a', '#52525b'];
+            const chartColors = ['#facc15', '#10b981', '#1e3a8a', '#22d3ee', '#f97316', '#8b5cf6', '#6b7280', '#a1a1aa', '#71717a', '#52525b', '#4b5563'];
             titulosChart = new Chart(document.getElementById('titulosChart').getContext('2d'), { type: 'pie', data: { labels: tournamentTypes, datasets: [{ data: [], backgroundColor: chartColors }] } });
             vitoriasChart = new Chart(document.getElementById('vitoriasChart').getContext('2d'), { type: 'bar', data: { labels: surfaces, datasets: [{ label: 'Vitórias (ATP)', data: [], backgroundColor: '#10b981' }, { label: 'Derrotas (ATP)', data: [], backgroundColor: '#ef4444' }]}, options: { scales: { y: { beginAtZero: true } } } });
             loadTournamentsFromDb();
