@@ -83,11 +83,11 @@
         .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
 
         #temporadas-tabela tr { cursor: pointer; }
-        .details-btn {
+        .details-btn, .edit-match-btn {
             background: none; border: none; color: var(--primary); cursor: pointer;
             margin-left: 0.5rem; opacity: 0.6; transition: opacity 0.2s;
         }
-        .details-btn:hover { opacity: 1; }
+        .details-btn:hover, .edit-match-btn:hover { opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -95,8 +95,17 @@
         <aside class="space-y-6">
             <div class="glass-card p-6 text-center fade-in-up">
                 <img src="https://ui-avatars.com/api/?name=Fernando+Lapa&background=1e40af&color=fff&size=96&bold=true&rounded=true" alt="Avatar Fernando Lapa" class="mx-auto mb-4 border-4 border-white/50 rounded-full shadow-lg">
-                <h1 class="text-2xl font-bold text-slate-800">Fernando Lapa</h1>
+                <div class="flex items-center justify-center gap-2">
+                    <h1 class="text-2xl font-bold text-slate-800">Fernando Lapa</h1>
+                    <span id="main-flag" class="text-2xl"></span>
+                </div>
                 <p class="text-sm text-slate-600">Tenista Profissional</p>
+                <div class="text-xs text-slate-500 mt-2">
+                    <i class="fa-solid fa-cake-candles mr-1"></i> 18/02/2011 (<span id="idade"></span> anos)
+                </div>
+                <div class="text-xs text-slate-500 mt-1">
+                    <i class="fa-solid fa-location-dot mr-1"></i> Florianópolis, SC, Brasil
+                </div>
             </div>
 
             <div class="glass-card p-6 space-y-4 fade-in-up" style="animation-delay: 0.1s;">
@@ -327,11 +336,11 @@
                 { rank: 400, points: 125 }, { rank: 500, points: 80 }, { rank: 750, points: 35 },
                 { rank: 1000, points: 17 }, { rank: 1500, points: 1 }
             ];
-            for (let i = 0; i < rankingPointsMap.length; i++) {
-                if (pontos >= rankingPointsMap[i].points) {
-                    if (i === 0) return `${rankingPointsMap[i].rank}º`;
-                    const upper = rankingPointsMap[i-1];
-                    const lower = rankingPointsMap[i];
+            if (pontos >= rankingPointsMap[0].points) return `${rankingPointsMap[0].rank}º`;
+            for (let i = 1; i < rankingPointsMap.length; i++) {
+                const upper = rankingPointsMap[i-1];
+                const lower = rankingPointsMap[i];
+                if (pontos >= lower.points && pontos < upper.points) {
                     const pointsRange = upper.points - lower.points;
                     const rankRange = lower.rank - upper.rank;
                     const pointsAboveLower = pontos - lower.points;
@@ -487,12 +496,13 @@
                     </div>
                 </div>`).join('');
             let body = `<div id="matches-history-list" class="space-y-3">${matchesHistory}</div>`;
-            let titlePrefix = torneio.status === 'Finalizado' ? '' : 'Gerenciar: ';
+            const titlePrefix = torneio.status === 'Finalizado' ? '' : 'Gerenciar: ';
             const modalTitleHTML = `
                 <span>${getFlagEmoji(torneio.paisTorneio)}</span>
                 <span class="truncate">${titlePrefix}${torneio.nome}</span>
                 <span class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">${torneio.tipo}</span>
             `;
+
             if (torneio.status === 'Finalizado') {
                 body += `<div class="mt-6 pt-4 border-t text-center space-y-2"><p class="text-lg font-bold">Campanha Finalizada</p><p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p><p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p></div>`;
             } else {
@@ -837,8 +847,8 @@
                         <thead class="text-xs uppercase bg-slate-100"><tr>
                             <th class="py-3 px-2 md:px-4 text-left">Ano</th><th class="py-3 px-2 md:px-4 text-left">Torneio</th>
                             <th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Tipo</th><th class="py-3 px-2 md:px-4 text-left">Rodada</th>
-                            <th class="py-3 px-2 md:px-4 text-left">Superfície</th><th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Placar</th>
-                            <th class="py-3 px-2 md:px-4 text-left">Resultado</th>
+                            <th class="py-3 px-2 md:px-4 text-left">Piso</th><th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Placar</th>
+                            <th class="py-3 px-2 md:px-4 text-left">Res.</th>
                         </tr></thead><tbody>
                         ${matches.map(m => `
                             <tr class="border-b odd:bg-white even:bg-slate-50">
@@ -885,8 +895,22 @@
             const chartColors = ['#facc15', '#10b981', '#1e3a8a', '#22d3ee', '#f97316', '#8b5cf6', '#6b7280', '#a1a1aa', '#71717a', '#52525b', '#4b5563'];
             titulosChart = new Chart(document.getElementById('titulosChart').getContext('2d'), { type: 'pie', data: { labels: tournamentTypes, datasets: [{ data: [], backgroundColor: chartColors }] } });
             vitoriasChart = new Chart(document.getElementById('vitoriasChart').getContext('2d'), { type: 'bar', data: { labels: surfaces, datasets: [{ label: 'Vitórias (ATP)', data: [], backgroundColor: '#10b981' }, { label: 'Derrotas (ATP)', data: [], backgroundColor: '#ef4444' }]}, options: { scales: { y: { beginAtZero: true } } } });
+            
+            calcularIdade();
+            document.getElementById('main-flag').textContent = getFlagEmoji('BRA');
             loadTournamentsFromDb();
         }
+
+        function calcularIdade(){
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - dataNascimentoJogador.getFullYear();
+            const m = hoje.getMonth() - dataNascimentoJogador.getMonth();
+            if (m < 0 || (m === 0 && hoje.getDate() < dataNascimentoJogador.getDate())) {
+                idade--;
+            }
+            document.getElementById('idade').textContent = idade;
+        }
+
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
