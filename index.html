@@ -82,12 +82,12 @@
         .btn-danger:hover { background-color: #dc2626; }
         .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
 
-        #temporadas-tabela tr:not(.editing-row) { cursor: pointer; }
-        .details-btn, .edit-tournament-btn {
+        #temporadas-tabela tr { cursor: pointer; }
+        .details-btn {
             background: none; border: none; color: var(--primary); cursor: pointer;
             margin-left: 0.5rem; opacity: 0.6; transition: opacity 0.2s;
         }
-        .details-btn:hover, .edit-tournament-btn:hover { opacity: 1; }
+        .details-btn:hover { opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -207,10 +207,10 @@
                 <div id="h2h" class="tab-content" role="tabpanel">
                     <div class="glass-card p-4 md:p-6">
                         <h2 class="text-2xl font-bold mb-6 text-slate-800">Head-to-Head (H2H)</h2>
-                        <div class="mb-6">
+                        <div class="relative mb-6">
                             <label for="h2h-search" class="block text-sm font-medium text-gray-700 mb-2">Pesquisar Adversário:</label>
-                            <input list="opponent-list" id="h2h-search" class="form-input" placeholder="Digite o nome de um adversário">
-                            <datalist id="opponent-list"></datalist>
+                            <input id="h2h-search" class="form-input" placeholder="Digite o nome de um adversário" autocomplete="off">
+                            <div id="h2h-suggestions" class="absolute z-10 w-full bg-white rounded-md shadow-lg hidden mt-1 max-h-48 overflow-y-auto"></div>
                         </div>
                         <div id="h2h-results">
                             <p class="text-center text-slate-500 py-8">Selecione um adversário para ver o histórico de confrontos.</p>
@@ -255,6 +255,7 @@
         
         let allTournaments = [];
         let titulosChart, vitoriasChart;
+        let allOpponentNames = [];
 
         const modal = document.getElementById('mainModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -278,7 +279,7 @@
             'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'Default': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final']
         };
-        const iocToIso2 = { 'SUI': 'CH', 'SRB': 'RS', 'ESP': 'ES', 'BRA': 'BR', 'USA': 'US', 'ITA': 'IT', 'GER': 'DE', 'FRA': 'FR', 'AUS': 'AU', 'GBR': 'GB', 'ARG': 'AR', 'RUS': 'RU', 'CAN': 'CA', 'JPN': 'JP', 'AUT': 'AT', 'NOR': 'NO', 'GRE': 'GR', 'POL': 'PL', 'CHI': 'CL', 'CRO': 'HR', 'DEN': 'DK', 'KAZ': 'KZ', 'NED': 'NL', 'SWE': 'SE', 'CHN': 'CN', 'QAT': 'QA', 'MEX': 'MX', 'IND': 'IN', 'MON': 'MC', 'BEL': 'BE' };
+        const iocToIso2 = {'AFG':'AF','ALB':'AL','ALG':'DZ','ASA':'AS','AND':'AD','ANG':'AO','ANT':'AG','ARG':'AR','ARM':'AM','ARU':'AW','AUS':'AU','AUT':'AT','AZE':'AZ','BAH':'BS','BRN':'BH','BAN':'BD','BAR':'BB','BLR':'BY','BEL':'BE','BIZ':'BZ','BEN':'BJ','BER':'BM','BHU':'BT','BOL':'BO','BIH':'BA','BOT':'BW','BRA':'BR','IVB':'VG','BRU':'BN','BUL':'BG','BUR':'BF','BDI':'BI','CAM':'KH','CMR':'CM','CAN':'CA','CAY':'KY','CAF':'CF','CHA':'TD','CHI':'CL','CHN':'CN','TPE':'TW','COL':'CO','COM':'KM','CGO':'CG','COD':'CD','COK':'CK','CRC':'CR','CIV':'CI','CRO':'HR','CUB':'CU','CYP':'CY','CZE':'CZ','DEN':'DK','DJI':'DJ','DMA':'DM','DOM':'DO','ECU':'EC','EGY':'EG','ESA':'SV','GEQ':'GQ','ERI':'ER','EST':'EE','SWZ':'SZ','ETH':'ET','FIJ':'FJ','FIN':'FI','FRA':'FR','GAB':'GA','GAM':'GM','GEO':'GE','GER':'DE','GHA':'GH','GBR':'GB','GRE':'GR','GRN':'GD','GUM':'GU','GUA':'GT','GUI':'GN','GBS':'GW','GUY':'GY','HAI':'HT','HON':'HN','HKG':'HK','HUN':'HU','ISL':'IS','IND':'IN','INA':'ID','IRI':'IR','IRQ':'IQ','IRL':'IE','ISR':'IL','ITA':'IT','JAM':'JM','JOR':'JO','KAZ':'KZ','KEN':'KE','KIR':'KI','PRK':'KP','KOR':'KR','KUW':'KW','KGZ':'KG','LAO':'LA','LAT':'LV','LIB':'LB','LES':'LS','LBR':'LR','LBA':'LY','LIE':'LI','LTU':'LT','LUX':'LU','MAD':'MG','MAW':'MW','MAS':'MY','MDV':'MV','MLI':'ML','MLT':'MT','MHL':'MH','MTN':'MR','MRI':'MU','MEX':'MX','FSM':'FM','MDA':'MD','MON':'MC','MGL':'MN','MNE':'ME','MAR':'MA','MOZ':'MZ','MYA':'MM','NAM':'NA','NRU':'NR','NEP':'NP','NED':'NL','NZL':'NZ','NCA':'NI','NIG':'NE','NGR':'NG','MKD':'MK','NOR':'NO','OMA':'OM','PAK':'PK','PLW':'PW','PLE':'PS','PAN':'PA','PNG':'PG','PAR':'PY','PER':'PE','PHI':'PH','POL':'PL','POR':'PT','PUR':'PR','QAT':'QA','ROU':'RO','RUS':'RU','RWA':'RW','SKN':'KN','LCA':'LC','VIN':'VC','SAM':'WS','SMR':'SM','STP':'ST','KSA':'SA','SEN':'SN','SRB':'RS','SEY':'SC','SLE':'SL','SGP':'SG','SVK':'SK','SLO':'SI','SOL':'SB','SOM':'SO','RSA':'ZA','ESP':'ES','SRI':'LK','SUD':'SD','SUR':'SR','SWE':'SE','SUI':'CH','SYR':'SY','TAN':'TZ','THA':'TH','TLS':'TL','TOG':'TG','TGA':'TO','TTO':'TT','TUN':'TN','TUR':'TR','TKM':'TM','TUV':'TV','UGA':'UG','UKR':'UA','UAE':'AE','USA':'US','URU':'UY','UZB':'UZ','VAN':'VU','VEN':'VE','VIE':'VN','ISV':'VI','YEM':'YE','ZAM':'ZM','ZIM':'ZW'};
 
         // --- MODAL & UI HELPERS ---
         function openModal(title, bodyHTML, footerHTML = '') {
@@ -318,14 +319,15 @@
                 updateUI();
             } catch (error) { console.error("Erro ao carregar torneios: ", error); document.getElementById('no-tournaments-msg').textContent = 'Erro ao carregar dados.'; document.getElementById('no-tournaments-msg').style.display = 'block'; }
         }
-        async function updateTournamentInDb(id, data, shouldCloseModal = true) {
+        async function updateTournamentInDb(id, data) {
             try {
-                await updateDoc(doc(db, 'torneios', id), data);
+                const tournamentRef = doc(db, 'torneios', id);
+                await updateDoc(tournamentRef, data);
                 const index = allTournaments.findIndex(t => t.id === id);
-                if (index > -1) { allTournaments[index] = { ...allTournaments[index], ...data }; }
+                if (index > -1) {
+                    allTournaments[index] = { ...allTournaments[index], ...data };
+                }
                 updateUI();
-                if(shouldCloseModal) closeModal();
-                else openManageTournamentModal(id);
             } catch (error) { console.error("Erro ao atualizar torneio: ", error); alert('Ocorreu um erro ao atualizar.'); }
         }
         async function deleteTournamentFromDb(id) {
@@ -366,8 +368,8 @@
             try {
                 const docRef = await addDoc(collection(db, 'torneios'), newTournament);
                 allTournaments.push({ id: docRef.id, ...newTournament });
-                updateUI();
                 closeModal();
+                updateUI();
             } catch (error) { console.error("Erro ao salvar novo torneio: ", error); alert('Ocorreu um erro ao salvar.'); }
         }
 
@@ -464,7 +466,7 @@
                  if (result === 'D' || (result === 'V' && isFinal)) {
                      updatedData = { ...updatedData, status: 'Finalizado', faseFinal: result === 'V' ? 'Campeão' : nextRoundName, pontos: Number(form.querySelector('#update-pontos').value) || 0, premiacao: Number(form.querySelector('#update-premiacao').value) || 0 };
                  }
-                 updateTournamentInDb(torneioId, updatedData);
+                 updateTournamentInDb(torneioId, updatedData).then(closeModal);
             };
             const setupFinalizationUI = (isWin) => {
                 const finalDetails = document.getElementById('final-details-update'), title = document.getElementById('final-title-update');
@@ -522,35 +524,13 @@
                 contentHTML += filtered.map(t => {
                     const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
                     const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
-                    return `<div class="p-3 border-b last:border-b-0"><p class="font-bold">${t.ano} - ${t.nome}</p><p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p></div>`;
+                    return `<div class="p-3 border-b last:border-b-0"><p class="font-bold">${getFlagEmoji(t.paisTorneio)} ${t.ano} - ${t.nome}</p><p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p></div>`;
                 }).join('');
                 document.getElementById('modal-results-content').innerHTML = contentHTML;
             };
             document.getElementById('modal-season-filter').addEventListener('change', renderModalContent);
             document.getElementById('modal-tournament-filter').addEventListener('change', renderModalContent);
             renderModalContent();
-        }
-        function handleEditTournamentCountry(e) {
-            const button = e.target.closest('.edit-tournament-btn');
-            if (!button) return;
-            const id = button.dataset.id;
-            const torneio = allTournaments.find(t => t.id === id);
-            if (!torneio) return;
-            const cell = button.closest('td');
-            const originalHTML = cell.innerHTML;
-            
-            cell.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <input id="country-edit-${id}" class="form-input text-xs p-1" value="${torneio.paisTorneio || ''}" placeholder="XXX" maxlength="3">
-                    <button id="save-country-${id}" class="btn btn-sm btn-secondary"><i class="fas fa-check"></i></button>
-                    <button id="cancel-country-${id}" class="btn btn-sm bg-gray-400"><i class="fas fa-times"></i></button>
-                </div>
-            `;
-            document.getElementById(`save-country-${id}`).addEventListener('click', () => {
-                const newCountry = document.getElementById(`country-edit-${id}`).value.trim().toUpperCase();
-                updateTournamentInDb(id, { ...torneio, paisTorneio: newCountry });
-            });
-             document.getElementById(`cancel-country-${id}`).addEventListener('click', () => { cell.innerHTML = originalHTML; });
         }
         
         // --- STATS CALCULATION & UI UPDATES ---
@@ -562,7 +542,7 @@
             updateStatsPanels(stats); 
             updateCharts(stats); 
             updateTabs(stats);
-            populateOpponentDatalist();
+            updateOpponentList();
         }
         function calculateAllStats() {
             const stats = { rankingPoints: 0, premiacao: 0, titulos: 0, vitoriasATP: 0, derrotasATP: 0, porTipo: {}, porSuperficie: {} };
@@ -629,9 +609,12 @@
                 <tr class="border-b border-slate-200/50 hover:bg-slate-50/50" data-id="${t.id}">
                     <td class="py-3 px-1 sm:px-2">${t.dataInicio ? t.dataInicio.split('-').reverse().join('/') : 'N/A'}</td>
                     <td class="py-3 px-1 sm:px-2 font-semibold text-slate-700">
-                        <span>${getFlagEmoji(t.paisTorneio)} ${t.nome || ''}</span>
-                        <span class="text-xs text-slate-500">(${t.tipo || ''})</span>
-                        <button class="edit-tournament-btn" data-id="${t.id}" title="Editar país do torneio"><i class="fas fa-flag"></i></button>
+                        <span class="flex items-center">
+                            ${getFlagEmoji(t.paisTorneio)} 
+                            <span class="ml-2">${t.nome || ''}</span>
+                            <span class="text-xs text-slate-500 ml-1">(${t.tipo || ''})</span>
+                            <button class="edit-tournament-btn" data-id="${t.id}" title="Editar país do torneio"><i class="fas fa-pencil-alt ml-2 text-xs"></i></button>
+                        </span>
                     </td>
                     <td class="py-3 px-1 sm:px-2">${t.superficie || 'N/A'}</td>
                     <td class="py-3 px-1 sm:px-2 text-center"><span class="px-2 py-1 text-xs font-bold rounded-full ${t.status === 'Finalizado' ? 'bg-slate-400 text-white' : 'bg-yellow-400 text-black'}">${t.status}</span></td>
@@ -674,7 +657,7 @@
             document.getElementById('temporadas-premiacao').textContent = formatCurrency(premiacao);
         }
         // --- H2H FUNCTIONS ---
-        function populateOpponentDatalist() {
+        function updateOpponentList() {
             const opponentMap = new Map();
             allTournaments.forEach(t => (t.jogos || []).forEach(j => {
                 const normalized = j.adversario.trim().toLowerCase();
@@ -682,7 +665,26 @@
                     opponentMap.set(normalized, j.adversario.trim());
                 }
             }));
-            document.getElementById('opponent-list').innerHTML = [...opponentMap.values()].sort().map(op => `<option value="${op}"></option>`).join('');
+            allOpponentNames = [...opponentMap.values()].sort();
+        }
+        function handleH2hSearchInput() {
+            const searchInput = document.getElementById('h2h-search');
+            const suggestionsDiv = document.getElementById('h2h-suggestions');
+            const query = searchInput.value.toLowerCase();
+            if (!query) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            const suggestions = allOpponentNames.filter(op => op.toLowerCase().includes(query));
+            if (suggestions.length > 0) {
+                const isMobile = window.innerWidth < 768;
+                suggestionsDiv.style.bottom = isMobile ? '100%' : 'auto';
+                suggestionsDiv.style.top = isMobile ? 'auto' : '100%';
+                suggestionsDiv.innerHTML = suggestions.map(op => `<div class="p-2 hover:bg-slate-100 cursor-pointer">${op}</div>`).join('');
+                suggestionsDiv.classList.remove('hidden');
+            } else {
+                suggestionsDiv.classList.add('hidden');
+            }
         }
         function displayH2HResults() {
             const opponentName = document.getElementById('h2h-search').value.trim();
@@ -700,19 +702,25 @@
                 });
             });
             matches.sort((a,b) => new Date(b.dataInicio) - new Date(a.dataInicio));
-            let html = `<div class="text-center mb-6"><p class="text-2xl font-bold">Fernando Lapa ${getFlagEmoji('BRA')} <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentName} ${getFlagEmoji(opponentNationalityCode)}</p></div>`;
+            let html = `<div class="text-center mb-6"><p class="text-xl md:text-2xl font-bold whitespace-nowrap">F. Lapa ${getFlagEmoji('BRA')} <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentName} ${getFlagEmoji(opponentNationalityCode)}</p></div>`;
             if (matches.length > 0) {
                 html += `
                     <div class="overflow-x-auto"><table class="w-full text-sm">
-                        <thead class="text-xs bg-slate-100"><tr>
-                            <th class="py-2 px-2 text-left">Ano</th><th class="py-2 px-2 text-left">Torneio</th>
-                            <th class="py-2 px-2 text-left">Rodada</th><th class="py-2 px-2 text-left">Superfície</th>
-                            <th class="py-2 px-2 text-left">Placar</th><th class="py-2 px-2 text-left">Resultado</th>
+                        <thead class="text-xs uppercase bg-slate-100"><tr>
+                            <th class="py-3 px-2 md:px-4 text-left">Ano</th><th class="py-3 px-2 md:px-4 text-left">Torneio</th>
+                            <th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Tipo</th><th class="py-3 px-2 md:px-4 text-left">Rodada</th>
+                            <th class="py-3 px-2 md:px-4 text-left">Superfície</th><th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Placar</th>
+                            <th class="py-3 px-2 md:px-4 text-left">Resultado</th>
                         </tr></thead><tbody>
                         ${matches.map(m => `
-                            <tr class="border-b"><td class="py-2 px-2">${m.ano}</td><td class="py-2 px-2 font-semibold">${getFlagEmoji(m.paisTorneio)} ${m.nome}</td>
-                                <td class="py-2 px-2">${m.rodada}</td><td class="py-2 px-2">${m.superficie}</td>
-                                <td class="py-2 px-2">${m.placar}</td><td class="py-2 px-2 font-bold ${m.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${m.resultado === 'V' ? 'Vitória' : 'Derrota'}</td>
+                            <tr class="border-b odd:bg-white even:bg-slate-50">
+                                <td class="py-3 px-2 md:px-4">${m.ano}</td>
+                                <td class="py-3 px-2 md:px-4 font-semibold">${getFlagEmoji(m.paisTorneio)} ${m.nome}</td>
+                                <td class="py-3 px-2 md:px-4 whitespace-nowrap">${m.tipo.replace('ATP Masters 1000', 'M1000').replace('Grand Slam', 'GS').replace('Jogos Olímpicos', 'Olímpiadas')}</td>
+                                <td class="py-3 px-2 md:px-4">${m.rodada}</td>
+                                <td class="py-3 px-2 md:px-4">${m.superficie}</td>
+                                <td class="py-3 px-2 md:px-4 whitespace-nowrap">${m.placar}</td>
+                                <td class="py-3 px-2 md:px-4 font-bold ${m.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${m.resultado === 'V' ? 'Vitória' : 'Derrota'}</td>
                             </tr>`).join('')}
                         </tbody></table></div>`;
             } else { html += `<p class="text-center text-slate-500 py-8">Nenhum confronto encontrado.</p>`; }
@@ -724,7 +732,17 @@
             closeModalBtn.addEventListener('click', closeModal);
             modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             document.getElementById('season-filter').addEventListener('change', () => { renderMainTable(); updateStatsForSeason(); });
-            document.getElementById('h2h-search').addEventListener('change', displayH2HResults);
+            const h2hSearch = document.getElementById('h2h-search');
+            h2hSearch.addEventListener('input', handleH2hSearchInput);
+            h2hSearch.addEventListener('change', displayH2HResults);
+            document.getElementById('h2h-suggestions').addEventListener('click', (e) => {
+                if (e.target.tagName === 'DIV') {
+                    h2hSearch.value = e.target.textContent;
+                    document.getElementById('h2h-suggestions').classList.add('hidden');
+                    displayH2HResults();
+                }
+            });
+            document.addEventListener('click', (e) => { if (!e.target.closest('.relative')) { document.getElementById('h2h-suggestions').classList.add('hidden'); }});
             document.getElementById('titulos-list').addEventListener('click', handleDetailsClick);
             document.getElementById('vitorias-list').addEventListener('click', handleDetailsClick);
             document.getElementById('titulos-surface-list').addEventListener('click', handleDetailsClick);
