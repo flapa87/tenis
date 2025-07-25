@@ -82,12 +82,12 @@
         .btn-danger:hover { background-color: #dc2626; }
         .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
 
-        #temporadas-tabela tr { cursor: pointer; }
-        .details-btn, .edit-match-btn {
+        #temporadas-tabela tr:not(.editing-row) { cursor: pointer; }
+        .details-btn, .edit-tournament-btn {
             background: none; border: none; color: var(--primary); cursor: pointer;
             margin-left: 0.5rem; opacity: 0.6; transition: opacity 0.2s;
         }
-        .details-btn:hover, .edit-match-btn:hover { opacity: 1; }
+        .details-btn:hover, .edit-tournament-btn:hover { opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -278,7 +278,7 @@
             'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'Default': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final']
         };
-        const iocToIso2 = { 'SUI': 'CH', 'SRB': 'RS', 'ESP': 'ES', 'BRA': 'BR', 'USA': 'US', 'ITA': 'IT', 'GER': 'DE', 'FRA': 'FR', 'AUS': 'AU', 'GBR': 'GB', 'ARG': 'AR', 'RUS': 'RU', 'CAN': 'CA', 'JPN': 'JP', 'AUT': 'AT', 'NOR': 'NO', 'GRE': 'GR', 'POL': 'PL', 'CHI': 'CL', 'CRO': 'HR', 'DEN': 'DK', 'KAZ': 'KZ', 'NED': 'NL', 'SWE': 'SE' };
+        const iocToIso2 = { 'SUI': 'CH', 'SRB': 'RS', 'ESP': 'ES', 'BRA': 'BR', 'USA': 'US', 'ITA': 'IT', 'GER': 'DE', 'FRA': 'FR', 'AUS': 'AU', 'GBR': 'GB', 'ARG': 'AR', 'RUS': 'RU', 'CAN': 'CA', 'JPN': 'JP', 'AUT': 'AT', 'NOR': 'NO', 'GRE': 'GR', 'POL': 'PL', 'CHI': 'CL', 'CRO': 'HR', 'DEN': 'DK', 'KAZ': 'KZ', 'NED': 'NL', 'SWE': 'SE', 'CHN': 'CN', 'QAT': 'QA', 'MEX': 'MX', 'IND': 'IN', 'MON': 'MC', 'BEL': 'BE' };
 
         // --- MODAL & UI HELPERS ---
         function openModal(title, bodyHTML, footerHTML = '') {
@@ -325,7 +325,7 @@
                 if (index > -1) { allTournaments[index] = { ...allTournaments[index], ...data }; }
                 updateUI();
                 if(shouldCloseModal) closeModal();
-                else openManageTournamentModal(id); // Re-render modal after edit
+                else openManageTournamentModal(id);
             } catch (error) { console.error("Erro ao atualizar torneio: ", error); alert('Ocorreu um erro ao atualizar.'); }
         }
         async function deleteTournamentFromDb(id) {
@@ -345,6 +345,7 @@
                 nome: document.getElementById('torneio-nome').value.trim(),
                 tipo: document.getElementById('torneio-tipo').value,
                 superficie: document.getElementById('torneio-superficie').value,
+                paisTorneio: document.getElementById('torneio-pais').value.trim().toUpperCase(),
                 dataInicio, dataFim: document.getElementById('torneio-data-fim').value,
                 ano: new Date(dataInicio + 'T00:00:00').getFullYear(),
                 pontos: 0, premiacao: 0, faseFinal: '', status: 'Em Andamento',
@@ -376,6 +377,7 @@
                 <form id="create-tournament-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><label for="torneio-nome" class="block text-sm font-medium">Nome</label><input type="text" id="torneio-nome" class="form-input mt-1" required></div>
+                        <div><label for="torneio-pais" class="block text-sm font-medium">País do Torneio (Ex: BRA)</label><input type="text" id="torneio-pais" maxlength="3" class="form-input mt-1" required></div>
                         <div><label for="torneio-tipo" class="block text-sm font-medium">Tipo</label><select id="torneio-tipo" class="form-select mt-1" required>${tournamentTypes.map(t => `<option value="${t}">${t}</option>`).join('')}</select></div>
                         <div><label for="torneio-superficie" class="block text-sm font-medium">Superfície</label><select id="torneio-superficie" class="form-select mt-1" required>${surfaces.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div>
                         <div><label for="torneio-data-inicio" class="block text-sm font-medium">Data Início</label><input type="date" id="torneio-data-inicio" class="form-input mt-1" required></div>
@@ -415,18 +417,12 @@
         function openManageTournamentModal(torneioId) {
             const torneio = allTournaments.find(t => t.id === torneioId);
             if (!torneio) return;
-            
-            const renderMatchesHTML = () => (torneio.jogos || []).map((jogo, index) => `
-                <div id="match-${index}" class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
+            const matchesHistory = (torneio.jogos || []).map(jogo => `
+                <div class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
                     <div><p class="font-bold">${jogo.rodada}</p><p class="text-sm text-slate-600">Fernando Lapa ${getFlagEmoji('BRA')} vs. ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)} - <span class="font-semibold">${jogo.placar}</span></p></div>
-                    <div class="flex items-center">
-                        <span class="text-lg font-bold mr-4 ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
-                        <button class="edit-match-btn" data-index="${index}" title="Editar partida"><i class="fas fa-pencil-alt text-xs"></i></button>
-                    </div>
+                    <span class="text-lg font-bold ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
                 </div>`).join('');
-
-            let body = `<div id="matches-history-list" class="space-y-3">${renderMatchesHTML()}</div>`;
-            
+            let body = `<div id="matches-history-list" class="space-y-3">${matchesHistory}</div>`;
             if (torneio.status === 'Finalizado') {
                 body += `<div class="mt-6 pt-4 border-t text-center space-y-2"><p class="text-lg font-bold">Campanha Finalizada</p><p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p><p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p></div>`;
             } else {
@@ -452,7 +448,6 @@
                         </div>
                     </form>`;
             }
-            
             const footer = torneio.status !== 'Finalizado' ? `<button id="win-match-btn" class="btn btn-secondary">Salvar Vitória</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>` : '';
             openModal(`Gerenciar: ${torneio.nome}`, body, footer);
 
@@ -489,38 +484,6 @@
                 });
                 loseBtn.addEventListener('click', () => { if (setupFinalizationUI(false)) handleUpdate('D'); });
             }
-
-            document.getElementById('matches-history-list').addEventListener('click', (e) => {
-                const editBtn = e.target.closest('.edit-match-btn');
-                if (!editBtn) return;
-                const index = parseInt(editBtn.dataset.index, 10);
-                const matchToEdit = torneio.jogos[index];
-                const matchDiv = document.getElementById(`match-${index}`);
-                matchDiv.innerHTML = `
-                    <div class="p-3 bg-blue-50 rounded-lg w-full space-y-2">
-                        <p class="font-bold text-sm">Editando: ${matchToEdit.rodada}</p>
-                        <div class="grid grid-cols-2 gap-2 text-sm">
-                            <input id="edit-adversario-${index}" class="form-input text-xs" value="${matchToEdit.adversario}">
-                            <input id="edit-nacionalidade-${index}" class="form-input text-xs" value="${matchToEdit.nacionalidade || ''}" placeholder="XXX" maxlength="3">
-                            <input id="edit-placar-${index}" class="form-input col-span-2 text-xs" value="${matchToEdit.placar}">
-                        </div>
-                        <div class="flex justify-end gap-2 mt-2">
-                            <button class="btn btn-sm bg-gray-400" onclick="document.getElementById('modalContent').dispatchEvent(new CustomEvent('cancel-edit'))">Cancelar</button>
-                            <button id="save-edit-${index}" class="btn btn-sm btn-secondary">Salvar</button>
-                        </div>
-                    </div>`;
-                document.getElementById(`save-edit-${index}`).addEventListener('click', () => {
-                    const updatedJogos = [...torneio.jogos];
-                    updatedJogos[index] = { ...updatedJogos[index], 
-                        adversario: document.getElementById(`edit-adversario-${index}`).value.trim(),
-                        nacionalidade: document.getElementById(`edit-nacionalidade-${index}`).value.trim().toUpperCase(),
-                        placar: document.getElementById(`edit-placar-${index}`).value.trim()
-                    };
-                    updateTournamentInDb(torneioId, { jogos: updatedJogos }, false); // false para não fechar o modal
-                });
-            });
-            // Listener para o evento de cancelar
-            document.getElementById('modalContent').addEventListener('cancel-edit', () => openManageTournamentModal(torneioId));
         }
         function handleDetailsClick(e) {
             const button = e.target.closest('.details-btn'); if (!button) return;
@@ -567,12 +530,38 @@
             document.getElementById('modal-tournament-filter').addEventListener('change', renderModalContent);
             renderModalContent();
         }
-
+        function handleEditTournamentCountry(e) {
+            const button = e.target.closest('.edit-tournament-btn');
+            if (!button) return;
+            const id = button.dataset.id;
+            const torneio = allTournaments.find(t => t.id === id);
+            if (!torneio) return;
+            const cell = button.closest('td');
+            const originalHTML = cell.innerHTML;
+            
+            cell.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <input id="country-edit-${id}" class="form-input text-xs p-1" value="${torneio.paisTorneio || ''}" placeholder="XXX" maxlength="3">
+                    <button id="save-country-${id}" class="btn btn-sm btn-secondary"><i class="fas fa-check"></i></button>
+                    <button id="cancel-country-${id}" class="btn btn-sm bg-gray-400"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            document.getElementById(`save-country-${id}`).addEventListener('click', () => {
+                const newCountry = document.getElementById(`country-edit-${id}`).value.trim().toUpperCase();
+                updateTournamentInDb(id, { ...torneio, paisTorneio: newCountry });
+            });
+             document.getElementById(`cancel-country-${id}`).addEventListener('click', () => { cell.innerHTML = originalHTML; });
+        }
+        
         // --- STATS CALCULATION & UI UPDATES ---
         function updateUI() {
             const stats = calculateAllStats();
-            updateSeasonFilter(); renderMainTable(); updateStatsForSeason();
-            updateStatsPanels(stats); updateCharts(stats); updateTabs(stats);
+            updateSeasonFilter(); 
+            renderMainTable(); 
+            updateStatsForSeason();
+            updateStatsPanels(stats); 
+            updateCharts(stats); 
+            updateTabs(stats);
             populateOpponentDatalist();
         }
         function calculateAllStats() {
@@ -639,15 +628,20 @@
             tableBody.innerHTML = filtered.map(t => `
                 <tr class="border-b border-slate-200/50 hover:bg-slate-50/50" data-id="${t.id}">
                     <td class="py-3 px-1 sm:px-2">${t.dataInicio ? t.dataInicio.split('-').reverse().join('/') : 'N/A'}</td>
-                    <td class="py-3 px-1 sm:px-2 font-semibold text-slate-700">${t.nome || ''} <span class="text-xs text-slate-500">(${t.tipo || ''})</span></td>
+                    <td class="py-3 px-1 sm:px-2 font-semibold text-slate-700">
+                        <span>${getFlagEmoji(t.paisTorneio)} ${t.nome || ''}</span>
+                        <span class="text-xs text-slate-500">(${t.tipo || ''})</span>
+                        <button class="edit-tournament-btn" data-id="${t.id}" title="Editar país do torneio"><i class="fas fa-flag"></i></button>
+                    </td>
                     <td class="py-3 px-1 sm:px-2">${t.superficie || 'N/A'}</td>
                     <td class="py-3 px-1 sm:px-2 text-center"><span class="px-2 py-1 text-xs font-bold rounded-full ${t.status === 'Finalizado' ? 'bg-slate-400 text-white' : 'bg-yellow-400 text-black'}">${t.status}</span></td>
                     <td class="py-3 px-1 sm:px-2 text-center"><span class="font-semibold text-green-600">${(t.jogos || []).filter(j => j.resultado === 'V').length}</span> / <span class="font-semibold text-red-600">${(t.jogos || []).filter(j => j.resultado === 'D').length}</span></td>
                     <td class="py-3 px-1 sm:px-2">${t.faseFinal || '-'}</td>
                     <td class="py-3 px-1 sm:px-2 text-center"><button class="delete-btn text-slate-400 hover:text-red-500" data-id="${t.id}" title="Excluir"><i class="fas fa-trash"></i></button></td>
                 </tr>`).join('');
-            tableBody.querySelectorAll('tr').forEach(row => row.addEventListener('click', (e) => { if (!e.target.closest('.delete-btn')) openManageTournamentModal(row.dataset.id); }));
+            tableBody.querySelectorAll('tr').forEach(row => row.addEventListener('click', (e) => { if (!e.target.closest('.delete-btn, .edit-tournament-btn')) openManageTournamentModal(row.dataset.id); }));
             tableBody.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteTournamentFromDb(btn.dataset.id); }));
+            tableBody.querySelectorAll('.edit-tournament-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); handleEditTournamentCountry(e); }));
         }
         function updateSeasonFilter() {
              const anos = [...new Set(allTournaments.map(t => t.ano))].filter(Boolean).sort((a, b) => b - a);
@@ -716,7 +710,7 @@
                             <th class="py-2 px-2 text-left">Placar</th><th class="py-2 px-2 text-left">Resultado</th>
                         </tr></thead><tbody>
                         ${matches.map(m => `
-                            <tr class="border-b"><td class="py-2 px-2">${m.ano}</td><td class="py-2 px-2 font-semibold">${m.nome}</td>
+                            <tr class="border-b"><td class="py-2 px-2">${m.ano}</td><td class="py-2 px-2 font-semibold">${getFlagEmoji(m.paisTorneio)} ${m.nome}</td>
                                 <td class="py-2 px-2">${m.rodada}</td><td class="py-2 px-2">${m.superficie}</td>
                                 <td class="py-2 px-2">${m.placar}</td><td class="py-2 px-2 font-bold ${m.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${m.resultado === 'V' ? 'Vitória' : 'Derrota'}</td>
                             </tr>`).join('')}
