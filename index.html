@@ -266,6 +266,7 @@
         const modalBody = document.getElementById('modalBody');
         const modalFooter = document.getElementById('modalFooter');
         const closeModalBtn = document.getElementById('closeModalBtn');
+        const dataNascimentoJogador = new Date('2011-02-18');
         
         const tournamentTypes = ['Grand Slam', 'ATP Finals', 'ATP Masters 1000', 'ATP 500', 'ATP 250', 'Jogos Olímpicos', 'CH 175', 'CH 125', 'CH 100', 'CH 90', 'CH 75'];
         const surfaces = ['Saibro', 'Rápida', 'Grama'];
@@ -284,14 +285,27 @@
             'Default': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final']
         };
         const iocToIso2 = {'AFG':'AF','ALB':'AL','ALG':'DZ','ASA':'AS','AND':'AD','ANG':'AO','ANT':'AG','ARG':'AR','ARM':'AM','ARU':'AW','AUS':'AU','AUT':'AT','AZE':'AZ','BAH':'BS','BRN':'BH','BAN':'BD','BAR':'BB','BLR':'BY','BEL':'BE','BIZ':'BZ','BEN':'BJ','BER':'BM','BHU':'BT','BOL':'BO','BIH':'BA','BOT':'BW','BRA':'BR','IVB':'VG','BRU':'BN','BUL':'BG','BUR':'BF','BDI':'BI','CAM':'KH','CMR':'CM','CAN':'CA','CAY':'KY','CAF':'CF','CHA':'TD','CHI':'CL','CHN':'CN','TPE':'TW','COL':'CO','COM':'KM','CGO':'CG','COD':'CD','COK':'CK','CRC':'CR','CIV':'CI','CRO':'HR','CUB':'CU','CYP':'CY','CZE':'CZ','DEN':'DK','DJI':'DJ','DMA':'DM','DOM':'DO','ECU':'EC','EGY':'EG','ESA':'SV','GEQ':'GQ','ERI':'ER','EST':'EE','SWZ':'SZ','ETH':'ET','FIJ':'FJ','FIN':'FI','FRA':'FR','GAB':'GA','GAM':'GM','GEO':'GE','GER':'DE','GHA':'GH','GBR':'GB','GRE':'GR','GRN':'GD','GUM':'GU','GUA':'GT','GUI':'GN','GBS':'GW','GUY':'GY','HAI':'HT','HON':'HN','HKG':'HK','HUN':'HU','ISL':'IS','IND':'IN','INA':'ID','IRI':'IR','IRQ':'IQ','IRL':'IE','ISR':'IL','ITA':'IT','JAM':'JM','JOR':'JO','KAZ':'KZ','KEN':'KE','KIR':'KI','PRK':'KP','KOR':'KR','KUW':'KW','KGZ':'KG','LAO':'LA','LAT':'LV','LIB':'LB','LES':'LS','LBR':'LR','LBA':'LY','LIE':'LI','LTU':'LT','LUX':'LU','MAD':'MG','MAW':'MW','MAS':'MY','MDV':'MV','MLI':'ML','MLT':'MT','MHL':'MH','MTN':'MR','MRI':'MU','MEX':'MX','FSM':'FM','MDA':'MD','MON':'MC','MGL':'MN','MNE':'ME','MAR':'MA','MOZ':'MZ','MYA':'MM','NAM':'NA','NRU':'NR','NEP':'NP','NED':'NL','NZL':'NZ','NCA':'NI','NIG':'NE','NGR':'NG','MKD':'MK','NOR':'NO','OMA':'OM','PAK':'PK','PLW':'PW','PLE':'PS','PAN':'PA','PNG':'PG','PAR':'PY','PER':'PE','PHI':'PH','POL':'PL','POR':'PT','PUR':'PR','QAT':'QA','ROU':'RO','RUS':'RU','RWA':'RW','SKN':'KN','LCA':'LC','VIN':'VC','SAM':'WS','SMR':'SM','STP':'ST','KSA':'SA','SEN':'SN','SRB':'RS','SEY':'SC','SLE':'SL','SGP':'SG','SVK':'SK','SLO':'SI','SOL':'SB','SOM':'SO','RSA':'ZA','ESP':'ES','SRI':'LK','SUD':'SD','SUR':'SR','SWE':'SE','SUI':'CH','SYR':'SY','TAN':'TZ','THA':'TH','TLS':'TL','TOG':'TG','TGA':'TO','TTO':'TT','TUN':'TN','TUR':'TR','TKM':'TM','TUV':'TV','UGA':'UG','UKR':'UA','UAE':'AE','USA':'US','URU':'UY','UZB':'UZ','VAN':'VU','VEN':'VE','VIE':'VN','ISV':'VI','YEM':'YE','ZAM':'ZM','ZIM':'ZW'};
+        
         const worldRecords = [
-            { id: 'grandSlams', title: 'Mais Títulos de Grand Slam', holder: 'Novak Djokovic', value: 24, stat: (s) => s.porTipo['Grand Slam']?.t || 0 },
-            { id: 'atpFinals', title: 'Mais Títulos de ATP Finals', holder: 'Novak Djokovic', value: 7, stat: (s) => s.porTipo['ATP Finals']?.t || 0 },
-            { id: 'masters1000', title: 'Mais Títulos de Masters 1000', holder: 'Novak Djokovic', value: 40, stat: (s) => s.porTipo['ATP Masters 1000']?.t || 0 },
-            { id: 'careerTitles', title: 'Mais Títulos na Carreira (ATP)', holder: 'Jimmy Connors', value: 109, stat: (s) => s.titulosATP },
-            { id: 'matchWins', title: 'Mais Vitórias na Carreira (ATP)', holder: 'Jimmy Connors', value: 1274, stat: (s) => s.vitoriasATP },
-            { id: 'singleTournament', title: 'Mais Títulos em um Único Torneio', holder: 'Rafael Nadal (Roland Garros)', value: 14, stat: (s) => s.maxTitulosUnicoTorneio },
-            { id: 'singleSeason', title: 'Mais Títulos em uma Temporada', holder: 'Guillermo Vilas', value: 16, stat: (s) => s.maxTitulosEmUmAno },
+            { id: 'grandSlams', title: 'Mais Títulos de Grand Slam', holder: 'Novak Djokovic', value: 24, stat: (s) => s.porTipo['Grand Slam']?.t || 0, format: (v) => `${v} Títulos` },
+            { id: 'grandSlamFinals', title: 'Mais Finais de Grand Slam', holder: 'Novak Djokovic', value: 36, stat: (s) => s.finaisGrandSlam, format: (v) => `${v} Finais` },
+            { id: 'atpFinals', title: 'Mais Títulos de ATP Finals', holder: 'Novak Djokovic', value: 7, stat: (s) => s.porTipo['ATP Finals']?.t || 0, format: (v) => `${v} Títulos` },
+            { id: 'masters1000', title: 'Mais Títulos de Masters 1000', holder: 'Novak Djokovic', value: 40, stat: (s) => s.porTipo['ATP Masters 1000']?.t || 0, format: (v) => `${v} Títulos` },
+            { id: 'atp500', title: 'Mais Títulos de ATP 500', holder: 'Roger Federer', value: 24, stat: (s) => s.porTipo['ATP 500']?.t || 0, format: (v) => `${v} Títulos` },
+            { id: 'careerTitles', title: 'Mais Títulos na Carreira (ATP)', holder: 'Jimmy Connors', value: 109, stat: (s) => s.titulosATP, format: (v) => `${v} Títulos` },
+            { id: 'careerFinals', title: 'Mais Finais na Carreira (ATP)', holder: 'Jimmy Connors', value: 164, stat: (s) => s.finaisATP, format: (v) => `${v} Finais` },
+            { id: 'matchWins', title: 'Mais Vitórias na Carreira (ATP)', holder: 'Jimmy Connors', value: 1274, stat: (s) => s.vitoriasATP, format: (v) => `${v} Vitórias` },
+            { id: 'prizeMoney', title: 'Maior Premiação na Carreira', holder: 'Novak Djokovic', value: 182000000, stat: (s) => s.premiacao, format: (v) => formatCurrency(v) },
+            { id: 'winPercentage', title: '% de Vitórias (ATP, min. 200 jogos)', holder: 'Novak Djokovic', value: 83.9, stat: (s) => (s.vitoriasATP + s.derrotasATP > 200) ? (s.vitoriasATP / (s.vitoriasATP + s.derrotasATP) * 100) : 0, format: (v) => v > 0 ? `${v.toFixed(2)}%` : 'N/A' },
+            { id: 'clayTitles', title: 'Mais Títulos no Saibro (ATP)', holder: 'Rafael Nadal', value: 63, stat: (s) => s.porSuperficie.Saibro?.atp_t || 0, format: (v) => `${v} Títulos` },
+            { id: 'hardTitles', title: 'Mais Títulos em Quadra Rápida (ATP)', holder: 'Roger Federer', value: 71, stat: (s) => s.porSuperficie.Rápida?.atp_t || 0, format: (v) => `${v} Títulos` },
+            { id: 'grassTitles', title: 'Mais Títulos na Grama (ATP)', holder: 'Roger Federer', value: 19, stat: (s) => s.porSuperficie.Grama?.atp_t || 0, format: (v) => `${v} Títulos` },
+            { id: 'singleTournament', title: 'Mais Títulos em um Único Torneio', holder: 'Rafael Nadal', value: 14, stat: (s) => s.maxTitulosUnicoTorneio, format: (v, s) => `${v} (${s.nomeMaxTitulosUnicoTorneio})` },
+            { id: 'singleSeason', title: 'Mais Títulos em uma Temporada', holder: 'Guillermo Vilas', value: 16, stat: (s) => s.maxTitulosEmUmAno, format: (v) => `${v} Títulos` },
+            { id: 'careerSlam', title: 'Career Grand Slam', holder: 'Vários', value: 4, stat: (s) => s.grandSlamEvents.size, format: (v) => v === 4 ? 'Conquistado 🏆' : `${v} de 4` },
+            { id: 'goldenSlam', title: 'Career Golden Slam', holder: 'A. Agassi, R. Nadal', value: 5, stat: (s) => s.goldenSlamEvents.size, format: (v) => v === 5 ? 'Conquistado 🏆' : `${v} de 5` },
+            { id: 'youngestGS', title: 'Vencedor de GS Mais Jovem', holder: 'Michael Chang', value: 207, isLowerBetter: true, stat: (s) => s.idadeMenorCampeaoGS, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
+            { id: 'oldestGS', title: 'Vencedor de GS Mais Velho', holder: 'Ken Rosewall', value: 446, stat: (s) => s.idadeMaiorCampeaoGS, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
         ];
 
         // --- MODAL & UI HELPERS ---
@@ -306,14 +320,26 @@
         
         function estimarRanking(pontos) {
             if (pontos <= 0) return 'Sem Ranking';
-            const p = pontos;
-            if (p >= 9500) return `1º`; if (p >= 8500) return `2º`; if (p >= 7500) return `3º`;
-            if (p >= 6500) return `4º`; if (p >= 5500) return `5º`; if (p >= 4000) return `6º-10º`;
-            if (p >= 2000) return `11º-50º`; if (p >= 1000) return `51º-100º`; if (p >= 600) return `101º-150º`;
-            if (p >= 400) return `151º-200º`; if (p >= 275) return `201º-250º`; if (p >= 170) return `251º-350º`;
-            if (p >= 110) return `351º-450º`; if (p >= 80) return `451º-550º`; if (p >= 35) return `551º-750º`;
-            if (p >= 15) return `751º-1000º`;
-            return `>1000º`;
+            const rankingPointsMap = [
+                { rank: 1, points: 9500 }, { rank: 10, points: 4000 }, { rank: 25, points: 1500 },
+                { rank: 50, points: 1000 }, { rank: 100, points: 640 }, { rank: 150, points: 430 },
+                { rank: 200, points: 310 }, { rank: 250, points: 240 }, { rank: 300, points: 190 },
+                { rank: 400, points: 125 }, { rank: 500, points: 80 }, { rank: 750, points: 35 },
+                { rank: 1000, points: 17 }, { rank: 1500, points: 1 }
+            ];
+            for (let i = 0; i < rankingPointsMap.length; i++) {
+                if (pontos >= rankingPointsMap[i].points) {
+                    if (i === 0) return `${rankingPointsMap[i].rank}º`;
+                    const upper = rankingPointsMap[i-1];
+                    const lower = rankingPointsMap[i];
+                    const pointsRange = upper.points - lower.points;
+                    const rankRange = lower.rank - upper.rank;
+                    const pointsAboveLower = pontos - lower.points;
+                    const rankOffset = (pointsAboveLower / pointsRange) * rankRange;
+                    return `${Math.round(lower.rank - rankOffset)}º`;
+                }
+            }
+            return `>1500º`;
         }
 
         function getFlagEmoji(iocCode) {
@@ -326,9 +352,7 @@
         
         function abbreviateTournamentType(type) {
             const map = {
-                "Grand Slam": "GS",
-                "ATP Finals": "Finals",
-                "ATP Masters 1000": "M1000",
+                "Grand Slam": "GS", "ATP Finals": "Finals", "ATP Masters 1000": "M1000",
                 "Jogos Olímpicos": "Olímpiadas"
             };
             return map[type] || type;
@@ -444,8 +468,14 @@
             if (!torneio) return;
             const matchesHistory = (torneio.jogos || []).map(jogo => `
                 <div class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
-                    <div><p class="font-bold">${jogo.rodada}</p><p class="text-sm text-slate-600">Fernando Lapa ${getFlagEmoji('BRA')} vs. ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)} - <span class="font-semibold">${jogo.placar}</span></p></div>
-                    <span class="text-lg font-bold ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
+                    <div class="flex-grow min-w-0 mr-2">
+                        <p class="font-bold truncate">${jogo.rodada}</p>
+                        <p class="text-sm text-slate-600 truncate">Fernando Lapa ${getFlagEmoji('BRA')} vs. ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)}</p>
+                    </div>
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="font-semibold text-sm whitespace-nowrap mr-4">${jogo.placar}</span>
+                        <span class="text-lg font-bold ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
+                    </div>
                 </div>`).join('');
             let body = `<div id="matches-history-list" class="space-y-3">${matchesHistory}</div>`;
             if (torneio.status === 'Finalizado') {
@@ -569,7 +599,14 @@
             updateRecordsTab(stats);
         }
         function calculateAllStats() {
-            const stats = { rankingPoints: 0, premiacao: 0, titulos: 0, vitoriasATP: 0, derrotasATP: 0, porTipo: {}, porSuperficie: {}, titulosATP: 0, maxTitulosUnicoTorneio: 0, maxTitulosEmUmAno: 0, goldenSlamEvents: new Set() };
+            const stats = { 
+                rankingPoints: 0, premiacao: 0, titulos: 0, vitoriasATP: 0, derrotasATP: 0, 
+                porTipo: {}, porSuperficie: {}, titulosATP: 0, 
+                maxTitulosUnicoTorneio: 0, nomeMaxTitulosUnicoTorneio: '-', maxTitulosEmUmAno: 0, 
+                goldenSlamEvents: new Set(), grandSlamEvents: new Set(), 
+                finaisATP: 0, finaisGrandSlam: 0,
+                idadeMenorCampeaoGS: 0, idadeMaiorCampeaoGS: 0
+            };
             tournamentTypes.forEach(t => { stats.porTipo[t] = { v: 0, d: 0, t: 0 }; });
             surfaces.forEach(s => { stats.porSuperficie[s] = { v: 0, d: 0, t: 0, atp_v: 0, atp_d: 0, atp_t: 0 }; });
             const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -582,24 +619,53 @@
                 const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
                 const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
                 const isATP = t.tipo && !t.tipo.startsWith('CH');
-                if (isATP) { stats.vitoriasATP += vitorias; stats.derrotasATP += derrotas; }
+                
+                if (isATP) {
+                    stats.vitoriasATP += vitorias;
+                    stats.derrotasATP += derrotas;
+                    if (t.faseFinal?.includes('Final') || t.faseFinal === 'Campeão') {
+                        stats.finaisATP++;
+                        if (t.tipo === 'Grand Slam') stats.finaisGrandSlam++;
+                    }
+                }
+                
                 if (t.faseFinal === 'Campeão') {
                     stats.titulos++;
                     titulosPorAno[t.ano] = (titulosPorAno[t.ano] || 0) + 1;
                     const nomeNormalizado = t.nome.toLowerCase();
                     titulosPorNome[nomeNormalizado] = (titulosPorNome[nomeNormalizado] || 0) + 1;
-
                     if (isATP) stats.titulosATP++;
-                    const goldenSlamMap = { 'australian open': 'ao', 'roland garros': 'rg', 'wimbledon': 'w', 'us open': 'uo', 'jogos olímpicos': 'oly' };
-                    if(goldenSlamMap[nomeNormalizado]) stats.goldenSlamEvents.add(goldenSlamMap[nomeNormalizado]);
+
+                    const gsMap = { 'australian open': 'ao', 'roland garros': 'rg', 'wimbledon': 'w', 'us open': 'uo'};
+                    const oly = 'jogos olímpicos';
+                    if(gsMap[nomeNormalizado]) {
+                        stats.grandSlamEvents.add(gsMap[nomeNormalizado]);
+                        stats.goldenSlamEvents.add(gsMap[nomeNormalizado]);
+                    }
+                    if(nomeNormalizado === oly) stats.goldenSlamEvents.add('oly');
+                    
+                    if (t.tipo === 'Grand Slam' && t.dataFim) {
+                        const idadeEmMeses = Math.floor((new Date(t.dataFim) - dataNascimentoJogador) / (1000 * 60 * 60 * 24 * 30.44));
+                        if (!stats.idadeMenorCampeaoGS || idadeEmMeses < stats.idadeMenorCampeaoGS) {
+                            stats.idadeMenorCampeaoGS = idadeEmMeses;
+                        }
+                        if (!stats.idadeMaiorCampeaoGS || idadeEmMeses > stats.idadeMaiorCampeaoGS) {
+                            stats.idadeMaiorCampeaoGS = idadeEmMeses;
+                        }
+                    }
                 }
+
                 if (stats.porTipo[t.tipo]) { stats.porTipo[t.tipo].v += vitorias; stats.porTipo[t.tipo].d += derrotas; if (t.faseFinal === 'Campeão') stats.porTipo[t.tipo].t++; }
                 if (stats.porSuperficie[t.superficie]) {
                     stats.porSuperficie[t.superficie].v += vitorias; stats.porSuperficie[t.superficie].d += derrotas;
                     if (isATP) { stats.porSuperficie[t.superficie].atp_v += vitorias; stats.porSuperficie[t.superficie].atp_d += derrotas; if(t.faseFinal === 'Campeão') stats.porSuperficie[t.superficie].atp_t++; }
                 }
             });
-            if (Object.keys(titulosPorNome).length > 0) stats.maxTitulosUnicoTorneio = Math.max(...Object.values(titulosPorNome));
+
+            if (Object.keys(titulosPorNome).length > 0) {
+                stats.maxTitulosUnicoTorneio = Math.max(...Object.values(titulosPorNome));
+                stats.nomeMaxTitulosUnicoTorneio = Object.keys(titulosPorNome).find(key => titulosPorNome[key] === stats.maxTitulosUnicoTorneio);
+            }
             if (Object.keys(titulosPorAno).length > 0) stats.maxTitulosEmUmAno = Math.max(...Object.values(titulosPorAno));
             return stats;
         }
@@ -610,7 +676,8 @@
             document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
         }
         function updateTabs(stats) {
-             document.getElementById('titulos-total-resumo').textContent = stats.titulosATP;
+             const titulosATP = Object.entries(stats.porTipo).filter(([key]) => key && !key.startsWith("CH")).reduce((sum, [, val]) => sum + val.t, 0);
+             document.getElementById('titulos-total-resumo').textContent = titulosATP;
              document.getElementById('titulos-list').innerHTML = tournamentTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
              document.getElementById('titulos-surface-list').innerHTML = surfaces.map(s => `<li class="flex justify-between items-center">${s}: <span>${stats.porSuperficie[s]?.atp_t || 0} <button class="details-btn" data-filter-type="surface" data-filter-value="${s}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></li>`).join('');
              document.getElementById('total-vitorias').textContent = stats.vitoriasATP;
@@ -631,19 +698,17 @@
             const container = document.getElementById('recordes-conquistados');
             let html = worldRecords.map(record => {
                 const playerValue = record.stat(stats);
-                const progress = Math.min((playerValue / record.value) * 100, 100);
-                const isBroken = playerValue > record.value;
-
+                const isBroken = record.isLowerBetter ? (playerValue > 0 && playerValue < record.value) : (playerValue >= record.value);
+                const progress = record.value > 0 ? Math.min((playerValue / record.value) * 100, 100) : (isBroken ? 100 : 0);
                 return `
-                <div class="glass-card p-4 rounded-lg ${isBroken ? 'bg-green-100 border-green-400' : ''}">
+                <div class="glass-card p-4 rounded-lg ${isBroken ? 'bg-green-100/50 border-green-400' : 'bg-white/30'}">
                     <h4 class="font-bold text-md text-primary">${record.title} ${isBroken ? '🏆' : ''}</h4>
-                    <p class="text-xs text-slate-600 mt-1">Recorde: ${record.holder} (${record.value})</p>
-                    <p class="text-sm font-semibold mt-2">Progresso de Fernando: ${playerValue}</p>
+                    <p class="text-xs text-slate-600 mt-1">Recorde: ${record.holder} (${record.format(record.value, {})})</p>
+                    <p class="text-sm font-semibold mt-2">Progresso de Fernando: ${record.format(playerValue, stats)}</p>
                     <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                         <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${progress}%"></div>
                     </div>
-                </div>
-                `;
+                </div>`;
             }).join('');
             container.innerHTML = html || '<p class="text-gray-500 md:col-span-2">Nenhum recorde para exibir.</p>';
         }
@@ -657,7 +722,7 @@
             noDataMsg.style.display = 'none';
             tableBody.innerHTML = filtered.map(t => `
                 <tr class="border-b border-slate-200/50 hover:bg-slate-50/50" data-id="${t.id}">
-                    <td class="py-3 px-1 sm:px-2">${t.dataInicio ? t.dataInicio.split('-').reverse().join('/') : 'N/A'}</td>
+                    <td class="py-3 px-1 sm:px-2 whitespace-nowrap">${t.dataInicio ? t.dataInicio.split('-').reverse().join('/') : 'N/A'}</td>
                     <td class="py-3 px-1 sm:px-2 font-semibold text-slate-700">
                         <span class="flex items-center">
                             ${getFlagEmoji(t.paisTorneio)} 
