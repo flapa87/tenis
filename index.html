@@ -80,13 +80,14 @@
         .btn-secondary:hover { background-color: #059669; }
         .btn-danger { background-color: var(--error); }
         .btn-danger:hover { background-color: #dc2626; }
+        .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
 
         #temporadas-tabela tr { cursor: pointer; }
-        .details-btn {
+        .details-btn, .edit-match-btn {
             background: none; border: none; color: var(--primary); cursor: pointer;
             margin-left: 0.5rem; opacity: 0.6; transition: opacity 0.2s;
         }
-        .details-btn:hover { opacity: 1; }
+        .details-btn:hover, .edit-match-btn:hover { opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -277,6 +278,7 @@
             'CH 75': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'Default': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final']
         };
+        const iocToIso2 = { 'SUI': 'CH', 'SRB': 'RS', 'ESP': 'ES', 'BRA': 'BR', 'USA': 'US', 'ITA': 'IT', 'GER': 'DE', 'FRA': 'FR', 'AUS': 'AU', 'GBR': 'GB', 'ARG': 'AR', 'RUS': 'RU', 'CAN': 'CA', 'JPN': 'JP', 'AUT': 'AT', 'NOR': 'NO', 'GRE': 'GR', 'POL': 'PL', 'CHI': 'CL', 'CRO': 'HR', 'DEN': 'DK', 'KAZ': 'KZ', 'NED': 'NL', 'SWE': 'SE' };
 
         // --- MODAL & UI HELPERS ---
         function openModal(title, bodyHTML, footerHTML = '') {
@@ -286,7 +288,7 @@
             modal.style.display = 'flex';
         }
         function closeModal() { modal.style.display = 'none'; }
-        function formatCurrency(value) { return (Number(value) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+        function formatCurrency(value) { return (Number(value) || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
         
         function estimarRanking(pontos) {
             if (pontos <= 0) return 'Sem Ranking';
@@ -299,6 +301,14 @@
             if (p >= 15) return `751º-1000º`;
             return `>1000º`;
         }
+
+        function getFlagEmoji(iocCode) {
+            if (!iocCode || iocCode.length < 2) return '';
+            const code = iocCode.toUpperCase();
+            const iso2 = iocToIso2[code] || (code.length === 2 ? code : '');
+            if (!iso2) return `(${code})`;
+            return iso2.toUpperCase().split('').map(char => String.fromCodePoint(char.charCodeAt(0) + 127397)).join('');
+        }
         
         // --- CRUD & DB OPERATIONS ---
         async function loadTournamentsFromDb() {
@@ -308,13 +318,14 @@
                 updateUI();
             } catch (error) { console.error("Erro ao carregar torneios: ", error); document.getElementById('no-tournaments-msg').textContent = 'Erro ao carregar dados.'; document.getElementById('no-tournaments-msg').style.display = 'block'; }
         }
-        async function updateTournamentInDb(id, data) {
+        async function updateTournamentInDb(id, data, shouldCloseModal = true) {
             try {
                 await updateDoc(doc(db, 'torneios', id), data);
                 const index = allTournaments.findIndex(t => t.id === id);
                 if (index > -1) { allTournaments[index] = { ...allTournaments[index], ...data }; }
                 updateUI();
-                closeModal();
+                if(shouldCloseModal) closeModal();
+                else openManageTournamentModal(id); // Re-render modal after edit
             } catch (error) { console.error("Erro ao atualizar torneio: ", error); alert('Ocorreu um erro ao atualizar.'); }
         }
         async function deleteTournamentFromDb(id) {
@@ -340,6 +351,7 @@
                 jogos: [{
                     rodada: 'Primeira Rodada',
                     adversario: document.getElementById('jogo-adversario').value.trim(),
+                    nacionalidade: document.getElementById('jogo-nacionalidade').value.trim().toUpperCase(),
                     placar: document.getElementById('jogo-placar').value.trim(),
                     resultado: document.getElementById('jogo-resultado').value,
                 }]
@@ -371,8 +383,11 @@
                     </div>
                     <div class="pt-4 mt-4 border-t">
                         <h4 class="text-md font-semibold">Resultado da Estreia</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                             <div><label for="jogo-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="jogo-adversario" class="form-input mt-1" required></div>
+                            <div><label for="jogo-nacionalidade" class="block text-sm font-medium">Nacionalidade (Ex: SUI)</label><input type="text" id="jogo-nacionalidade" maxlength="3" class="form-input mt-1"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                             <div><label for="jogo-placar" class="block text-sm font-medium">Placar</label><input type="text" id="jogo-placar" class="form-input mt-1" required></div>
                             <div><label for="jogo-resultado" class="block text-sm font-medium">Resultado</label><select id="jogo-resultado" class="form-select mt-1"><option value="V" selected>Vitória</option><option value="D">Derrota</option></select></div>
                         </div>
@@ -381,7 +396,7 @@
                          <h4 class="text-md font-semibold text-red-600">Finalizar Campanha (Derrota na Estreia)</h4>
                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label for="torneio-pontos" class="block text-sm font-medium">Pontos</label><input type="number" id="torneio-pontos" class="form-input mt-1" min="0" value="0"></div>
-                            <div><label for="torneio-premiacao" class="block text-sm font-medium">Prêmio (R$)</label><input type="number" id="torneio-premiacao" class="form-input mt-1" min="0" value="0"></div>
+                            <div><label for="torneio-premiacao" class="block text-sm font-medium">Prêmio ($)</label><input type="number" id="torneio-premiacao" class="form-input mt-1" min="0" value="0"></div>
                         </div>
                     </div>
                 </form>
@@ -400,40 +415,45 @@
         function openManageTournamentModal(torneioId) {
             const torneio = allTournaments.find(t => t.id === torneioId);
             if (!torneio) return;
-            const matchesHistory = (torneio.jogos || []).map(jogo => `
-                <div class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
-                    <div><p class="font-bold">${jogo.rodada}</p><p class="text-sm text-slate-600">Fernando Lapa (BRA) vs. ${jogo.adversario} - <span class="font-semibold">${jogo.placar}</span></p></div>
-                    <span class="text-lg font-bold ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
+            
+            const renderMatchesHTML = () => (torneio.jogos || []).map((jogo, index) => `
+                <div id="match-${index}" class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
+                    <div><p class="font-bold">${jogo.rodada}</p><p class="text-sm text-slate-600">Fernando Lapa ${getFlagEmoji('BRA')} vs. ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)} - <span class="font-semibold">${jogo.placar}</span></p></div>
+                    <div class="flex items-center">
+                        <span class="text-lg font-bold mr-4 ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
+                        <button class="edit-match-btn" data-index="${index}" title="Editar partida"><i class="fas fa-pencil-alt text-xs"></i></button>
+                    </div>
                 </div>`).join('');
-            let body = `<div class="space-y-3">${matchesHistory}</div>`;
+
+            let body = `<div id="matches-history-list" class="space-y-3">${renderMatchesHTML()}</div>`;
+            
             if (torneio.status === 'Finalizado') {
                 body += `<div class="mt-6 pt-4 border-t text-center space-y-2"><p class="text-lg font-bold">Campanha Finalizada</p><p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p><p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p></div>`;
-                openModal(`Detalhes: ${torneio.nome}`, body); return;
+            } else {
+                const lastPlayedRound = torneio.jogos[torneio.jogos.length - 1].rodada;
+                const allPossibleRounds = roundsByTournamentType[torneio.tipo] || roundsByTournamentType['Default'];
+                const lastPlayedIndex = allPossibleRounds.indexOf(lastPlayedRound);
+                const remainingRounds = allPossibleRounds.slice(lastPlayedIndex + 1);
+                body += `
+                    <form id="update-tournament-form" class="space-y-4 pt-6 mt-6 border-t">
+                        <h4 class="text-md font-semibold">Próximo Jogo</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div><label for="next-round" class="block text-sm font-medium">Fase</label><select id="next-round" class="form-select mt-1">${remainingRounds.map(r => `<option value="${r}">${r}</option>`).join('')}</select></div>
+                            <div><label for="next-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="next-adversario" class="form-input mt-1" required></div>
+                            <div><label for="next-nacionalidade" class="block text-sm font-medium">Nacionalidade</label><input type="text" maxlength="3" id="next-nacionalidade" class="form-input mt-1" placeholder="Ex: SUI"></div>
+                            <div><label for="next-placar" class="block text-sm font-medium">Placar</label><input type="text" id="next-placar" class="form-input mt-1" required></div>
+                        </div>
+                        <div id="final-details-update" class="hidden space-y-4 pt-4 mt-4 border-t">
+                             <h4 id="final-title-update" class="text-md font-semibold"></h4>
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label for="update-pontos" class="block text-sm font-medium">Pontos</label><input type="number" id="update-pontos" class="form-input mt-1" min="0" value="0"></div>
+                                <div><label for="update-premiacao" class="block text-sm font-medium">Prêmio ($)</label><input type="number" id="update-premiacao" class="form-input mt-1" min="0" value="0"></div>
+                            </div>
+                        </div>
+                    </form>`;
             }
-            const lastPlayedRound = torneio.jogos[torneio.jogos.length - 1].rodada;
-            const allPossibleRounds = roundsByTournamentType[torneio.tipo] || roundsByTournamentType['Default'];
-            const lastPlayedIndex = allPossibleRounds.indexOf(lastPlayedRound);
-            const remainingRounds = allPossibleRounds.slice(lastPlayedIndex + 1);
-            body += `
-                <form id="update-tournament-form" class="space-y-4 pt-6 mt-6 border-t">
-                    <h4 class="text-md font-semibold">Próximo Jogo</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                        <div>
-                            <label for="next-round" class="block text-sm font-medium">Fase do Torneio</label>
-                            <select id="next-round" class="form-select mt-1">${remainingRounds.map(r => `<option value="${r}">${r}</option>`).join('')}</select>
-                        </div>
-                        <div><label for="next-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="next-adversario" class="form-input mt-1" required></div>
-                        <div class="md:col-span-2"><label for="next-placar" class="block text-sm font-medium">Placar</label><input type="text" id="next-placar" class="form-input mt-1" required></div>
-                    </div>
-                    <div id="final-details-update" class="hidden space-y-4 pt-4 mt-4 border-t">
-                         <h4 id="final-title-update" class="text-md font-semibold"></h4>
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label for="update-pontos" class="block text-sm font-medium">Pontos</label><input type="number" id="update-pontos" class="form-input mt-1" min="0" value="0"></div>
-                            <div><label for="update-premiacao" class="block text-sm font-medium">Prêmio (R$)</label><input type="number" id="update-premiacao" class="form-input mt-1" min="0" value="0"></div>
-                        </div>
-                    </div>
-                </form>`;
-            const footer = `<button id="win-match-btn" class="btn btn-secondary">Salvar Vitória</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>`;
+            
+            const footer = torneio.status !== 'Finalizado' ? `<button id="win-match-btn" class="btn btn-secondary">Salvar Vitória</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>` : '';
             openModal(`Gerenciar: ${torneio.nome}`, body, footer);
 
             const handleUpdate = (result) => {
@@ -443,7 +463,7 @@
                  const adversario = form.querySelector('#next-adversario').value.trim(), placar = form.querySelector('#next-placar').value.trim();
                  if (!adversario || !placar) { alert('Preencha adversário e placar.'); return; }
                  const isFinal = nextRoundName === 'Final';
-                 const newMatch = { rodada: nextRoundName, adversario, placar, resultado: result };
+                 const newMatch = { rodada: nextRoundName, adversario, nacionalidade: form.querySelector('#next-nacionalidade').value.trim().toUpperCase(), placar, resultado: result };
                  const updatedJogos = [...(torneio.jogos || []), newMatch];
                  let updatedData = { jogos: updatedJogos };
                  if (result === 'D' || (result === 'V' && isFinal)) {
@@ -461,53 +481,73 @@
                 } return true;
             };
             const winBtn = document.getElementById('win-match-btn'), loseBtn = document.getElementById('lose-match-btn');
-            winBtn.addEventListener('click', () => {
-                const nextRound = document.getElementById('next-round').value;
-                if(nextRound === 'Final') { if (setupFinalizationUI(true)) handleUpdate('V'); } 
-                else { handleUpdate('V'); }
+            if(winBtn && loseBtn) {
+                winBtn.addEventListener('click', () => {
+                    const nextRound = document.getElementById('next-round').value;
+                    if(nextRound === 'Final') { if (setupFinalizationUI(true)) handleUpdate('V'); } 
+                    else { handleUpdate('V'); }
+                });
+                loseBtn.addEventListener('click', () => { if (setupFinalizationUI(false)) handleUpdate('D'); });
+            }
+
+            document.getElementById('matches-history-list').addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.edit-match-btn');
+                if (!editBtn) return;
+                const index = parseInt(editBtn.dataset.index, 10);
+                const matchToEdit = torneio.jogos[index];
+                const matchDiv = document.getElementById(`match-${index}`);
+                matchDiv.innerHTML = `
+                    <div class="p-3 bg-blue-50 rounded-lg w-full space-y-2">
+                        <p class="font-bold text-sm">Editando: ${matchToEdit.rodada}</p>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <input id="edit-adversario-${index}" class="form-input text-xs" value="${matchToEdit.adversario}">
+                            <input id="edit-nacionalidade-${index}" class="form-input text-xs" value="${matchToEdit.nacionalidade || ''}" placeholder="XXX" maxlength="3">
+                            <input id="edit-placar-${index}" class="form-input col-span-2 text-xs" value="${matchToEdit.placar}">
+                        </div>
+                        <div class="flex justify-end gap-2 mt-2">
+                            <button class="btn btn-sm bg-gray-400" onclick="document.getElementById('modalContent').dispatchEvent(new CustomEvent('cancel-edit'))">Cancelar</button>
+                            <button id="save-edit-${index}" class="btn btn-sm btn-secondary">Salvar</button>
+                        </div>
+                    </div>`;
+                document.getElementById(`save-edit-${index}`).addEventListener('click', () => {
+                    const updatedJogos = [...torneio.jogos];
+                    updatedJogos[index] = { ...updatedJogos[index], 
+                        adversario: document.getElementById(`edit-adversario-${index}`).value.trim(),
+                        nacionalidade: document.getElementById(`edit-nacionalidade-${index}`).value.trim().toUpperCase(),
+                        placar: document.getElementById(`edit-placar-${index}`).value.trim()
+                    };
+                    updateTournamentInDb(torneioId, { jogos: updatedJogos }, false); // false para não fechar o modal
+                });
             });
-            loseBtn.addEventListener('click', () => { if (setupFinalizationUI(false)) handleUpdate('D'); });
+            // Listener para o evento de cancelar
+            document.getElementById('modalContent').addEventListener('cancel-edit', () => openManageTournamentModal(torneioId));
         }
         function handleDetailsClick(e) {
             const button = e.target.closest('.details-btn'); if (!button) return;
             const { filterType, filterValue, view } = button.dataset;
-            
             let originalTournaments;
-            if (filterType === 'category') {
-                originalTournaments = allTournaments.filter(t => t.tipo === filterValue);
-            } else if (filterType === 'surface') {
-                originalTournaments = allTournaments.filter(t => t.superficie === filterValue);
-            }
-            
-            if (view === 'titles') {
-                originalTournaments = originalTournaments.filter(t => t.faseFinal === 'Campeão');
-            }
-
+            if (filterType === 'category') { originalTournaments = allTournaments.filter(t => t.tipo === filterValue); } 
+            else if (filterType === 'surface') { originalTournaments = allTournaments.filter(t => t.superficie === filterValue); }
+            if (view === 'titles') { originalTournaments = originalTournaments.filter(t => t.faseFinal === 'Campeão'); }
             const seasons = [...new Set(originalTournaments.map(t => t.ano))].sort((a,b) => b-a);
             const tournamentNames = [...new Set(originalTournaments.map(t => t.nome))].sort();
             const modalTitleText = view === 'titles' ? `Títulos - ${filterValue}` : `Campanhas - ${filterValue}`;
-            
             const body = `
                 <div class="flex flex-wrap gap-4 mb-4 p-2 bg-slate-100 rounded-lg">
                     <div class="flex-1 min-w-[150px]"><label class="text-xs font-semibold">Torneio:</label><select id="modal-tournament-filter" class="form-select text-sm"><option value="all">Todos</option>${tournamentNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select></div>
                     <div class="flex-1 min-w-[150px]"><label class="text-xs font-semibold">Temporada:</label><select id="modal-season-filter" class="form-select text-sm"><option value="all">Carreira</option>${seasons.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div>
                 </div>
-                <div id="modal-results-content" class="space-y-2"></div>
-            `;
+                <div id="modal-results-content" class="space-y-2"></div>`;
             openModal(modalTitleText, body);
-
             const renderModalContent = () => {
                 const seasonFilter = document.getElementById('modal-season-filter').value;
                 const tournamentFilter = document.getElementById('modal-tournament-filter').value;
                 let filtered = originalTournaments;
-
                 if (seasonFilter !== 'all') filtered = filtered.filter(t => t.ano == seasonFilter);
                 if (tournamentFilter !== 'all') filtered = filtered.filter(t => t.nome === tournamentFilter);
-                
                 let contentHTML = '';
-                if (filtered.length === 0) {
-                    contentHTML = '<p class="text-center p-4">Nenhum resultado para exibir.</p>';
-                } else if (tournamentFilter !== 'all' && seasonFilter === 'all') {
+                if (filtered.length === 0) { contentHTML = '<p class="text-center p-4">Nenhum resultado para exibir.</p>'; } 
+                else if (tournamentFilter !== 'all' && seasonFilter === 'all') {
                     let aggWins = 0, aggLosses = 0, aggTitles = 0;
                     filtered.forEach(t => {
                         aggWins += (t.jogos || []).filter(j => j.resultado === 'V').length;
@@ -516,16 +556,13 @@
                     });
                     contentHTML += `<div class="p-3 bg-slate-50 rounded-lg mb-4 text-center"><h4 class="font-bold">Resumo em ${tournamentFilter}</h4><p>${aggTitles} Título(s) | ${aggWins}V / ${aggLosses}D</p></div>`;
                 }
-
                 contentHTML += filtered.map(t => {
                     const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
                     const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
                     return `<div class="p-3 border-b last:border-b-0"><p class="font-bold">${t.ano} - ${t.nome}</p><p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p></div>`;
                 }).join('');
-
                 document.getElementById('modal-results-content').innerHTML = contentHTML;
             };
-
             document.getElementById('modal-season-filter').addEventListener('change', renderModalContent);
             document.getElementById('modal-tournament-filter').addEventListener('change', renderModalContent);
             renderModalContent();
@@ -658,16 +695,18 @@
             const resultsDiv = document.getElementById('h2h-results');
             if (!opponentName) { resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Selecione um adversário.</p>`; return; }
             let wins = 0, losses = 0; const matches = [];
+            let opponentNationalityCode = '';
             allTournaments.forEach(t => {
                 (t.jogos || []).forEach(j => {
                     if (j.adversario.trim().toLowerCase() === opponentName.toLowerCase()) {
                         if (j.resultado === 'V') wins++; else losses++;
+                        if (j.nacionalidade && !opponentNationalityCode) opponentNationalityCode = j.nacionalidade;
                         matches.push({ ...t, ...j });
                     }
                 });
             });
             matches.sort((a,b) => new Date(b.dataInicio) - new Date(a.dataInicio));
-            let html = `<div class="text-center mb-6"><p class="text-2xl font-bold">Fernando Lapa <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentName}</p></div>`;
+            let html = `<div class="text-center mb-6"><p class="text-2xl font-bold">Fernando Lapa ${getFlagEmoji('BRA')} <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentName} ${getFlagEmoji(opponentNationalityCode)}</p></div>`;
             if (matches.length > 0) {
                 html += `
                     <div class="overflow-x-auto"><table class="w-full text-sm">
