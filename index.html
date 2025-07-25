@@ -83,11 +83,11 @@
         .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
 
         #temporadas-tabela tr { cursor: pointer; }
-        .details-btn, .edit-match-btn {
+        .details-btn {
             background: none; border: none; color: var(--primary); cursor: pointer;
             margin-left: 0.5rem; opacity: 0.6; transition: opacity 0.2s;
         }
-        .details-btn:hover, .edit-match-btn:hover { opacity: 1; }
+        .details-btn:hover { opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -384,7 +384,7 @@
                 updateUI();
             } catch (error) { console.error("Erro ao carregar torneios: ", error); document.getElementById('no-tournaments-msg').textContent = 'Erro ao carregar dados.'; document.getElementById('no-tournaments-msg').style.display = 'block'; }
         }
-        async function updateTournamentInDb(id, data) {
+        async function updateTournamentInDb(id, data, shouldRefreshModal = false) {
             try {
                 const tournamentRef = doc(db, 'torneios', id);
                 await updateDoc(tournamentRef, data);
@@ -393,6 +393,9 @@
                     allTournaments[index] = { ...allTournaments[index], ...data };
                 }
                 updateUI();
+                if (shouldRefreshModal) {
+                    openManageTournamentModal(id);
+                }
             } catch (error) { console.error("Erro ao atualizar torneio: ", error); alert('Ocorreu um erro ao atualizar.'); }
         }
         async function deleteTournamentFromDb(id) {
@@ -488,7 +491,7 @@
                 <div class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
                     <div class="flex-grow min-w-0 mr-2">
                         <p class="font-bold truncate">${jogo.rodada}</p>
-                        <p class="text-sm text-slate-600 truncate">Fernando Lapa ${getFlagEmoji('BRA')} vs. ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)}</p>
+                        <p class="text-sm text-slate-600 truncate">${getFlagEmoji('BRA')} Fernando Lapa vs ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)}</p>
                     </div>
                     <div class="flex-shrink-0 flex items-center text-right">
                         <span class="font-semibold text-sm whitespace-nowrap mr-4">${jogo.placar}</span>
