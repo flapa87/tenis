@@ -83,11 +83,13 @@
         .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
 
         #temporadas-tabela tr { cursor: pointer; }
-        .details-btn {
+        .details-btn, .toggle-sublist-btn {
             background: none; border: none; color: var(--primary); cursor: pointer;
-            margin-left: 0.5rem; opacity: 0.6; transition: opacity 0.2s;
+            margin-left: 0.5rem; opacity: 0.6; transition: all 0.2s;
         }
-        .details-btn:hover { opacity: 1; }
+        .details-btn:hover, .toggle-sublist-btn:hover { opacity: 1; }
+        .sublist, .tournament-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
+        .sublist.open, .tournament-body.open { max-height: 1000px; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -301,20 +303,24 @@
             { id: 'atpFinals', title: 'Mais Títulos de ATP Finals', holder: 'Novak Djokovic', value: 7, stat: (s) => s.porTipo['ATP Finals']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'masters1000', title: 'Mais Títulos de Masters 1000', holder: 'Novak Djokovic', value: 40, stat: (s) => s.porTipo['ATP Masters 1000']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'atp500', title: 'Mais Títulos de ATP 500', holder: 'Roger Federer', value: 24, stat: (s) => s.porTipo['ATP 500']?.t || 0, format: (v) => `${v} Títulos` },
+            { id: 'atp250', title: 'Mais Títulos de ATP 250', holder: 'Thomas Muster', value: 26, stat: (s) => s.porTipo['ATP 250']?.t || 0, format: (v) => `${v} Títulos` },
+            { id: 'challenger', title: 'Mais Títulos de Challenger', holder: 'Yen-Hsun Lu', value: 29, stat: (s) => s.titulosChallenger, format: (v) => `${v} Títulos` },
             { id: 'careerTitles', title: 'Mais Títulos na Carreira (ATP)', holder: 'Jimmy Connors', value: 109, stat: (s) => s.titulosATP, format: (v) => `${v} Títulos` },
             { id: 'careerFinals', title: 'Mais Finais na Carreira (ATP)', holder: 'Jimmy Connors', value: 164, stat: (s) => s.finaisATP, format: (v) => `${v} Finais` },
             { id: 'matchWins', title: 'Mais Vitórias na Carreira (ATP)', holder: 'Jimmy Connors', value: 1274, stat: (s) => s.vitoriasATP, format: (v) => `${v} Vitórias` },
             { id: 'prizeMoney', title: 'Maior Premiação na Carreira', holder: 'Novak Djokovic', value: 182000000, stat: (s) => s.premiacao, format: (v) => formatCurrency(v) },
+            { id: 'prizeMoneySeason', title: 'Maior Premiação em uma Temporada', holder: 'Novak Djokovic (2015)', value: 21646145, stat: (s) => s.maxPremiacaoEmUmAno, format: (v) => formatCurrency(v) },
             { id: 'winPercentage', title: '% de Vitórias (ATP, min. 200 jogos)', holder: 'Novak Djokovic', value: 83.9, stat: (s) => (s.vitoriasATP + s.derrotasATP > 200) ? (s.vitoriasATP / (s.vitoriasATP + s.derrotasATP) * 100) : 0, format: (v) => v > 0 ? `${v.toFixed(2)}%` : 'N/A' },
-            { id: 'clayTitles', title: 'Mais Títulos no Saibro (ATP)', holder: 'Rafael Nadal', value: 63, stat: (s) => s.porSuperficie.Saibro?.atp_t || 0, format: (v) => `${v} Títulos` },
-            { id: 'hardTitles', title: 'Mais Títulos em Quadra Rápida (ATP)', holder: 'Roger Federer', value: 71, stat: (s) => s.porSuperficie.Rápida?.atp_t || 0, format: (v) => `${v} Títulos` },
-            { id: 'grassTitles', title: 'Mais Títulos na Grama (ATP)', holder: 'Roger Federer', value: 19, stat: (s) => s.porSuperficie.Grama?.atp_t || 0, format: (v) => `${v} Títulos` },
+            { id: 'clayWins', title: 'Mais Vitórias no Saibro (ATP)', holder: 'Rafael Nadal', value: 474, stat: (s) => s.porSuperficie.Saibro?.atp_v || 0, format: (v) => `${v} Vitórias` },
+            { id: 'hardWins', title: 'Mais Vitórias em Quadra Rápida (ATP)', holder: 'Roger Federer', value: 783, stat: (s) => s.porSuperficie.Rápida?.atp_v || 0, format: (v) => `${v} Vitórias` },
+            { id: 'grassWins', title: 'Mais Vitórias na Grama (ATP)', holder: 'Roger Federer', value: 192, stat: (s) => s.porSuperficie.Grama?.atp_v || 0, format: (v) => `${v} Vitórias` },
             { id: 'singleTournament', title: 'Mais Títulos em um Único Torneio', holder: 'Rafael Nadal', value: 14, stat: (s) => s.maxTitulosUnicoTorneio, format: (v, s) => `${v} (${s.nomeMaxTitulosUnicoTorneio})` },
             { id: 'singleSeason', title: 'Mais Títulos em uma Temporada', holder: 'Guillermo Vilas', value: 16, stat: (s) => s.maxTitulosEmUmAno, format: (v) => `${v} Títulos` },
             { id: 'careerSlam', title: 'Career Grand Slam', holder: 'Vários', value: 4, stat: (s) => s.grandSlamEvents.size, format: (v) => v === 4 ? 'Conquistado 🏆' : `${v} de 4` },
             { id: 'goldenSlam', title: 'Career Golden Slam', holder: 'A. Agassi, R. Nadal', value: 5, stat: (s) => s.goldenSlamEvents.size, format: (v) => v === 5 ? 'Conquistado 🏆' : `${v} de 5` },
             { id: 'youngestGS', title: 'Vencedor de GS Mais Jovem', holder: 'Michael Chang', value: 207, isLowerBetter: true, stat: (s) => s.idadeMenorCampeaoGS, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
             { id: 'oldestGS', title: 'Vencedor de GS Mais Velho', holder: 'Ken Rosewall', value: 446, stat: (s) => s.idadeMaiorCampeaoGS, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
+            { id: 'youngestMasters', title: 'Vencedor de Masters 1000 Mais Jovem', holder: 'Michael Chang', value: 218, isLowerBetter: true, stat: (s) => s.idadeMenorCampeaoMasters, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
         ];
 
         // --- MODAL & UI HELPERS ---
@@ -572,12 +578,21 @@
             const button = e.target.closest('.details-btn'); if (!button) return;
             const { filterType, filterValue, view } = button.dataset;
             let originalTournaments;
-            if (filterType === 'category') { originalTournaments = allTournaments.filter(t => t.tipo === filterValue); } 
+            if (filterType === 'category') {
+                if (filterValue === 'CH') {
+                    originalTournaments = allTournaments.filter(t => t.tipo.startsWith('CH'));
+                } else {
+                    originalTournaments = allTournaments.filter(t => t.tipo === filterValue);
+                }
+            } 
             else if (filterType === 'surface') { originalTournaments = allTournaments.filter(t => t.superficie === filterValue); }
             if (view === 'titles') { originalTournaments = originalTournaments.filter(t => t.faseFinal === 'Campeão'); }
             const seasons = [...new Set(originalTournaments.map(t => t.ano))].sort((a,b) => b-a);
             const tournamentNames = [...new Set(originalTournaments.map(t => t.nome))].sort();
-            const modalTitleText = view === 'titles' ? `Títulos - ${filterValue}` : `Campanhas - ${filterValue}`;
+            
+            let displayValue = filterValue === 'CH' ? 'Challengers' : filterValue;
+            const modalTitleText = view === 'titles' ? `Títulos - ${displayValue}` : `Campanhas - ${displayValue}`;
+            
             const body = `
                 <div class="flex flex-wrap gap-4 mb-4 p-2 bg-slate-100 rounded-lg">
                     <div class="flex-1 min-w-[150px]"><label class="text-xs font-semibold">Torneio:</label><select id="modal-tournament-filter" class="form-select text-sm"><option value="all">Todos</option>${tournamentNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select></div>
@@ -588,9 +603,11 @@
             const renderModalContent = () => {
                 const seasonFilter = document.getElementById('modal-season-filter').value;
                 const tournamentFilter = document.getElementById('modal-tournament-filter').value;
-                let filtered = originalTournaments;
+                let filtered = [...originalTournaments].sort((a, b) => new Date(b.dataInicio) - new Date(a.dataInicio));
+
                 if (seasonFilter !== 'all') filtered = filtered.filter(t => t.ano == seasonFilter);
                 if (tournamentFilter !== 'all') filtered = filtered.filter(t => t.nome === tournamentFilter);
+                
                 let contentHTML = '';
                 if (filtered.length === 0) { contentHTML = '<p class="text-center p-4">Nenhum resultado para exibir.</p>'; } 
                 else if (tournamentFilter !== 'all' && seasonFilter === 'all') {
@@ -602,15 +619,47 @@
                     });
                     contentHTML += `<div class="p-3 bg-slate-50 rounded-lg mb-4 text-center"><h4 class="font-bold">Resumo em ${tournamentFilter}</h4><p>${aggTitles} Título(s) | ${aggWins}V / ${aggLosses}D</p></div>`;
                 }
+                
                 contentHTML += filtered.map(t => {
                     const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
                     const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
-                    return `<div class="p-3 border-b last:border-b-0"><p class="font-bold">${getFlagEmoji(t.paisTorneio)} ${t.ano} - ${t.nome}</p><p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p></div>`;
+                    const matchesHTML = (t.jogos || []).map(jogo => `
+                        <div class="p-2 pl-4 rounded-lg flex justify-between items-center text-xs ${jogo.resultado === 'V' ? 'bg-green-50/50' : 'bg-red-50/50'}">
+                            <div class="flex-grow min-w-0 mr-2">
+                                <p class="font-semibold truncate">${jogo.rodada}</p>
+                                <p class="text-slate-600 truncate">${getFlagEmoji('BRA')} F. Lapa vs ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)}</p>
+                            </div>
+                            <div class="flex-shrink-0 flex items-center text-right">
+                                <span class="font-semibold whitespace-nowrap mr-3">${jogo.placar}</span>
+                                <span class="font-bold w-4 ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
+                            </div>
+                        </div>`).join('');
+
+                    return `
+                        <div class="tournament-accordion border-b last:border-b-0">
+                            <div class="tournament-header p-3 cursor-pointer hover:bg-slate-50 rounded-md">
+                                <p class="font-bold flex justify-between items-center">
+                                    <span>${getFlagEmoji(t.paisTorneio)} ${t.ano} - ${t.nome}</span>
+                                    <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">${t.tipo}</span>
+                                </p>
+                                <p class="text-sm text-slate-600">Resultado: ${t.faseFinal} | Campanha: ${vitorias}V-${derrotas}D | Prêmio: ${formatCurrency(t.premiacao)}</p>
+                            </div>
+                            <div class="tournament-body pl-4 pb-2 space-y-1">
+                                ${matchesHTML}
+                            </div>
+                        </div>`;
                 }).join('');
                 document.getElementById('modal-results-content').innerHTML = contentHTML;
             };
+
             document.getElementById('modal-season-filter').addEventListener('change', renderModalContent);
             document.getElementById('modal-tournament-filter').addEventListener('change', renderModalContent);
+            document.getElementById('modal-results-content').addEventListener('click', (e) => {
+                const header = e.target.closest('.tournament-header');
+                if (header) {
+                    header.nextElementSibling.classList.toggle('open');
+                }
+            });
             renderModalContent();
         }
         
@@ -629,20 +678,25 @@
         function calculateAllStats() {
             const stats = { 
                 rankingPoints: 0, premiacao: 0, titulos: 0, vitoriasATP: 0, derrotasATP: 0, 
-                porTipo: {}, porSuperficie: {}, titulosATP: 0, 
+                porTipo: {}, porSuperficie: {}, titulosATP: 0, titulosChallenger: 0,
                 maxTitulosUnicoTorneio: 0, nomeMaxTitulosUnicoTorneio: '-', maxTitulosEmUmAno: 0, 
+                maxPremiacaoEmUmAno: 0,
                 goldenSlamEvents: new Set(), grandSlamEvents: new Set(), 
                 finaisATP: 0, finaisGrandSlam: 0,
-                idadeMenorCampeaoGS: 0, idadeMaiorCampeaoGS: 0
+                idadeMenorCampeaoGS: 0, idadeMaiorCampeaoGS: 0,
+                idadeMenorCampeaoMasters: 0
             };
             tournamentTypes.forEach(t => { stats.porTipo[t] = { v: 0, d: 0, t: 0 }; });
             surfaces.forEach(s => { stats.porSuperficie[s] = { v: 0, d: 0, t: 0, atp_v: 0, atp_d: 0, atp_t: 0 }; });
             const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
             const titulosPorNome = {};
             const titulosPorAno = {};
+            const premiacaoPorAno = {};
 
             allTournaments.forEach(t => {
                 stats.premiacao += Number(t.premiacao) || 0;
+                premiacaoPorAno[t.ano] = (premiacaoPorAno[t.ano] || 0) + (Number(t.premiacao) || 0);
+
                 if (t.dataFim && new Date(t.dataFim) >= oneYearAgo) { stats.rankingPoints += Number(t.pontos) || 0; }
                 const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
                 const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
@@ -662,7 +716,9 @@
                     titulosPorAno[t.ano] = (titulosPorAno[t.ano] || 0) + 1;
                     const nomeNormalizado = t.nome.toLowerCase();
                     titulosPorNome[nomeNormalizado] = (titulosPorNome[nomeNormalizado] || 0) + 1;
+                    
                     if (isATP) stats.titulosATP++;
+                    else stats.titulosChallenger++;
 
                     const gsMap = { 'australian open': 'ao', 'roland garros': 'rg', 'wimbledon': 'w', 'us open': 'uo'};
                     const oly = 'jogos olímpicos';
@@ -672,13 +728,14 @@
                     }
                     if(nomeNormalizado === oly) stats.goldenSlamEvents.add('oly');
                     
-                    if (t.tipo === 'Grand Slam' && t.dataFim) {
+                    if (t.dataFim) {
                         const idadeEmMeses = Math.floor((new Date(t.dataFim) - dataNascimentoJogador) / (1000 * 60 * 60 * 24 * 30.44));
-                        if (!stats.idadeMenorCampeaoGS || idadeEmMeses < stats.idadeMenorCampeaoGS) {
-                            stats.idadeMenorCampeaoGS = idadeEmMeses;
+                        if (t.tipo === 'Grand Slam') {
+                            if (!stats.idadeMenorCampeaoGS || idadeEmMeses < stats.idadeMenorCampeaoGS) stats.idadeMenorCampeaoGS = idadeEmMeses;
+                            if (!stats.idadeMaiorCampeaoGS || idadeEmMeses > stats.idadeMaiorCampeaoGS) stats.idadeMaiorCampeaoGS = idadeEmMeses;
                         }
-                        if (!stats.idadeMaiorCampeaoGS || idadeEmMeses > stats.idadeMaiorCampeaoGS) {
-                            stats.idadeMaiorCampeaoGS = idadeEmMeses;
+                        if (t.tipo === 'ATP Masters 1000') {
+                             if (!stats.idadeMenorCampeaoMasters || idadeEmMeses < stats.idadeMenorCampeaoMasters) stats.idadeMenorCampeaoMasters = idadeEmMeses;
                         }
                     }
                 }
@@ -695,6 +752,8 @@
                 stats.nomeMaxTitulosUnicoTorneio = Object.keys(titulosPorNome).find(key => titulosPorNome[key] === stats.maxTitulosUnicoTorneio);
             }
             if (Object.keys(titulosPorAno).length > 0) stats.maxTitulosEmUmAno = Math.max(...Object.values(titulosPorAno));
+            if (Object.keys(premiacaoPorAno).length > 0) stats.maxPremiacaoEmUmAno = Math.max(...Object.values(premiacaoPorAno));
+
             return stats;
         }
         function updateStatsPanels(stats) {
@@ -704,14 +763,26 @@
             document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
         }
         function updateTabs(stats) {
+             const atpTypes = tournamentTypes.filter(t => !t.startsWith('CH'));
+             const chTypes = tournamentTypes.filter(t => t.startsWith('CH'));
+
+             let titulosListHTML = atpTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
+             const totalChTitles = chTypes.reduce((sum, type) => sum + (stats.porTipo[type]?.t || 0), 0);
+             titulosListHTML += `<div><p class="flex justify-between items-center"><strong>Challengers:</strong> <span>${totalChTitles} <button class="details-btn" data-filter-type="category" data-filter-value="CH" data-view="titles" title="Ver detalhes de todos os Challengers"><i class="fa-solid fa-eye"></i></button><button class="toggle-sublist-btn" data-target="ch-titles-sublist"><i class="fa-solid fa-plus"></i></button></span></p><div id="ch-titles-sublist" class="sublist pl-4 space-y-1 mt-1">${chTypes.map(type => `<p class="flex justify-between items-center text-xs"><em>${type}:</em> <span>${stats.porTipo[type]?.t || 0}</span></p>`).join('')}</div></div>`;
+             document.getElementById('titulos-list').innerHTML = titulosListHTML;
+             
+             let vitoriasListHTML = atpTypes.map(type => `<div class="flex justify-between items-center">${type}: <span>${stats.porTipo[type]?.v || 0} / ${stats.porTipo[type]?.d || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></div>`).join('');
+             const totalChWins = chTypes.reduce((sum, type) => sum + (stats.porTipo[type]?.v || 0), 0);
+             const totalChLosses = chTypes.reduce((sum, type) => sum + (stats.porTipo[type]?.d || 0), 0);
+             vitoriasListHTML += `<div><div class="flex justify-between items-center">Challengers: <span>${totalChWins} / ${totalChLosses} <button class="details-btn" data-filter-type="category" data-filter-value="CH" data-view="wins" title="Ver detalhes de todos os Challengers"><i class="fa-solid fa-eye"></i></button><button class="toggle-sublist-btn" data-target="ch-wins-sublist"><i class="fa-solid fa-plus"></i></button></span></div><div id="ch-wins-sublist" class="sublist pl-4 space-y-1 mt-1">${chTypes.map(type => `<div class="flex justify-between items-center text-xs"><em>${type}:</em> <span>${stats.porTipo[type]?.v || 0} / ${stats.porTipo[type]?.d || 0}</span></div>`).join('')}</div></div>`;
+             document.getElementById('vitorias-list').innerHTML = vitoriasListHTML;
+             
              const titulosATP = Object.entries(stats.porTipo).filter(([key]) => key && !key.startsWith("CH")).reduce((sum, [, val]) => sum + val.t, 0);
              document.getElementById('titulos-total-resumo').textContent = titulosATP;
-             document.getElementById('titulos-list').innerHTML = tournamentTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
              document.getElementById('titulos-surface-list').innerHTML = surfaces.map(s => `<li class="flex justify-between items-center">${s}: <span>${stats.porSuperficie[s]?.atp_t || 0} <button class="details-btn" data-filter-type="surface" data-filter-value="${s}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></li>`).join('');
              document.getElementById('total-vitorias').textContent = stats.vitoriasATP;
              document.getElementById('total-derrotas').textContent = stats.derrotasATP;
              document.getElementById('taxa-vitorias').textContent = (stats.vitoriasATP + stats.derrotasATP > 0) ? `${((stats.vitoriasATP / (stats.vitoriasATP + stats.derrotasATP)) * 100).toFixed(1)}%` : '0%';
-             document.getElementById('vitorias-list').innerHTML = tournamentTypes.map(type => `<div class="flex justify-between items-center">${type}: <span>${stats.porTipo[type]?.v || 0} / ${stats.porTipo[type]?.d || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></div>`).join('');
              document.getElementById('vitorias-surface-list').innerHTML = surfaces.map(s => `<li class="flex justify-between items-center">${s}: <span>${stats.porSuperficie[s]?.atp_v || 0} / ${stats.porSuperficie[s]?.atp_d || 0} <button class="details-btn" data-filter-type="surface" data-filter-value="${s}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></li>`).join('');
         }
         function updateCharts(stats) {
@@ -888,6 +959,20 @@
             document.getElementById('vitorias-list').addEventListener('click', handleDetailsClick);
             document.getElementById('titulos-surface-list').addEventListener('click', handleDetailsClick);
             document.getElementById('vitorias-surface-list').addEventListener('click', handleDetailsClick);
+            
+            const listContainers = ['vitorias-list', 'titulos-list'];
+            listContainers.forEach(id => {
+                document.getElementById(id).addEventListener('click', (e) => {
+                    const button = e.target.closest('.toggle-sublist-btn');
+                    if (!button) return;
+                    const targetId = button.dataset.target;
+                    const target = document.getElementById(targetId);
+                    const icon = button.querySelector('i');
+                    target.classList.toggle('open');
+                    icon.classList.toggle('fa-plus');
+                    icon.classList.toggle('fa-minus');
+                });
+            });
 
             const tabButtons = document.querySelectorAll('.tab-button'), tabContents = document.querySelectorAll('.tab-content');
             tabButtons.forEach(button => button.addEventListener('click', () => {
