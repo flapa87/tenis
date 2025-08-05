@@ -426,43 +426,33 @@
             if (!form.checkValidity()) { form.reportValidity(); return; }
             const dataInicio = document.getElementById('torneio-data-inicio').value;
             
-            const isMasters1000 = document.getElementById('torneio-tipo').value === 'ATP Masters 1000';
-            const isBye = isMasters1000 && document.getElementById('primeira-rodada-bye').checked;
+            const adversario = document.getElementById('jogo-adversario').value.trim();
+            const nacionalidade = document.getElementById('jogo-nacionalidade').value.trim().toUpperCase();
+            const placar = document.getElementById('jogo-placar').value.trim();
+            const resultado = document.getElementById('jogo-resultado').value;
+            
+            const isBye = adversario.toLowerCase() === 'bye';
+            const finalResult = isBye ? 'Bye' : resultado;
+            const finalPlacar = isBye ? 'Bye' : placar;
 
-            const jogos = [];
+            const jogos = [{
+                rodada: 'Primeira Rodada',
+                adversario: isBye ? 'Bye' : adversario,
+                nacionalidade: isBye ? 'ATP' : nacionalidade,
+                placar: finalPlacar,
+                resultado: finalResult,
+            }];
+            
             let status = 'Em Andamento';
             let faseFinal = '';
             let pontos = 0;
             let premiacao = 0;
 
-            if (isBye) {
-                jogos.push({
-                    rodada: 'Primeira Rodada',
-                    adversario: 'Bye',
-                    nacionalidade: 'ATP',
-                    placar: 'Bye',
-                    resultado: 'V'
-                });
-            } else {
-                const adversario = document.getElementById('jogo-adversario').value.trim();
-                const nacionalidade = document.getElementById('jogo-nacionalidade').value.trim().toUpperCase();
-                const placar = document.getElementById('jogo-placar').value.trim();
-                const resultado = document.getElementById('jogo-resultado').value;
-
-                jogos.push({
-                    rodada: 'Primeira Rodada',
-                    adversario,
-                    nacionalidade,
-                    placar,
-                    resultado,
-                });
-
-                if (resultado === 'D') {
-                    status = 'Finalizado';
-                    faseFinal = 'Primeira Rodada';
-                    pontos = Number(document.getElementById('torneio-pontos').value) || 0;
-                    premiacao = Number(document.getElementById('torneio-premiacao').value) || 0;
-                }
+            if (finalResult === 'D') {
+                status = 'Finalizado';
+                faseFinal = 'Primeira Rodada';
+                pontos = Number(document.getElementById('torneio-pontos').value) || 0;
+                premiacao = Number(document.getElementById('torneio-premiacao').value) || 0;
             }
             
             const newTournament = {
@@ -497,10 +487,7 @@
                     </div>
                     <div class="pt-4 mt-4 border-t">
                         <h4 class="text-md font-semibold">Resultado da Estreia</h4>
-                        <div id="bye-option-container" class="mt-2 flex items-center space-x-2 hidden">
-                           <input type="checkbox" id="primeira-rodada-bye" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                           <label for="primeira-rodada-bye" class="text-sm font-medium text-gray-700">Primeira rodada com "Bye"</label>
-                        </div>
+                        <p class="text-xs text-gray-500 mb-2">Para um "bye", digite "Bye" no campo de adversário.</p>
                         <div id="match-details-container">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                 <div><label for="jogo-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="jogo-adversario" class="form-input mt-1" required></div>
@@ -524,57 +511,48 @@
             const footer = `<button id="save-tournament-btn" class="btn btn-secondary">Salvar e Continuar</button>`;
             openModal('Criar Novo Torneio', body, footer);
             
-            const resultSelect = document.getElementById('jogo-resultado');
+            const adversarioInput = document.getElementById('jogo-adversario');
+            const resultadoSelect = document.getElementById('jogo-resultado');
+            const placarInput = document.getElementById('jogo-placar');
+            const nacionalidadeInput = document.getElementById('jogo-nacionalidade');
             const finalDetails = document.getElementById('final-details-create');
             const saveBtn = document.getElementById('save-tournament-btn');
-            const tournamentTypeSelect = document.getElementById('torneio-tipo');
-            const byeCheckboxContainer = document.getElementById('bye-option-container');
-            const byeCheckbox = document.getElementById('primeira-rodada-bye');
-            const matchDetailsContainer = document.getElementById('match-details-container');
 
             const toggleMatchDetails = () => {
-                const isBye = byeCheckbox.checked;
-                matchDetailsContainer.classList.toggle('hidden', isBye);
-                matchDetailsContainer.querySelectorAll('input, select').forEach(el => {
-                    el.required = !isBye;
-                    if (isBye) el.value = '';
-                });
-                saveBtn.textContent = isBye ? 'Salvar e Continuar' : (resultSelect.value === 'D' ? 'Salvar e Finalizar' : 'Salvar e Continuar');
-                saveBtn.classList.toggle('btn-danger', !isBye && resultSelect.value === 'D');
-                saveBtn.classList.toggle('btn-secondary', isBye || resultSelect.value !== 'D');
-                finalDetails.classList.add('hidden'); // Hide final details if bye is selected
-            };
+                const isBye = adversarioInput.value.toLowerCase() === 'bye';
+                resultadoSelect.disabled = isBye;
+                placarInput.disabled = isBye;
+                nacionalidadeInput.disabled = isBye;
 
-            resultSelect.addEventListener('change', () => {
-                const isLoss = resultSelect.value === 'D';
+                if (isBye) {
+                    resultadoSelect.value = 'V';
+                    placarInput.value = 'Bye';
+                    nacionalidadeInput.value = 'ATP';
+                }
+                
+                const isLoss = resultadoSelect.value === 'D';
                 finalDetails.classList.toggle('hidden', !isLoss);
                 saveBtn.textContent = isLoss ? 'Salvar e Finalizar' : 'Salvar e Continuar';
                 saveBtn.classList.toggle('btn-danger', isLoss);
                 saveBtn.classList.toggle('btn-secondary', !isLoss);
-            });
+            };
 
-            tournamentTypeSelect.addEventListener('change', () => {
-                const isMasters1000 = tournamentTypeSelect.value === 'ATP Masters 1000';
-                byeCheckboxContainer.classList.toggle('hidden', !isMasters1000);
-                byeCheckbox.checked = false; // Reset checkbox
-                toggleMatchDetails();
-            });
-
-            byeCheckbox.addEventListener('change', toggleMatchDetails);
+            adversarioInput.addEventListener('input', toggleMatchDetails);
+            resultadoSelect.addEventListener('change', toggleMatchDetails);
             saveBtn.addEventListener('click', handleSaveNewTournament);
         }
         function openManageTournamentModal(torneioId) {
             const torneio = allTournaments.find(t => t.id === torneioId);
             if (!torneio) return;
             const matchesHistory = (torneio.jogos || []).map(jogo => `
-                <div class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : 'bg-red-50'}">
+                <div class="p-3 rounded-lg flex justify-between items-center ${jogo.resultado === 'V' ? 'bg-green-50' : (jogo.resultado === 'D' ? 'bg-red-50' : 'bg-gray-100')}">
                     <div class="flex-grow min-w-0 mr-2">
                         <p class="font-bold truncate">${jogo.rodada}</p>
                         <p class="text-sm text-slate-600 truncate">${getFlagEmoji('BRA')} Fernando Lapa vs ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)}</p>
                     </div>
                     <div class="flex-shrink-0 flex items-center text-right">
                         <span class="font-semibold text-sm whitespace-nowrap mr-4">${jogo.placar}</span>
-                        <span class="text-lg font-bold w-4 ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
+                        <span class="text-lg font-bold w-4 ${jogo.resultado === 'V' ? 'text-green-600' : (jogo.resultado === 'D' ? 'text-red-600' : 'text-gray-500')}">${jogo.resultado === 'Bye' ? '' : jogo.resultado}</span>
                     </div>
                 </div>`).join('');
             let body = `<div id="matches-history-list" class="space-y-3">${matchesHistory}</div>`;
@@ -588,7 +566,8 @@
             if (torneio.status === 'Finalizado') {
                 body += `<div class="mt-6 pt-4 border-t text-center space-y-2"><p class="text-lg font-bold">Campanha Finalizada</p><p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p><p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p></div>`;
             } else {
-                const lastPlayedRound = torneio.jogos[torneio.jogos.length - 1].rodada;
+                const lastNonByeGame = [...(torneio.jogos || [])].reverse().find(j => j.resultado !== 'Bye');
+                const lastPlayedRound = lastNonByeGame ? lastNonByeGame.rodada : 'Primeira Rodada';
                 const allPossibleRounds = roundsByTournamentType[torneio.tipo] || roundsByTournamentType['Default'];
                 const lastPlayedIndex = allPossibleRounds.indexOf(lastPlayedRound);
                 const remainingRounds = allPossibleRounds.slice(lastPlayedIndex + 1);
@@ -599,6 +578,7 @@
                     body += `
                         <form id="update-tournament-form" class="space-y-4 pt-6 mt-6 border-t">
                             <h4 class="text-md font-semibold">Próximo Jogo</h4>
+                             <p class="text-xs text-gray-500 mb-2">Para um "bye", digite "Bye" no campo de adversário.</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                 <div><label for="next-round" class="block text-sm font-medium">Fase</label><select id="next-round" class="form-select mt-1">${remainingRounds.map(r => `<option value="${r}">${r}</option>`).join('')}</select></div>
                                 <div><label for="next-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="next-adversario" class="form-input mt-1" required></div>
@@ -617,19 +597,44 @@
             }
             const footer = torneio.status !== 'Finalizado' ? `<button id="win-match-btn" class="btn btn-secondary">Salvar Vitória</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>` : '';
             openModal(modalTitleHTML, body, footer);
+            
+            const adversarioInput = document.getElementById('next-adversario');
+            const placarInput = document.getElementById('next-placar');
+            const nacionalidadeInput = document.getElementById('next-nacionalidade');
+
+            if(adversarioInput) {
+                 adversarioInput.addEventListener('input', () => {
+                    const isBye = adversarioInput.value.toLowerCase() === 'bye';
+                    if (isBye) {
+                        placarInput.value = 'Bye';
+                        nacionalidadeInput.value = 'ATP';
+                    }
+                    placarInput.disabled = isBye;
+                    nacionalidadeInput.disabled = isBye;
+                 });
+            }
 
             const handleUpdate = (result) => {
                  const form = document.getElementById('update-tournament-form');
                  const nextRoundName = form.querySelector('#next-round').value;
                  if (!nextRoundName) { alert('Não há mais fases neste torneio para selecionar.'); return; }
-                 const adversario = form.querySelector('#next-adversario').value.trim(), placar = form.querySelector('#next-placar').value.trim();
-                 if (!adversario || !placar) { alert('Preencha adversário e placar.'); return; }
+                 
+                 const adversario = form.querySelector('#next-adversario').value.trim();
+                 const placar = form.querySelector('#next-placar').value.trim();
+                 const nacionalidade = form.querySelector('#next-nacionalidade').value.trim().toUpperCase();
+
+                 const isBye = adversario.toLowerCase() === 'bye';
+                 const finalResult = isBye ? 'Bye' : result;
+                 const finalPlacar = isBye ? 'Bye' : placar;
+
+                 if (!adversario || (!isBye && !placar)) { alert('Preencha adversário e placar.'); return; }
+                 
                  const isFinal = nextRoundName === 'Final';
-                 const newMatch = { rodada: nextRoundName, adversario, nacionalidade: form.querySelector('#next-nacionalidade').value.trim().toUpperCase(), placar, resultado: result };
+                 const newMatch = { rodada: nextRoundName, adversario: isBye ? 'Bye' : adversario, nacionalidade: isBye ? 'ATP' : nacionalidade, placar: finalPlacar, resultado: finalResult };
                  const updatedJogos = [...(torneio.jogos || []), newMatch];
                  let updatedData = { jogos: updatedJogos };
-                 if (result === 'D' || (result === 'V' && isFinal)) {
-                     updatedData = { ...updatedData, status: 'Finalizado', faseFinal: result === 'V' ? 'Campeão' : nextRoundName, pontos: Number(form.querySelector('#update-pontos').value) || 0, premiacao: Number(form.querySelector('#update-premiacao').value) || 0 };
+                 if (finalResult === 'D' || (finalResult === 'V' && isFinal)) {
+                     updatedData = { ...updatedData, status: 'Finalizado', faseFinal: finalResult === 'V' ? 'Campeão' : nextRoundName, pontos: Number(form.querySelector('#update-pontos').value) || 0, premiacao: Number(form.querySelector('#update-premiacao').value) || 0 };
                  }
                  updateTournamentInDb(torneioId, updatedData).then(closeModal);
             };
@@ -646,7 +651,10 @@
             if(winBtn && loseBtn) {
                 winBtn.addEventListener('click', () => {
                     const nextRound = document.getElementById('next-round').value;
-                    if(nextRound === 'Final') { if (setupFinalizationUI(true)) handleUpdate('V'); } 
+                    const adversario = document.getElementById('next-adversario').value.trim();
+                    const isBye = adversario.toLowerCase() === 'bye';
+                    
+                    if (isBye || nextRound === 'Final') { if (setupFinalizationUI(true)) handleUpdate('V'); } 
                     else { handleUpdate('V'); }
                 });
                 loseBtn.addEventListener('click', () => { if (setupFinalizationUI(false)) handleUpdate('D'); });
@@ -702,14 +710,14 @@
                     const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
                     const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
                     const matchesHTML = (t.jogos || []).map(jogo => `
-                        <div class="p-2 pl-4 rounded-lg flex justify-between items-center text-xs ${jogo.resultado === 'V' ? 'bg-green-50/50' : 'bg-red-50/50'}">
+                        <div class="p-2 pl-4 rounded-lg flex justify-between items-center text-xs ${jogo.resultado === 'V' ? 'bg-green-50/50' : (jogo.resultado === 'D' ? 'bg-red-50/50' : 'bg-gray-100/50')}">
                             <div class="flex-grow min-w-0 mr-2">
                                 <p class="font-semibold truncate">${jogo.rodada}</p>
                                 <p class="text-slate-600 truncate">${getFlagEmoji('BRA')} F. Lapa vs ${jogo.adversario} ${getFlagEmoji(jogo.nacionalidade)}</p>
                             </div>
                             <div class="flex-shrink-0 flex items-center text-right">
                                 <span class="font-semibold whitespace-nowrap mr-3">${jogo.placar}</span>
-                                <span class="font-bold w-4 ${jogo.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${jogo.resultado}</span>
+                                <span class="font-bold w-4 ${jogo.resultado === 'V' ? 'text-green-600' : (jogo.resultado === 'D' ? 'text-red-600' : 'text-gray-500')}">${jogo.resultado === 'Bye' ? '' : jogo.resultado}</span>
                             </div>
                         </div>`).join('');
 
