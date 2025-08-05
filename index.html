@@ -162,16 +162,19 @@
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="text-xs">
+                            <table class="w-full min-w-[600px] sm:min-w-full">
+                                <thead class="bg-slate-100 text-xs text-slate-500 uppercase font-semibold">
                                     <tr>
-                                        <th class="py-2 px-1 sm:px-2 text-left">Datas</th> <th class="py-2 px-1 sm:px-2 text-left">Torneio</th>
-                                        <th class="py-2 px-1 sm:px-2 text-left">Superfície</th> <th class="py-2 px-1 sm:px-2 text-center">Status</th>
-                                        <th class="py-2 px-1 sm:px-2 text-center">Campanha (V-D)</th> <th class="py-2 px-1 sm:px-2 text-left">Resultado Final</th>
-                                        <th class="py-2 px-1 sm:px-2 text-center">Ações</th>
+                                        <th class="py-3 px-2 text-left rounded-l-lg">Datas</th>
+                                        <th class="py-3 px-2 text-left">Torneio</th>
+                                        <th class="py-3 px-2 text-center">Superfície</th>
+                                        <th class="py-3 px-2 text-center">Status</th>
+                                        <th class="py-3 px-2 text-center">Campanha (V-D)</th>
+                                        <th class="py-3 px-2 text-left">Resultado Final</th>
+                                        <th class="py-3 px-2 text-center rounded-r-lg">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody id="temporadas-tabela" class="text-xs sm:text-sm align-middle"></tbody>
+                                <tbody id="temporadas-tabela" class="text-sm align-middle"></tbody>
                             </table>
                              <p id="no-tournaments-msg" class="text-center text-slate-500 py-8 hidden">Nenhum torneio encontrado. Clique em "Criar Novo Torneio" para começar.</p>
                         </div>
@@ -388,7 +391,12 @@
                 const snapshot = await getDocs(collection(db, 'torneios'));
                 allTournaments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
-            } catch (error) { console.error("Erro ao carregar torneios: ", error); document.getElementById('no-tournaments-msg').textContent = 'Erro ao carregar dados.'; document.getElementById('no-tournaments-msg').style.display = 'block'; }
+            } catch (error) { 
+                console.error("Falha ao carregar torneios. Detalhes do erro:", error);
+                const noDataMsg = document.getElementById('no-tournaments-msg');
+                noDataMsg.textContent = `Erro ao carregar dados: ${error.message}. Verifique o console do navegador (F12) para mais detalhes.`;
+                noDataMsg.style.display = 'block';
+            }
         }
         async function updateTournamentInDb(id, data, shouldRefreshModal = false) {
             try {
@@ -417,6 +425,46 @@
             const form = document.getElementById('create-tournament-form');
             if (!form.checkValidity()) { form.reportValidity(); return; }
             const dataInicio = document.getElementById('torneio-data-inicio').value;
+            
+            const isMasters1000 = document.getElementById('torneio-tipo').value === 'ATP Masters 1000';
+            const isBye = isMasters1000 && document.getElementById('primeira-rodada-bye').checked;
+
+            const jogos = [];
+            let status = 'Em Andamento';
+            let faseFinal = '';
+            let pontos = 0;
+            let premiacao = 0;
+
+            if (isBye) {
+                jogos.push({
+                    rodada: 'Primeira Rodada',
+                    adversario: 'Bye',
+                    nacionalidade: 'ATP',
+                    placar: 'Bye',
+                    resultado: 'V'
+                });
+            } else {
+                const adversario = document.getElementById('jogo-adversario').value.trim();
+                const nacionalidade = document.getElementById('jogo-nacionalidade').value.trim().toUpperCase();
+                const placar = document.getElementById('jogo-placar').value.trim();
+                const resultado = document.getElementById('jogo-resultado').value;
+
+                jogos.push({
+                    rodada: 'Primeira Rodada',
+                    adversario,
+                    nacionalidade,
+                    placar,
+                    resultado,
+                });
+
+                if (resultado === 'D') {
+                    status = 'Finalizado';
+                    faseFinal = 'Primeira Rodada';
+                    pontos = Number(document.getElementById('torneio-pontos').value) || 0;
+                    premiacao = Number(document.getElementById('torneio-premiacao').value) || 0;
+                }
+            }
+            
             const newTournament = {
                 nome: document.getElementById('torneio-nome').value.trim(),
                 tipo: document.getElementById('torneio-tipo').value,
@@ -424,21 +472,9 @@
                 paisTorneio: document.getElementById('torneio-pais').value.trim().toUpperCase(),
                 dataInicio, dataFim: document.getElementById('torneio-data-fim').value,
                 ano: new Date(dataInicio + 'T00:00:00').getFullYear(),
-                pontos: 0, premiacao: 0, faseFinal: '', status: 'Em Andamento',
-                jogos: [{
-                    rodada: 'Primeira Rodada',
-                    adversario: document.getElementById('jogo-adversario').value.trim(),
-                    nacionalidade: document.getElementById('jogo-nacionalidade').value.trim().toUpperCase(),
-                    placar: document.getElementById('jogo-placar').value.trim(),
-                    resultado: document.getElementById('jogo-resultado').value,
-                }]
+                pontos, premiacao, faseFinal, status, jogos
             };
-            if (newTournament.jogos[0].resultado === 'D') {
-                newTournament.status = 'Finalizado';
-                newTournament.faseFinal = 'Primeira Rodada';
-                newTournament.pontos = Number(document.getElementById('torneio-pontos').value) || 0;
-                newTournament.premiacao = Number(document.getElementById('torneio-premiacao').value) || 0;
-            }
+
             try {
                 const docRef = await addDoc(collection(db, 'torneios'), newTournament);
                 allTournaments.push({ id: docRef.id, ...newTournament });
@@ -461,13 +497,19 @@
                     </div>
                     <div class="pt-4 mt-4 border-t">
                         <h4 class="text-md font-semibold">Resultado da Estreia</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            <div><label for="jogo-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="jogo-adversario" class="form-input mt-1" required></div>
-                            <div><label for="jogo-nacionalidade" class="block text-sm font-medium">Nacionalidade (Ex: SUI)</label><input type="text" id="jogo-nacionalidade" maxlength="3" class="form-input mt-1"></div>
+                        <div id="bye-option-container" class="mt-2 flex items-center space-x-2 hidden">
+                           <input type="checkbox" id="primeira-rodada-bye" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                           <label for="primeira-rodada-bye" class="text-sm font-medium text-gray-700">Primeira rodada com "Bye"</label>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            <div><label for="jogo-placar" class="block text-sm font-medium">Placar</label><input type="text" id="jogo-placar" class="form-input mt-1" required></div>
-                            <div><label for="jogo-resultado" class="block text-sm font-medium">Resultado</label><select id="jogo-resultado" class="form-select mt-1"><option value="V" selected>Vitória</option><option value="D">Derrota</option></select></div>
+                        <div id="match-details-container">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <div><label for="jogo-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="jogo-adversario" class="form-input mt-1" required></div>
+                                <div><label for="jogo-nacionalidade" class="block text-sm font-medium">Nacionalidade (Ex: SUI)</label><input type="text" id="jogo-nacionalidade" maxlength="3" class="form-input mt-1"></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <div><label for="jogo-placar" class="block text-sm font-medium">Placar</label><input type="text" id="jogo-placar" class="form-input mt-1" required></div>
+                                <div><label for="jogo-resultado" class="block text-sm font-medium">Resultado</label><select id="jogo-resultado" class="form-select mt-1"><option value="V" selected>Vitória</option><option value="D">Derrota</option></select></div>
+                            </div>
                         </div>
                     </div>
                     <div id="final-details-create" class="hidden space-y-4 pt-4 mt-4 border-t">
@@ -481,13 +523,44 @@
             `;
             const footer = `<button id="save-tournament-btn" class="btn btn-secondary">Salvar e Continuar</button>`;
             openModal('Criar Novo Torneio', body, footer);
-            const resultSelect = document.getElementById('jogo-resultado'), finalDetails = document.getElementById('final-details-create'), saveBtn = document.getElementById('save-tournament-btn');
+            
+            const resultSelect = document.getElementById('jogo-resultado');
+            const finalDetails = document.getElementById('final-details-create');
+            const saveBtn = document.getElementById('save-tournament-btn');
+            const tournamentTypeSelect = document.getElementById('torneio-tipo');
+            const byeCheckboxContainer = document.getElementById('bye-option-container');
+            const byeCheckbox = document.getElementById('primeira-rodada-bye');
+            const matchDetailsContainer = document.getElementById('match-details-container');
+
+            const toggleMatchDetails = () => {
+                const isBye = byeCheckbox.checked;
+                matchDetailsContainer.classList.toggle('hidden', isBye);
+                matchDetailsContainer.querySelectorAll('input, select').forEach(el => {
+                    el.required = !isBye;
+                    if (isBye) el.value = '';
+                });
+                saveBtn.textContent = isBye ? 'Salvar e Continuar' : (resultSelect.value === 'D' ? 'Salvar e Finalizar' : 'Salvar e Continuar');
+                saveBtn.classList.toggle('btn-danger', !isBye && resultSelect.value === 'D');
+                saveBtn.classList.toggle('btn-secondary', isBye || resultSelect.value !== 'D');
+                finalDetails.classList.add('hidden'); // Hide final details if bye is selected
+            };
+
             resultSelect.addEventListener('change', () => {
                 const isLoss = resultSelect.value === 'D';
                 finalDetails.classList.toggle('hidden', !isLoss);
                 saveBtn.textContent = isLoss ? 'Salvar e Finalizar' : 'Salvar e Continuar';
-                saveBtn.classList.toggle('btn-danger', isLoss); saveBtn.classList.toggle('btn-secondary', !isLoss);
+                saveBtn.classList.toggle('btn-danger', isLoss);
+                saveBtn.classList.toggle('btn-secondary', !isLoss);
             });
+
+            tournamentTypeSelect.addEventListener('change', () => {
+                const isMasters1000 = tournamentTypeSelect.value === 'ATP Masters 1000';
+                byeCheckboxContainer.classList.toggle('hidden', !isMasters1000);
+                byeCheckbox.checked = false; // Reset checkbox
+                toggleMatchDetails();
+            });
+
+            byeCheckbox.addEventListener('change', toggleMatchDetails);
             saveBtn.addEventListener('click', handleSaveNewTournament);
         }
         function openManageTournamentModal(torneioId) {
@@ -519,23 +592,28 @@
                 const allPossibleRounds = roundsByTournamentType[torneio.tipo] || roundsByTournamentType['Default'];
                 const lastPlayedIndex = allPossibleRounds.indexOf(lastPlayedRound);
                 const remainingRounds = allPossibleRounds.slice(lastPlayedIndex + 1);
-                body += `
-                    <form id="update-tournament-form" class="space-y-4 pt-6 mt-6 border-t">
-                        <h4 class="text-md font-semibold">Próximo Jogo</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            <div><label for="next-round" class="block text-sm font-medium">Fase</label><select id="next-round" class="form-select mt-1">${remainingRounds.map(r => `<option value="${r}">${r}</option>`).join('')}</select></div>
-                            <div><label for="next-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="next-adversario" class="form-input mt-1" required></div>
-                            <div><label for="next-nacionalidade" class="block text-sm font-medium">Nacionalidade</label><input type="text" maxlength="3" id="next-nacionalidade" class="form-input mt-1" placeholder="Ex: SUI"></div>
-                            <div><label for="next-placar" class="block text-sm font-medium">Placar</label><input type="text" id="next-placar" class="form-input mt-1" required></div>
-                        </div>
-                        <div id="final-details-update" class="hidden space-y-4 pt-4 mt-4 border-t">
-                             <h4 id="final-title-update" class="text-md font-semibold"></h4>
-                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><label for="update-pontos" class="block text-sm font-medium">Pontos</label><input type="number" id="update-pontos" class="form-input mt-1" min="0" value="0"></div>
-                                <div><label for="update-premiacao" class="block text-sm font-medium">Prêmio ($)</label><input type="number" id="update-premiacao" class="form-input mt-1" min="0" value="0"></div>
+
+                if (remainingRounds.length === 0) {
+                     body += `<div class="mt-6 pt-4 border-t text-center text-slate-500">Campanha em andamento. Não há mais rodadas para adicionar.</div>`;
+                } else {
+                    body += `
+                        <form id="update-tournament-form" class="space-y-4 pt-6 mt-6 border-t">
+                            <h4 class="text-md font-semibold">Próximo Jogo</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <div><label for="next-round" class="block text-sm font-medium">Fase</label><select id="next-round" class="form-select mt-1">${remainingRounds.map(r => `<option value="${r}">${r}</option>`).join('')}</select></div>
+                                <div><label for="next-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="next-adversario" class="form-input mt-1" required></div>
+                                <div><label for="next-nacionalidade" class="block text-sm font-medium">Nacionalidade</label><input type="text" maxlength="3" id="next-nacionalidade" class="form-input mt-1" placeholder="Ex: SUI"></div>
+                                <div><label for="next-placar" class="block text-sm font-medium">Placar</label><input type="text" id="next-placar" class="form-input mt-1" required></div>
                             </div>
-                        </div>
-                    </form>`;
+                            <div id="final-details-update" class="hidden space-y-4 pt-4 mt-4 border-t">
+                                 <h4 id="final-title-update" class="text-md font-semibold"></h4>
+                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label for="update-pontos" class="block text-sm font-medium">Pontos</label><input type="number" id="update-pontos" class="form-input mt-1" min="0" value="0"></div>
+                                    <div><label for="update-premiacao" class="block text-sm font-medium">Prêmio ($)</label><input type="number" id="update-premiacao" class="form-input mt-1" min="0" value="0"></div>
+                                </div>
+                            </div>
+                        </form>`;
+                }
             }
             const footer = torneio.status !== 'Finalizado' ? `<button id="win-match-btn" class="btn btn-secondary">Salvar Vitória</button><button id="lose-match-btn" class="btn btn-danger">Finalizar com Derrota</button>` : '';
             openModal(modalTitleHTML, body, footer);
@@ -820,20 +898,30 @@
             if (filtered.length === 0) { tableBody.innerHTML = ''; noDataMsg.style.display = 'block'; return; }
             noDataMsg.style.display = 'none';
             tableBody.innerHTML = filtered.map(t => `
-                <tr class="border-b border-slate-200/50 hover:bg-slate-50/50" data-id="${t.id}">
-                    <td class="py-3 px-1 sm:px-2 whitespace-nowrap">${t.dataInicio ? t.dataInicio.split('-').reverse().join('/') : 'N/A'}</td>
-                    <td class="py-3 px-1 sm:px-2 font-semibold text-slate-700">
+                <tr class="group border-b border-slate-200/50 hover:bg-slate-50/50 transition-colors duration-200" data-id="${t.id}">
+                    <td class="py-4 px-2 whitespace-nowrap text-xs text-slate-600 group-hover:text-slate-800">${t.dataInicio ? t.dataInicio.split('-').reverse().join('/') : 'N/A'}</td>
+                    <td class="py-4 px-2 font-semibold text-slate-800">
                         <span class="flex items-center">
                             ${getFlagEmoji(t.paisTorneio)} 
                             <span class="ml-2">${t.nome || ''}</span>
-                            <span class="text-xs text-slate-500 ml-1">(${t.tipo || ''})</span>
+                            <span class="text-xs text-slate-500 ml-1 whitespace-nowrap">(${abbreviateTournamentType(t.tipo) || ''})</span>
                         </span>
                     </td>
-                    <td class="py-3 px-1 sm:px-2">${t.superficie || 'N/A'}</td>
-                    <td class="py-3 px-1 sm:px-2 text-center"><span class="px-2 py-1 text-xs font-bold rounded-full ${t.status === 'Finalizado' ? 'bg-slate-400 text-white' : 'bg-yellow-400 text-black'}">${t.status}</span></td>
-                    <td class="py-3 px-1 sm:px-2 text-center"><span class="font-semibold text-green-600">${(t.jogos || []).filter(j => j.resultado === 'V').length}</span> / <span class="font-semibold text-red-600">${(t.jogos || []).filter(j => j.resultado === 'D').length}</span></td>
-                    <td class="py-3 px-1 sm:px-2">${t.faseFinal || '-'}</td>
-                    <td class="py-3 px-1 sm:px-2 text-center"><button class="delete-btn text-slate-400 hover:text-red-500" data-id="${t.id}" title="Excluir"><i class="fas fa-trash"></i></button></td>
+                    <td class="py-4 px-2 text-center text-slate-600 capitalize">${t.superficie || 'N/A'}</td>
+                    <td class="py-4 px-2 text-center">
+                        <span class="px-2 py-1 text-xs font-bold rounded-full whitespace-nowrap ${t.status === 'Finalizado' ? 'bg-slate-400 text-white' : 'bg-yellow-400 text-black'}">${t.status}</span>
+                    </td>
+                    <td class="py-4 px-2 text-center text-sm font-medium">
+                        <span class="text-green-600">${(t.jogos || []).filter(j => j.resultado === 'V').length}</span>
+                        /
+                        <span class="text-red-600">${(t.jogos || []).filter(j => j.resultado === 'D').length}</span>
+                    </td>
+                    <td class="py-4 px-2 text-left text-sm font-medium text-slate-700">${t.faseFinal || '-'}</td>
+                    <td class="py-4 px-2 text-center">
+                        <button class="delete-btn text-slate-400 hover:text-red-500 transition-colors duration-200" data-id="${t.id}" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>`).join('');
             tableBody.querySelectorAll('tr').forEach(row => row.addEventListener('click', (e) => { if (!e.target.closest('.delete-btn')) openManageTournamentModal(row.dataset.id); }));
             tableBody.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteTournamentFromDb(btn.dataset.id); }));
