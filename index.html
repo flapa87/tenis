@@ -92,7 +92,7 @@
         .sublist.open, .tournament-body.open { max-height: 1000px; }
     </style>
 </head>
-<body class="bg-slate-50">
+<body>
     <div class="main-container">
         <aside class="space-y-6">
             <div class="glass-card p-6 text-center fade-in-up">
@@ -127,6 +127,22 @@
                  <div class="flex items-center justify-between text-sm">
                     <span class="font-semibold text-slate-600"><i class="fa-solid fa-right-left w-5 mr-2 text-green-500"></i>V/D (ATP)</span>
                     <span id="vitorias-derrotas" class="font-bold text-slate-700">0 / 0</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 space-y-4 fade-in-up" style="animation-delay: 0.15s;">
+                <h2 class="text-lg font-bold text-slate-800 border-b pb-2 mb-4">Projeção de Ranking</h2>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-calendar-alt w-5 mr-2 text-blue-500"></i>Pontos Atuais</span>
+                    <span id="current-ranking-points" class="font-bold text-slate-700">0 pts</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-arrow-down w-5 mr-2 text-red-500"></i>Pontos a Defender (Esta Semana)</span>
+                    <span id="points-to-defend" class="font-bold text-red-600">0 pts</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-chart-line w-5 mr-2 text-purple-500"></i>Projeção de Ranking</span>
+                    <span id="projected-ranking" class="font-bold text-slate-700">Sem Ranking</span>
                 </div>
             </div>
 
@@ -303,6 +319,7 @@
         const worldRecords = [
             { id: 'grandSlams', title: 'Mais Títulos de Grand Slam', holder: 'Novak Djokovic', value: 24, stat: (s) => s.porTipo['Grand Slam']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'grandSlamFinals', title: 'Mais Finais de Grand Slam', holder: 'Novak Djokovic', value: 36, stat: (s) => s.finaisGrandSlam, format: (v) => `${v} Finais` },
+            { id: 'atpFinals', title: 'Mais Títulos de ATP Finals', holder: 'Novak Djokovic', value: 7, stat: (s) => s.porTipo['ATP Finals']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'masters1000', title: 'Mais Títulos de Masters 1000', holder: 'Novak Djokovic', value: 40, stat: (s) => s.porTipo['ATP Masters 1000']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'atp500', title: 'Mais Títulos de ATP 500', holder: 'Roger Federer', value: 24, stat: (s) => s.porTipo['ATP 500']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'atp250', title: 'Mais Títulos de ATP 250', holder: 'Thomas Muster', value: 26, stat: (s) => s.porTipo['ATP 250']?.t || 0, format: (v) => `${v} Títulos` },
@@ -383,12 +400,27 @@
             };
             return map[round] || round;
         }
+
+        // Helper function to get the ISO week number (1-53) for a given date
+        function getWeekNumber(d) {
+            // Copy date so don't modify original
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            // Set to nearest Thursday: current date + 4 - current day number
+            // (Sunday is 0, Monday is 1 etc.)
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            // Get first day of year
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            // Calculate full weeks to nearest Thursday
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
+        }
         
         // --- CRUD & DB OPERATIONS ---
         async function loadTournamentsFromDb() {
             try {
                 const snapshot = await getDocs(collection(db, 'torneios'));
                 allTournaments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log("Dados carregados do Firestore:", allTournaments); // DEBUG LOG
                 updateUI();
             } catch (error) { 
                 console.error("Falha ao carregar torneios. Detalhes do erro:", error);
@@ -431,13 +463,14 @@
             const startingRoundIndex = allPossibleRounds.indexOf(startingRoundName);
             
             const jogos = [];
+            // Add 'Bye' entries for rounds before the starting round
             for(let i = 0; i < startingRoundIndex; i++) {
                 jogos.push({
                     rodada: allPossibleRounds[i],
                     adversario: 'Bye',
                     nacionalidade: 'ATP',
                     placar: 'Bye',
-                    resultado: 'Bye'
+                    resultado: 'Bye' // Use 'Bye' as result for bye rounds
                 });
             }
 
@@ -446,6 +479,7 @@
             const placar = document.getElementById('jogo-placar').value.trim();
             const resultado = document.getElementById('jogo-resultado').value;
             
+            // Add the actual first played match
             jogos.push({
                 rodada: startingRoundName,
                 adversario,
@@ -459,7 +493,7 @@
             let pontos = 0;
             let premiacao = 0;
 
-            if (resultado === 'D') {
+            if (resultado === 'D') { // If the first played match is a loss, the tournament is finished
                 status = 'Finalizado';
                 faseFinal = startingRoundName;
                 pontos = Number(document.getElementById('torneio-pontos').value) || 0;
@@ -546,7 +580,7 @@
                     }
                     matchRoundLabel.textContent = startingRoundSelect.value;
                 } else {
-                    matchRoundLabel.textContent = 'Primeira';
+                    matchRoundLabel.textContent = 'Primeira Rodada'; // Reset to default for other types
                 }
             };
             
@@ -561,7 +595,7 @@
             tournamentTypeSelect.addEventListener('change', (e) => updateStartingRounds(e.target.value));
             startingRoundSelect.addEventListener('change', (e) => {
                 matchRoundLabel.textContent = e.target.value;
-                toggleFinalDetails();
+                toggleFinalDetails(); // Re-evaluate final details visibility
             });
             resultSelect.addEventListener('change', toggleFinalDetails);
             saveBtn.addEventListener('click', handleSaveNewTournament);
@@ -650,7 +684,7 @@
                  const nacionalidade = form.querySelector('#next-nacionalidade').value.trim().toUpperCase();
 
                  const isBye = adversario.toLowerCase() === 'bye';
-                 const finalResult = isBye ? 'Bye' : result;
+                 const finalResult = isBye ? 'Bye' : result; // If it's a bye, result is 'Bye'
                  const finalPlacar = isBye ? 'Bye' : placar;
 
                  if (!adversario || (!isBye && !placar)) { alert('Preencha adversário e placar.'); return; }
@@ -659,7 +693,7 @@
                  const newMatch = { rodada: nextRoundName, adversario: isBye ? 'Bye' : adversario, nacionalidade: isBye ? 'ATP' : nacionalidade, placar: finalPlacar, resultado: finalResult };
                  const updatedJogos = [...(torneio.jogos || []), newMatch];
                  let updatedData = { jogos: updatedJogos };
-                 if (finalResult === 'D' || (finalResult === 'V' && isFinal)) {
+                 if (finalResult === 'D' || (finalResult === 'V' && isFinal)) { // Tournament finishes on a loss or winning the final
                      updatedData = { ...updatedData, status: 'Finalizado', faseFinal: finalResult === 'V' ? 'Campeão' : nextRoundName, pontos: Number(form.querySelector('#update-pontos').value) || 0, premiacao: Number(form.querySelector('#update-premiacao').value) || 0 };
                  }
                  updateTournamentInDb(torneioId, updatedData).then(closeModal);
@@ -680,10 +714,16 @@
                     const adversario = document.getElementById('next-adversario').value.trim();
                     const isBye = adversario.toLowerCase() === 'bye';
                     
-                    if (isBye || nextRound === 'Final') { if (setupFinalizationUI(true)) handleUpdate('V'); } 
-                    else { handleUpdate('V'); }
+                    if (isBye || nextRound === 'Final') { // If it's a bye or the final, show finalization options
+                        if (setupFinalizationUI(true)) handleUpdate('V'); 
+                    } else { 
+                        handleUpdate('V'); 
+                    }
                 });
-                loseBtn.addEventListener('click', () => { if (setupFinalizationUI(false)) handleUpdate('D'); });
+                loseBtn.addEventListener('click', () => { 
+                    // Always show finalization options on a loss
+                    if (setupFinalizationUI(false)) handleUpdate('D'); 
+                });
             }
         }
         function handleDetailsClick(e) {
@@ -796,8 +836,11 @@
                 goldenSlamEvents: new Set(), grandSlamEvents: new Set(), 
                 finaisATP: 0, finaisGrandSlam: 0,
                 idadeMenorCampeaoGS: 0, idadeMaiorCampeaoGS: 0,
-                idadeMenorCampeaoMasters: 0
+                idadeMenorCampeaoMasters: 0,
+                pointsToDefendCurrentWeek: 0, // Points from last year in the current week that will drop
+                projectedRankingPoints: 0 // Ranking points after current week's drop, before new points
             };
+
             tournamentTypes.forEach(t => { stats.porTipo[t] = { v: 0, d: 0, t: 0 }; });
             surfaces.forEach(s => { stats.porSuperficie[s] = { v: 0, d: 0, t: 0, atp_v: 0, atp_d: 0, atp_t: 0 }; });
             const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -805,11 +848,31 @@
             const titulosPorAno = {};
             const premiacaoPorAno = {};
 
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentWeekNumber = getWeekNumber(today);
+
+            const pointsByTournamentId = {}; // To store points for each tournament ID
+
             allTournaments.forEach(t => {
+                const tournamentPoints = Number(t.pontos) || 0;
+                const tournamentStartDate = new Date(t.dataInicio + 'T00:00:00');
+                const tournamentEndDate = new Date(t.dataFim + 'T00:00:00');
+                const tournamentYear = tournamentStartDate.getFullYear();
+                const tournamentWeek = getWeekNumber(tournamentStartDate);
+
+                // Store points for each tournament
+                pointsByTournamentId[t.id] = tournamentPoints;
+
+                // Check for points to defend in the current week (from previous year)
+                if (tournamentYear === currentYear - 1 && tournamentWeek === currentWeekNumber) {
+                    stats.pointsToDefendCurrentWeek += tournamentPoints;
+                }
+
                 stats.premiacao += Number(t.premiacao) || 0;
                 premiacaoPorAno[t.ano] = (premiacaoPorAno[t.ano] || 0) + (Number(t.premiacao) || 0);
 
-                if (t.dataFim && new Date(t.dataFim) >= oneYearAgo) { stats.rankingPoints += Number(t.pontos) || 0; }
+                // Filter out 'Bye' results for V/D calculation
                 const vitorias = (t.jogos || []).filter(j => j.resultado === 'V').length;
                 const derrotas = (t.jogos || []).filter(j => j.resultado === 'D').length;
                 const isATP = t.tipo && !t.tipo.startsWith('CH');
@@ -859,12 +922,23 @@
                 }
             });
 
+            // Calculate current ranking points (best 19/20 results over 52 weeks)
+            // This is a simplification. A full ATP ranking calculation is complex and usually done server-side.
+            // For this client-side app, we'll sum all points from tournaments within the last 52 weeks.
+            // If the user has more than 19 tournaments, this will be an approximation.
+            const sortedPoints = Object.values(pointsByTournamentId).sort((a, b) => b - a);
+            stats.rankingPoints = sortedPoints.slice(0, 19).reduce((sum, points) => sum + points, 0); // Sum best 19 results
+
             if (Object.keys(titulosPorNome).length > 0) {
                 stats.maxTitulosUnicoTorneio = Math.max(...Object.values(titulosPorNome));
                 stats.nomeMaxTitulosUnicoTorneio = Object.keys(titulosPorNome).find(key => titulosPorNome[key] === stats.maxTitulosUnicoTorneio);
             }
             if (Object.keys(titulosPorAno).length > 0) stats.maxTitulosEmUmAno = Math.max(...Object.values(titulosPorAno));
             if (Object.keys(premiacaoPorAno).length > 0) stats.maxPremiacaoEmUmAno = Math.max(...Object.values(premiacaoPorAno));
+
+            // Calculate projected ranking points
+            stats.projectedRankingPoints = stats.rankingPoints - stats.pointsToDefendCurrentWeek;
+            if (stats.projectedRankingPoints < 0) stats.projectedRankingPoints = 0; // Points can't be negative
 
             return stats;
         }
@@ -873,6 +947,11 @@
             document.getElementById('premiacao').textContent = formatCurrency(stats.premiacao);
             document.getElementById('titulos-total').textContent = stats.titulos;
             document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
+
+            // New projection stats
+            document.getElementById('current-ranking-points').textContent = `${stats.rankingPoints} pts`;
+            document.getElementById('points-to-defend').textContent = `${stats.pointsToDefendCurrentWeek} pts`;
+            document.getElementById('projected-ranking').textContent = `${estimarRanking(stats.projectedRankingPoints)} (${stats.projectedRankingPoints} pts)`;
         }
         function updateTabs(stats) {
              const atpTypes = tournamentTypes.filter(t => !t.startsWith('CH'));
