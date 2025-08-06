@@ -287,7 +287,7 @@
         const roundsByTournamentType = {
             'Grand Slam': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'ATP Masters 1000': ['Primeira Rodada', 'Segunda Rodada', 'Terceira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
-            'ATP 500': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+            'ATP 500': ['Primeira Rodada', 'Segunda Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'ATP 250': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
             'Jogos Olímpicos': ['Primeira Rodada', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Disputa Bronze', 'Final'],
             'ATP Finals': ['Fase de Grupos 1', 'Fase de Grupos 2', 'Fase de Grupos 3', 'Semifinal', 'Final'],
@@ -303,7 +303,6 @@
         const worldRecords = [
             { id: 'grandSlams', title: 'Mais Títulos de Grand Slam', holder: 'Novak Djokovic', value: 24, stat: (s) => s.porTipo['Grand Slam']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'grandSlamFinals', title: 'Mais Finais de Grand Slam', holder: 'Novak Djokovic', value: 36, stat: (s) => s.finaisGrandSlam, format: (v) => `${v} Finais` },
-            { id: 'atpFinals', title: 'Mais Títulos de ATP Finals', holder: 'Novak Djokovic', value: 7, stat: (s) => s.porTipo['ATP Finals']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'masters1000', title: 'Mais Títulos de Masters 1000', holder: 'Novak Djokovic', value: 40, stat: (s) => s.porTipo['ATP Masters 1000']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'atp500', title: 'Mais Títulos de ATP 500', holder: 'Roger Federer', value: 24, stat: (s) => s.porTipo['ATP 500']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'atp250', title: 'Mais Títulos de ATP 250', holder: 'Thomas Muster', value: 26, stat: (s) => s.porTipo['ATP 250']?.t || 0, format: (v) => `${v} Títulos` },
@@ -425,39 +424,51 @@
             const form = document.getElementById('create-tournament-form');
             if (!form.checkValidity()) { form.reportValidity(); return; }
             const dataInicio = document.getElementById('torneio-data-inicio').value;
+            const torneioTipo = document.getElementById('torneio-tipo').value;
             
+            const startingRoundName = document.getElementById('starting-round')?.value || 'Primeira Rodada';
+            const allPossibleRounds = roundsByTournamentType[torneioTipo] || roundsByTournamentType['Default'];
+            const startingRoundIndex = allPossibleRounds.indexOf(startingRoundName);
+            
+            const jogos = [];
+            for(let i = 0; i < startingRoundIndex; i++) {
+                jogos.push({
+                    rodada: allPossibleRounds[i],
+                    adversario: 'Bye',
+                    nacionalidade: 'ATP',
+                    placar: 'Bye',
+                    resultado: 'Bye'
+                });
+            }
+
             const adversario = document.getElementById('jogo-adversario').value.trim();
             const nacionalidade = document.getElementById('jogo-nacionalidade').value.trim().toUpperCase();
             const placar = document.getElementById('jogo-placar').value.trim();
             const resultado = document.getElementById('jogo-resultado').value;
             
-            const isBye = adversario.toLowerCase() === 'bye';
-            const finalResult = isBye ? 'Bye' : resultado;
-            const finalPlacar = isBye ? 'Bye' : placar;
-
-            const jogos = [{
-                rodada: 'Primeira Rodada',
-                adversario: isBye ? 'Bye' : adversario,
-                nacionalidade: isBye ? 'ATP' : nacionalidade,
-                placar: finalPlacar,
-                resultado: finalResult,
-            }];
+            jogos.push({
+                rodada: startingRoundName,
+                adversario,
+                nacionalidade,
+                placar,
+                resultado,
+            });
             
             let status = 'Em Andamento';
             let faseFinal = '';
             let pontos = 0;
             let premiacao = 0;
 
-            if (finalResult === 'D') {
+            if (resultado === 'D') {
                 status = 'Finalizado';
-                faseFinal = 'Primeira Rodada';
+                faseFinal = startingRoundName;
                 pontos = Number(document.getElementById('torneio-pontos').value) || 0;
                 premiacao = Number(document.getElementById('torneio-premiacao').value) || 0;
             }
             
             const newTournament = {
                 nome: document.getElementById('torneio-nome').value.trim(),
-                tipo: document.getElementById('torneio-tipo').value,
+                tipo: torneioTipo,
                 superficie: document.getElementById('torneio-superficie').value,
                 paisTorneio: document.getElementById('torneio-pais').value.trim().toUpperCase(),
                 dataInicio, dataFim: document.getElementById('torneio-data-fim').value,
@@ -481,13 +492,16 @@
                         <div><label for="torneio-nome" class="block text-sm font-medium">Nome</label><input type="text" id="torneio-nome" class="form-input mt-1" required></div>
                         <div><label for="torneio-pais" class="block text-sm font-medium">País do Torneio (Ex: BRA)</label><input type="text" id="torneio-pais" maxlength="3" class="form-input mt-1" required></div>
                         <div><label for="torneio-tipo" class="block text-sm font-medium">Tipo</label><select id="torneio-tipo" class="form-select mt-1" required>${tournamentTypes.map(t => `<option value="${t}">${t}</option>`).join('')}</select></div>
+                        <div id="starting-round-container" class="hidden">
+                           <label for="starting-round" class="block text-sm font-medium">Rodada de Início</label>
+                           <select id="starting-round" class="form-select mt-1"></select>
+                        </div>
                         <div><label for="torneio-superficie" class="block text-sm font-medium">Superfície</label><select id="torneio-superficie" class="form-select mt-1" required>${surfaces.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div>
                         <div><label for="torneio-data-inicio" class="block text-sm font-medium">Data Início</label><input type="date" id="torneio-data-inicio" class="form-input mt-1" required></div>
                         <div><label for="torneio-data-fim" class="block text-sm font-medium">Data Final</label><input type="date" id="torneio-data-fim" class="form-input mt-1" required></div>
                     </div>
                     <div class="pt-4 mt-4 border-t">
-                        <h4 class="text-md font-semibold">Resultado da Estreia</h4>
-                        <p class="text-xs text-gray-500 mb-2">Para um "bye", digite "Bye" no campo de adversário.</p>
+                        <h4 class="text-md font-semibold"><span id="match-round-label">Primeira</span> Partida</h4>
                         <div id="match-details-container">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                 <div><label for="jogo-adversario" class="block text-sm font-medium">Adversário</label><input type="text" id="jogo-adversario" class="form-input mt-1" required></div>
@@ -511,35 +525,48 @@
             const footer = `<button id="save-tournament-btn" class="btn btn-secondary">Salvar e Continuar</button>`;
             openModal('Criar Novo Torneio', body, footer);
             
-            const adversarioInput = document.getElementById('jogo-adversario');
-            const resultadoSelect = document.getElementById('jogo-resultado');
-            const placarInput = document.getElementById('jogo-placar');
-            const nacionalidadeInput = document.getElementById('jogo-nacionalidade');
+            const resultSelect = document.getElementById('jogo-resultado');
             const finalDetails = document.getElementById('final-details-create');
             const saveBtn = document.getElementById('save-tournament-btn');
+            const tournamentTypeSelect = document.getElementById('torneio-tipo');
+            const startingRoundContainer = document.getElementById('starting-round-container');
+            const startingRoundSelect = document.getElementById('starting-round');
+            const matchRoundLabel = document.getElementById('match-round-label');
 
-            const toggleMatchDetails = () => {
-                const isBye = adversarioInput.value.toLowerCase() === 'bye';
-                resultadoSelect.disabled = isBye;
-                placarInput.disabled = isBye;
-                nacionalidadeInput.disabled = isBye;
-
-                if (isBye) {
-                    resultadoSelect.value = 'V';
-                    placarInput.value = 'Bye';
-                    nacionalidadeInput.value = 'ATP';
+            const updateStartingRounds = (type) => {
+                const hasByes = type === 'ATP Masters 1000' || type === 'ATP 500';
+                startingRoundContainer.classList.toggle('hidden', !hasByes);
+                if(hasByes) {
+                    startingRoundSelect.innerHTML = '';
+                    const rounds = roundsByTournamentType[type];
+                    // Options for starting round should be up to the 3rd round for M1000 and 2nd for ATP500
+                    const maxRoundIndex = type === 'ATP Masters 1000' ? 2 : 1; 
+                    for (let i = 0; i <= maxRoundIndex; i++) {
+                         startingRoundSelect.innerHTML += `<option value="${rounds[i]}">${rounds[i]}</option>`;
+                    }
+                    matchRoundLabel.textContent = startingRoundSelect.value;
+                } else {
+                    matchRoundLabel.textContent = 'Primeira';
                 }
-                
-                const isLoss = resultadoSelect.value === 'D';
+            };
+            
+            const toggleFinalDetails = () => {
+                const isLoss = resultSelect.value === 'D';
                 finalDetails.classList.toggle('hidden', !isLoss);
                 saveBtn.textContent = isLoss ? 'Salvar e Finalizar' : 'Salvar e Continuar';
                 saveBtn.classList.toggle('btn-danger', isLoss);
                 saveBtn.classList.toggle('btn-secondary', !isLoss);
             };
 
-            adversarioInput.addEventListener('input', toggleMatchDetails);
-            resultadoSelect.addEventListener('change', toggleMatchDetails);
+            tournamentTypeSelect.addEventListener('change', (e) => updateStartingRounds(e.target.value));
+            startingRoundSelect.addEventListener('change', (e) => {
+                matchRoundLabel.textContent = e.target.value;
+                toggleFinalDetails();
+            });
+            resultSelect.addEventListener('change', toggleFinalDetails);
             saveBtn.addEventListener('click', handleSaveNewTournament);
+
+            updateStartingRounds(tournamentTypeSelect.value); // Initial call
         }
         function openManageTournamentModal(torneioId) {
             const torneio = allTournaments.find(t => t.id === torneioId);
@@ -566,8 +593,7 @@
             if (torneio.status === 'Finalizado') {
                 body += `<div class="mt-6 pt-4 border-t text-center space-y-2"><p class="text-lg font-bold">Campanha Finalizada</p><p><strong>Resultado:</strong> ${torneio.faseFinal}</p><p><strong>Pontos:</strong> ${torneio.pontos}</p><p><strong>Prêmio:</strong> ${formatCurrency(torneio.premiacao)}</p></div>`;
             } else {
-                const lastNonByeGame = [...(torneio.jogos || [])].reverse().find(j => j.resultado !== 'Bye');
-                const lastPlayedRound = lastNonByeGame ? lastNonByeGame.rodada : 'Primeira Rodada';
+                const lastPlayedRound = torneio.jogos[torneio.jogos.length - 1].rodada;
                 const allPossibleRounds = roundsByTournamentType[torneio.tipo] || roundsByTournamentType['Default'];
                 const lastPlayedIndex = allPossibleRounds.indexOf(lastPlayedRound);
                 const remainingRounds = allPossibleRounds.slice(lastPlayedIndex + 1);
