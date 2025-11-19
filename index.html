@@ -121,7 +121,7 @@
                     <span id="premiacao" class="font-bold text-slate-700">$0.00</span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
-                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-trophy w-5 mr-2 text-accent"></i>Títulos</span>
+                    <span class="font-semibold text-slate-600"><i class="fa-solid fa-trophy w-5 mr-2 text-accent"></i>Títulos (ATP)</span>
                     <span id="titulos-total" class="font-bold text-slate-700">0</span>
                 </div>
                  <div class="flex items-center justify-between text-sm">
@@ -210,6 +210,7 @@
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="glass-card p-4 md:p-6">
                             <h2 class="text-2xl font-bold mb-6 text-slate-800">Resumo de Títulos</h2>
+                             <p class="text-xs text-slate-500 mb-4">O total abaixo contabiliza apenas títulos ATP (250+).</p>
                              <p class="font-semibold text-lg">Total de Títulos (ATP): <span id="titulos-total-resumo" class="text-primary">0</span></p>
                              <div id="titulos-list" class="mt-4 space-y-2 text-sm"></div>
                              <p class="font-semibold mt-6 pt-4 border-t border-slate-200">Títulos por Superfície (ATP):</p>
@@ -237,13 +238,21 @@
                 <div id="h2h" class="tab-content" role="tabpanel">
                     <div class="glass-card p-4 md:p-6">
                         <h2 class="text-2xl font-bold mb-6 text-slate-800">Head-to-Head (H2H)</h2>
-                        <div class="relative mb-6">
-                            <label for="h2h-search" class="block text-sm font-medium text-gray-700 mb-2">Pesquisar Adversário:</label>
-                            <input id="h2h-search" class="form-input" placeholder="Digite o nome de um adversário" autocomplete="off">
-                            <div id="h2h-suggestions" class="absolute z-10 w-full bg-white rounded-md shadow-lg hidden mt-1 max-h-48 overflow-y-auto"></div>
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <div class="relative flex-grow">
+                                <label for="h2h-search" class="block text-sm font-medium text-gray-700 mb-2">Pesquisar Adversário:</label>
+                                <input id="h2h-search" class="form-input" placeholder="Digite o nome (Opcional se selecionar país)" autocomplete="off">
+                                <div id="h2h-suggestions" class="absolute z-10 w-full bg-white rounded-md shadow-lg hidden mt-1 max-h-48 overflow-y-auto"></div>
+                            </div>
+                            <div class="md:w-1/3">
+                                <label for="h2h-country-filter" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por País:</label>
+                                <select id="h2h-country-filter" class="form-select">
+                                    <option value="">Todos os Países</option>
+                                </select>
+                            </div>
                         </div>
                         <div id="h2h-results">
-                            <p class="text-center text-slate-500 py-8">Selecione um adversário para ver o histórico de confrontos.</p>
+                            <p class="text-center text-slate-500 py-8">Selecione um adversário ou um país para ver o histórico.</p>
                         </div>
                     </div>
                 </div>
@@ -290,6 +299,16 @@
         let allTournaments = [];
         let titulosChart, vitoriasChart;
         let allOpponentNames = [];
+        let availableOpponentCountries = new Set();
+        
+        // LISTA DE PAÍSES POPULARES PARA O FILTRO H2H
+        const majorCountries = [
+            "ARG", "AUS", "AUT", "BEL", "BRA", "CAN", "CHI", "CHN", "COL", "CRO", 
+            "CZE", "DEN", "ECU", "ESP", "FIN", "FRA", "GBR", "GER", "GRE", "HUN", 
+            "IND", "ITA", "JPN", "KAZ", "KOR", "MEX", "NED", "NOR", "NZL", "PER", 
+            "POL", "POR", "ROU", "RSA", "RUS", "SRB", "SUI", "SVK", "SWE", "TPE", 
+            "TUR", "UKR", "URU", "USA"
+        ];
 
         const modal = document.getElementById('mainModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -945,7 +964,8 @@
         function updateStatsPanels(stats) {
             document.getElementById('ranking').textContent = `${estimarRanking(stats.rankingPoints)} (${stats.rankingPoints} pts)`;
             document.getElementById('premiacao').textContent = formatCurrency(stats.premiacao);
-            document.getElementById('titulos-total').textContent = stats.titulos;
+            // CORREÇÃO AQUI: Usando titulosATP em vez de stats.titulos (que incluia Challenger)
+            document.getElementById('titulos-total').textContent = stats.titulosATP;
             document.getElementById('vitorias-derrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
 
             // New projection stats
@@ -957,9 +977,13 @@
              const atpTypes = tournamentTypes.filter(t => !t.startsWith('CH'));
              const chTypes = tournamentTypes.filter(t => t.startsWith('CH'));
 
+             // CORREÇÃO AQUI: Mostra Challengers na lista, mas o cabeçalho (stats.titulosATP) continua contando só ATP.
              let titulosListHTML = atpTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
+             
+             // Restaurada a seção de Challengers (colapsável)
              const totalChTitles = chTypes.reduce((sum, type) => sum + (stats.porTipo[type]?.t || 0), 0);
              titulosListHTML += `<div><p class="flex justify-between items-center"><strong>Challengers:</strong> <span>${totalChTitles} <button class="details-btn" data-filter-type="category" data-filter-value="CH" data-view="titles" title="Ver detalhes de todos os Challengers"><i class="fa-solid fa-eye"></i></button><button class="toggle-sublist-btn" data-target="ch-titles-sublist"><i class="fa-solid fa-plus"></i></button></span></p><div id="ch-titles-sublist" class="sublist pl-4 space-y-1 mt-1">${chTypes.map(type => `<p class="flex justify-between items-center text-xs"><em>${type}:</em> <span>${stats.porTipo[type]?.t || 0}</span></p>`).join('')}</div></div>`;
+
              document.getElementById('titulos-list').innerHTML = titulosListHTML;
              
              let vitoriasListHTML = atpTypes.map(type => `<div class="flex justify-between items-center">${type}: <span>${stats.porTipo[type]?.v || 0} / ${stats.porTipo[type]?.d || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></div>`).join('');
@@ -977,7 +1001,12 @@
              document.getElementById('vitorias-surface-list').innerHTML = surfaces.map(s => `<li class="flex justify-between items-center">${s}: <span>${stats.porSuperficie[s]?.atp_v || 0} / ${stats.porSuperficie[s]?.atp_d || 0} <button class="details-btn" data-filter-type="surface" data-filter-value="${s}" data-view="wins" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></li>`).join('');
         }
         function updateCharts(stats) {
-             if (titulosChart) { titulosChart.data.datasets[0].data = tournamentTypes.map(t => stats.porTipo[t]?.t || 0); titulosChart.update(); }
+             if (titulosChart) { 
+                 // CORREÇÃO AQUI: Chart volta a mostrar tudo (incluindo challengers) para visualização de distribuição
+                 titulosChart.data.labels = tournamentTypes;
+                 titulosChart.data.datasets[0].data = tournamentTypes.map(t => stats.porTipo[t]?.t || 0); 
+                 titulosChart.update(); 
+             }
              if (vitoriasChart) {
                 vitoriasChart.data.datasets[0].data = surfaces.map(s => stats.porSuperficie[s]?.atp_v || 0);
                 vitoriasChart.data.datasets[1].data = surfaces.map(s => stats.porSuperficie[s]?.atp_d || 0);
@@ -1072,71 +1101,148 @@
         // --- H2H FUNCTIONS ---
         function updateOpponentList() {
             const opponentMap = new Map();
+            availableOpponentCountries = new Set();
+            
             allTournaments.forEach(t => (t.jogos || []).forEach(j => {
                 const normalized = j.adversario.trim().toLowerCase();
                 if (!opponentMap.has(normalized)) {
-                    opponentMap.set(normalized, j.adversario.trim());
+                    opponentMap.set(normalized, { name: j.adversario.trim(), country: j.nacionalidade });
+                }
+                if (j.nacionalidade && j.nacionalidade !== 'ATP') {
+                    availableOpponentCountries.add(j.nacionalidade);
                 }
             }));
-            allOpponentNames = [...opponentMap.values()].sort();
+            
+            // Populate global names
+            allOpponentNames = Array.from(opponentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+            
+            // CORREÇÃO: Merge DB countries with Major Countries list
+            const combinedCountries = new Set([...availableOpponentCountries, ...majorCountries]);
+            const sortedCountries = Array.from(combinedCountries).sort();
+            
+            // Populate Country Filter
+            const countrySelect = document.getElementById('h2h-country-filter');
+            const currentVal = countrySelect.value;
+            countrySelect.innerHTML = '<option value="">Todos os Países</option>' + 
+                sortedCountries.map(c => `<option value="${c}">${c} ${getFlagEmoji(c)}</option>`).join('');
+            countrySelect.value = currentVal;
         }
+
         function handleH2hSearchInput() {
             const searchInput = document.getElementById('h2h-search');
             const suggestionsDiv = document.getElementById('h2h-suggestions');
+            const countryFilter = document.getElementById('h2h-country-filter').value;
             const query = searchInput.value.toLowerCase();
+            
             if (!query) {
                 suggestionsDiv.classList.add('hidden');
                 return;
             }
-            const suggestions = allOpponentNames.filter(op => op.toLowerCase().includes(query));
+            
+            let filteredOpponents = allOpponentNames;
+            
+            if (countryFilter) {
+                filteredOpponents = filteredOpponents.filter(op => op.country === countryFilter);
+            }
+            
+            const suggestions = filteredOpponents.filter(op => op.name.toLowerCase().includes(query));
+
             if (suggestions.length > 0) {
                 const isMobile = window.innerWidth < 768;
                 suggestionsDiv.style.bottom = isMobile ? '100%' : 'auto';
                 suggestionsDiv.style.top = isMobile ? 'auto' : '100%';
-                suggestionsDiv.innerHTML = suggestions.map(op => `<div class="p-2 hover:bg-slate-100 cursor-pointer">${op}</div>`).join('');
+                suggestionsDiv.innerHTML = suggestions.map(op => `<div class="p-2 hover:bg-slate-100 cursor-pointer">${op.name} ${getFlagEmoji(op.country)}</div>`).join('');
                 suggestionsDiv.classList.remove('hidden');
             } else {
                 suggestionsDiv.classList.add('hidden');
             }
         }
+
         function displayH2HResults() {
-            const opponentName = document.getElementById('h2h-search').value.trim();
+            const opponentNameInput = document.getElementById('h2h-search').value.trim();
+            const countryFilter = document.getElementById('h2h-country-filter').value;
             const resultsDiv = document.getElementById('h2h-results');
-            if (!opponentName) { resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Selecione um adversário.</p>`; return; }
+            
+            // Case 1: No Input, No Country -> Reset
+            if (!opponentNameInput && !countryFilter) { 
+                resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Selecione um adversário ou país.</p>`; 
+                return; 
+            }
+            
+            // Case 2: Country Selected but No Name Input -> List all players from that country
+            if (countryFilter && !opponentNameInput) {
+                const opponentsFromCountry = allOpponentNames.filter(op => op.country === countryFilter);
+                if(opponentsFromCountry.length === 0) {
+                    resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Nenhum adversário enfrentado do país: ${getFlagEmoji(countryFilter)} ${countryFilter}.</p>`;
+                    return;
+                }
+
+                let listHtml = `<div class="mb-4 text-center font-bold text-lg text-slate-700">Adversários de ${getFlagEmoji(countryFilter)} ${countryFilter}</div>`;
+                listHtml += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">`;
+                
+                opponentsFromCountry.forEach(op => {
+                    let wins = 0, losses = 0;
+                    allTournaments.forEach(t => {
+                        (t.jogos || []).forEach(j => {
+                             if (j.adversario.trim().toLowerCase() === op.name.toLowerCase()) {
+                                if (j.resultado === 'V') wins++; else losses++;
+                             }
+                        });
+                    });
+                    listHtml += `
+                        <div class="bg-white border border-slate-200 p-3 rounded-lg flex justify-between items-center cursor-pointer hover:bg-slate-50" onclick="document.getElementById('h2h-search').value = '${op.name}'; document.getElementById('h2h-search').dispatchEvent(new Event('change'));">
+                            <span class="font-medium">${op.name}</span>
+                            <span class="text-sm"><span class="text-green-600 font-bold">${wins}</span> - <span class="text-red-600 font-bold">${losses}</span></span>
+                        </div>`;
+                });
+                listHtml += `</div><p class="text-center text-xs text-slate-400 mt-2">Clique em um jogador para ver detalhes.</p>`;
+                resultsDiv.innerHTML = listHtml;
+                return;
+            }
+
+            // Case 3: Specific Opponent Search (with or without country filter)
             let wins = 0, losses = 0; const matches = [];
             let opponentNationalityCode = '';
+            
             allTournaments.forEach(t => {
                 (t.jogos || []).forEach(j => {
-                    if (j.adversario.trim().toLowerCase() === opponentName.toLowerCase()) {
+                    if (j.adversario.trim().toLowerCase() === opponentNameInput.toLowerCase()) {
+                        if (countryFilter && j.nacionalidade !== countryFilter) return; // Filter mismatch check
+                        
                         if (j.resultado === 'V') wins++; else losses++;
                         if (j.nacionalidade && !opponentNationalityCode) opponentNationalityCode = j.nacionalidade;
                         matches.push({ ...t, ...j });
                     }
                 });
             });
+
+            if (matches.length === 0) {
+                 resultsDiv.innerHTML = `<p class="text-center text-slate-500 py-8">Nenhum confronto encontrado${countryFilter ? ` com este filtro de país` : ''}.</p>`; 
+                 return;
+            }
+
             matches.sort((a,b) => new Date(b.dataInicio) - new Date(a.dataInicio));
-            let html = `<div class="text-center mb-6"><p class="text-xl md:text-2xl font-bold whitespace-nowrap">F. Lapa ${getFlagEmoji('BRA')} <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentName} ${getFlagEmoji(opponentNationalityCode)}</p></div>`;
-            if (matches.length > 0) {
-                html += `
-                    <div class="overflow-x-auto"><table class="w-full text-sm">
-                        <thead class="text-xs uppercase bg-slate-100"><tr>
-                            <th class="py-3 px-2 md:px-4 text-left">Ano</th><th class="py-3 px-2 md:px-4 text-left">Torneio</th>
-                            <th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Tipo</th><th class="py-3 px-2 md:px-4 text-left">Rodada</th>
-                            <th class="py-3 px-2 md:px-4 text-left">Piso</th><th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Placar</th>
-                            <th class="py-3 px-2 md:px-4 text-left">Res.</th>
-                        </tr></thead><tbody>
-                        ${matches.map(m => `
-                            <tr class="border-b odd:bg-white even:bg-slate-50">
-                                <td class="py-3 px-2 md:px-4">${m.ano}</td>
-                                <td class="py-3 px-2 md:px-4 font-semibold">${getFlagEmoji(m.paisTorneio)} ${m.nome}</td>
-                                <td class="py-3 px-2 md:px-4 whitespace-nowrap">${abbreviateTournamentType(m.tipo)}</td>
-                                <td class="py-3 px-2 md:px-4">${abbreviateRound(m.rodada)}</td>
-                                <td class="py-3 px-2 md:px-4">${m.superficie}</td>
-                                <td class="py-3 px-2 md:px-4 whitespace-nowrap">${m.placar}</td>
-                                <td class="py-3 px-2 md:px-4 font-bold ${m.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${m.resultado === 'V' ? 'Vitória' : 'Derrota'}</td>
-                            </tr>`).join('')}
-                        </tbody></table></div>`;
-            } else { html += `<p class="text-center text-slate-500 py-8">Nenhum confronto encontrado.</p>`; }
+            let html = `<div class="text-center mb-6"><p class="text-xl md:text-2xl font-bold whitespace-nowrap">F. Lapa ${getFlagEmoji('BRA')} <span class="text-green-600">${wins}</span> x <span class="text-red-600">${losses}</span> ${opponentNameInput} ${getFlagEmoji(opponentNationalityCode)}</p></div>`;
+            
+            html += `
+                <div class="overflow-x-auto"><table class="w-full text-sm">
+                    <thead class="text-xs uppercase bg-slate-100"><tr>
+                        <th class="py-3 px-2 md:px-4 text-left">Ano</th><th class="py-3 px-2 md:px-4 text-left">Torneio</th>
+                        <th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Tipo</th><th class="py-3 px-2 md:px-4 text-left">Rodada</th>
+                        <th class="py-3 px-2 md:px-4 text-left">Piso</th><th class="py-3 px-2 md:px-4 text-left whitespace-nowrap">Placar</th>
+                        <th class="py-3 px-2 md:px-4 text-left">Res.</th>
+                    </tr></thead><tbody>
+                    ${matches.map(m => `
+                        <tr class="border-b odd:bg-white even:bg-slate-50">
+                            <td class="py-3 px-2 md:px-4">${m.ano}</td>
+                            <td class="py-3 px-2 md:px-4 font-semibold">${getFlagEmoji(m.paisTorneio)} ${m.nome}</td>
+                            <td class="py-3 px-2 md:px-4 whitespace-nowrap">${abbreviateTournamentType(m.tipo)}</td>
+                            <td class="py-3 px-2 md:px-4">${abbreviateRound(m.rodada)}</td>
+                            <td class="py-3 px-2 md:px-4">${m.superficie}</td>
+                            <td class="py-3 px-2 md:px-4 whitespace-nowrap">${m.placar}</td>
+                            <td class="py-3 px-2 md:px-4 font-bold ${m.resultado === 'V' ? 'text-green-600' : 'text-red-600'}">${m.resultado === 'V' ? 'Vitória' : 'Derrota'}</td>
+                        </tr>`).join('')}
+                    </tbody></table></div>`;
             resultsDiv.innerHTML = html;
         }
         // --- INITIALIZATION ---
@@ -1145,12 +1251,22 @@
             closeModalBtn.addEventListener('click', closeModal);
             modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             document.getElementById('season-filter').addEventListener('change', () => { renderMainTable(); updateStatsForSeason(); });
+            
             const h2hSearch = document.getElementById('h2h-search');
+            const h2hCountry = document.getElementById('h2h-country-filter');
+
             h2hSearch.addEventListener('input', handleH2hSearchInput);
             h2hSearch.addEventListener('change', displayH2HResults);
+            h2hCountry.addEventListener('change', () => {
+                 handleH2hSearchInput(); // Update suggestions
+                 displayH2HResults();   // Update results
+            });
+
             document.getElementById('h2h-suggestions').addEventListener('click', (e) => {
                 if (e.target.tagName === 'DIV') {
-                    h2hSearch.value = e.target.textContent;
+                    const text = e.target.innerText; 
+                    const namePart = text.split(/[\uD800-\uDBFF][\uDC00-\uDFFF]/)[0].trim();
+                    h2hSearch.value = namePart;
                     document.getElementById('h2h-suggestions').classList.add('hidden');
                     displayH2HResults();
                 }
