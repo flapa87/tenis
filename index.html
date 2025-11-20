@@ -260,7 +260,7 @@
                 <div id="recordes" class="tab-content" role="tabpanel">
                      <div class="glass-card p-4 md:p-6">
                         <h2 class="text-2xl font-bold mb-6 text-slate-800">Recordes na Carreira</h2>
-                        <div id="recordes-conquistados" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div id="recordes-conquistados" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             </div>
                     </div>
                 </div>
@@ -336,29 +336,52 @@
         const iocToIso2 = {'AFG':'AF','ALB':'AL','ALG':'DZ','ASA':'AS','AND':'AD','ANG':'AO','ANT':'AG','ARG':'AR','ARM':'AM','ARU':'AW','AUS':'AU','AUT':'AT','AZE':'AZ','BAH':'BS','BRN':'BH','BAN':'BD','BAR':'BB','BLR':'BY','BEL':'BE','BIZ':'BZ','BEN':'BJ','BER':'BM','BHU':'BT','BOL':'BO','BIH':'BA','BOT':'BW','BRA':'BR','IVB':'VG','BRU':'BN','BUL':'BG','BUR':'BF','BDI':'BI','CAM':'KH','CMR':'CM','CAN':'CA','CAY':'KY','CAF':'CF','CHA':'TD','CHI':'CL','CHN':'CN','TPE':'TW','COL':'CO','COM':'KM','CGO':'CG','COD':'CD','COK':'CK','CRC':'CR','CIV':'CI','CRO':'HR','CUB':'CU','CYP':'CY','CZE':'CZ','DEN':'DK','DJI':'DJ','DMA':'DM','DOM':'DO','ECU':'EC','EGY':'EG','ESA':'SV','GEQ':'GQ','ERI':'ER','EST':'EE','SWZ':'SZ','ETH':'ET','FIJ':'FJ','FIN':'FI','FRA':'FR','GAB':'GA','GAM':'GM','GEO':'GE','GER':'DE','GHA':'GH','GBR':'GB','GRE':'GR','GRN':'GD','GUM':'GU','GUA':'GT','GUI':'GN','GBS':'GW','GUY':'GY','HAI':'HT','HON':'HN','HKG':'HK','HUN':'HU','ISL':'IS','IND':'IN','INA':'ID','IRI':'IR','IRQ':'IQ','IRL':'IE','ISR':'IL','ITA':'IT','JAM':'JM','JOR':'JO','KAZ':'KZ','KEN':'KE','KIR':'KI','PRK':'KP','KOR':'KR','KUW':'KW','KGZ':'KG','LAO':'LA','LAT':'LV','LIB':'LB','LES':'LS','LBR':'LR','LBA':'LY','LIE':'LI','LTU':'LT','LUX':'LU','MAD':'MG','MAW':'MW','MAS':'MY','MDV':'MV','MLI':'ML','MLT':'MT','MHL':'MH','MTN':'MR','MRI':'MU','MEX':'MX','FSM':'FM','MDA':'MD','MON':'MC','MGL':'MN','MNE':'ME','MAR':'MA','MOZ':'MZ','MYA':'MM','NAM':'NA','NRU':'NR','NEP':'NP','NED':'NL','NZL':'NZ','NCA':'NI','NIG':'NE','NGR':'NG','MKD':'MK','NOR':'NO','OMA':'OM','PAK':'PK','PLW':'PW','PLE':'PS','PAN':'PA','PNG':'PG','PAR':'PY','PER':'PE','PHI':'PH','POL':'PL','POR':'PT','PUR':'PR','QAT':'QA','ROU':'RO','RUS':'RU','RWA':'RW','SKN':'KN','LCA':'LC','VIN':'VC','SAM':'WS','SMR':'SM','STP':'ST','KSA':'SA','SEN':'SN','SRB':'RS','SEY':'SC','SLE':'SL','SGP':'SG','SVK':'SK','SLO':'SI','SOL':'SB','SOM':'SO','RSA':'ZA','ESP':'ES','SRI':'LK','SUD':'SD','SUR':'SR','SWE':'SE','SUI':'CH','SYR':'SY','TAN':'TZ','THA':'TH','TLS':'TL','TOG':'TG','TGA':'TO','TTO':'TT','TUN':'TN','TUR':'TR','TKM':'TM','TUV':'TV','UGA':'UG','UKR':'UA','UAE':'AE','USA':'US','URU':'UY','UZB':'UZ','VAN':'VU','VEN':'VE','VIE':'VN','ISV':'VI','YEM':'YE','ZAM':'ZM','ZIM':'ZW'};
         
         const worldRecords = [
+            // --- RANKING RECORDS (NEW) ---
+            { id: 'weeksAtNo1', title: 'Mais Semanas como Nº 1 do Mundo', holder: 'Novak Djokovic', value: 428, stat: (s) => 0, format: (v) => `${v} Semanas` },
+            { id: 'consecutiveWeeks', title: 'Semanas Consecutivas como Nº 1', holder: 'Roger Federer', value: 237, stat: (s) => 0, format: (v) => `${v} Semanas` },
+            { id: 'yearEndNo1', title: 'Mais Vezes Nº 1 ao Final do Ano', holder: 'Novak Djokovic', value: 8, stat: (s) => 0, format: (v) => `${v} Anos` },
+
+            // --- GRAND SLAMS ---
             { id: 'grandSlams', title: 'Mais Títulos de Grand Slam', holder: 'Novak Djokovic', value: 24, stat: (s) => s.porTipo['Grand Slam']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'grandSlamFinals', title: 'Mais Finais de Grand Slam', holder: 'Novak Djokovic', value: 36, stat: (s) => s.finaisGrandSlam, format: (v) => `${v} Finais` },
+            
+            // --- BIG TITLES & SURFACES ---
+            { id: 'bigTitles', title: 'Rei dos "Big Titles" (GS, M1000, Finals, Oly)', holder: 'Novak Djokovic', value: 71, stat: (s) => (s.porTipo['Grand Slam']?.t || 0) + (s.porTipo['ATP Masters 1000']?.t || 0) + (s.porTipo['ATP Finals']?.t || 0) + (s.porTipo['Jogos Olímpicos']?.t || 0), format: (v) => `${v} Títulos` },
+            
+            { id: 'hardTitles', title: 'Mais Títulos em Quadra Rápida', holder: 'Novak Djokovic', value: 71, stat: (s) => s.porSuperficie['Rápida']?.atp_t || 0, format: (v) => `${v} Títulos` },
+            { id: 'clayTitles', title: 'Mais Títulos no Saibro', holder: 'Rafael Nadal', value: 63, stat: (s) => s.porSuperficie['Saibro']?.atp_t || 0, format: (v) => `${v} Títulos` },
+            { id: 'grassTitles', title: 'Mais Títulos na Grama', holder: 'Roger Federer', value: 19, stat: (s) => s.porSuperficie['Grama']?.atp_t || 0, format: (v) => `${v} Títulos` },
+
+            // --- OTHER TOURNAMENT TYPES ---
             { id: 'atpFinals', title: 'Mais Títulos de ATP Finals', holder: 'Novak Djokovic', value: 7, stat: (s) => s.porTipo['ATP Finals']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'masters1000', title: 'Mais Títulos de Masters 1000', holder: 'Novak Djokovic', value: 40, stat: (s) => s.porTipo['ATP Masters 1000']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'atp500', title: 'Mais Títulos de ATP 500', holder: 'Roger Federer', value: 24, stat: (s) => s.porTipo['ATP 500']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'atp250', title: 'Mais Títulos de ATP 250', holder: 'Thomas Muster', value: 26, stat: (s) => s.porTipo['ATP 250']?.t || 0, format: (v) => `${v} Títulos` },
             { id: 'challenger', title: 'Mais Títulos de Challenger', holder: 'Yen-Hsun Lu', value: 29, stat: (s) => s.titulosChallenger, format: (v) => `${v} Títulos` },
+            
+            // --- CAREER TOTALS ---
             { id: 'careerTitles', title: 'Mais Títulos na Carreira (ATP)', holder: 'Jimmy Connors', value: 109, stat: (s) => s.titulosATP, format: (v) => `${v} Títulos` },
-            { id: 'careerFinals', title: 'Mais Finais na Carreira (ATP)', holder: 'Jimmy Connors', value: 164, stat: (s) => s.finaisATP, format: (v) => `${v} Finais` },
             { id: 'matchWins', title: 'Mais Vitórias na Carreira (ATP)', holder: 'Jimmy Connors', value: 1274, stat: (s) => s.vitoriasATP, format: (v) => `${v} Vitórias` },
-            { id: 'prizeMoney', title: 'Maior Premiação na Carreira', holder: 'Novak Djokovic', value: 182000000, stat: (s) => s.premiacao, format: (v) => formatCurrency(v) },
-            { id: 'prizeMoneySeason', title: 'Maior Premiação em uma Temporada', holder: 'Novak Djokovic (2015)', value: 21646145, stat: (s) => s.maxPremiacaoEmUmAno, format: (v) => formatCurrency(v) },
+            { id: 'prizeMoney', title: 'Maior Premiação na Carreira', holder: 'Novak Djokovic', value: 184000000, stat: (s) => s.premiacao, format: (v) => formatCurrency(v) },
+            
+            // --- EFFICIENCY & RATIOS ---
             { id: 'winPercentage', title: '% de Vitórias (ATP, min. 200 jogos)', holder: 'Novak Djokovic', value: 83.9, stat: (s) => (s.vitoriasATP + s.derrotasATP > 200) ? (s.vitoriasATP / (s.vitoriasATP + s.derrotasATP) * 100) : 0, format: (v) => v > 0 ? `${v.toFixed(2)}%` : 'N/A' },
-            { id: 'clayWins', title: 'Mais Vitórias no Saibro (ATP)', holder: 'Rafael Nadal', value: 474, stat: (s) => s.porSuperficie.Saibro?.atp_v || 0, format: (v) => `${v} Vitórias` },
-            { id: 'hardWins', title: 'Mais Vitórias em Quadra Rápida (ATP)', holder: 'Roger Federer', value: 783, stat: (s) => s.porSuperficie.Rápida?.atp_v || 0, format: (v) => `${v} Vitórias` },
-            { id: 'grassWins', title: 'Mais Vitórias na Grama (ATP)', holder: 'Roger Federer', value: 192, stat: (s) => s.porSuperficie.Grama?.atp_v || 0, format: (v) => `${v} Vitórias` },
-            { id: 'singleTournament', title: 'Mais Títulos em um Único Torneio', holder: 'Rafael Nadal', value: 14, stat: (s) => s.maxTitulosUnicoTorneio, format: (v, s) => `${v} (${s.nomeMaxTitulosUnicoTorneio})` },
+            { id: 'clayWinPerc', title: '% de Vitórias no Saibro (min. 50 jogos)', holder: 'Rafael Nadal', value: 91.3, stat: (s) => (s.porSuperficie['Saibro']?.atp_v + s.porSuperficie['Saibro']?.atp_d > 50) ? (s.porSuperficie['Saibro'].atp_v / (s.porSuperficie['Saibro'].atp_v + s.porSuperficie['Saibro'].atp_d) * 100) : 0, format: (v) => v > 0 ? `${v.toFixed(2)}%` : 'N/A' },
+            { id: 'hardWinPerc', title: '% de Vitórias na Rápida (min. 50 jogos)', holder: 'Novak Djokovic', value: 84.7, stat: (s) => (s.porSuperficie['Rápida']?.atp_v + s.porSuperficie['Rápida']?.atp_d > 50) ? (s.porSuperficie['Rápida'].atp_v / (s.porSuperficie['Rápida'].atp_v + s.porSuperficie['Rápida'].atp_d) * 100) : 0, format: (v) => v > 0 ? `${v.toFixed(2)}%` : 'N/A' },
+            { id: 'grassWinPerc', title: '% de Vitórias na Grama (min. 50 jogos)', holder: 'Roger Federer', value: 86.9, stat: (s) => (s.porSuperficie['Grama']?.atp_v + s.porSuperficie['Grama']?.atp_d > 50) ? (s.porSuperficie['Grama'].atp_v / (s.porSuperficie['Grama'].atp_v + s.porSuperficie['Grama'].atp_d) * 100) : 0, format: (v) => v > 0 ? `${v.toFixed(2)}%` : 'N/A' },
+            
+            // --- SEASON RECORDS ---
+            { id: 'seasonWins', title: 'Mais Vitórias em uma Temporada', holder: 'Guillermo Vilas (1977)', value: 130, stat: (s) => s.maxVitoriasEmUmAno, format: (v) => `${v} Vitórias` },
+            { id: 'seasonWinPerc', title: 'Melhor % em uma Temporada', holder: 'John McEnroe (1984)', value: 96.5, stat: (s) => s.maxPorcentagemVitoriasEmUmAno, format: (v) => v > 0 ? `${v.toFixed(1)}%` : 'N/A' },
             { id: 'singleSeason', title: 'Mais Títulos em uma Temporada', holder: 'Guillermo Vilas', value: 16, stat: (s) => s.maxTitulosEmUmAno, format: (v) => `${v} Títulos` },
+            { id: 'prizeMoneySeason', title: 'Maior Premiação em uma Temporada', holder: 'Novak Djokovic (2015)', value: 21646145, stat: (s) => s.maxPremiacaoEmUmAno, format: (v) => formatCurrency(v) },
+            
+            // --- SPECIALS ---
             { id: 'careerSlam', title: 'Career Grand Slam', holder: 'Vários', value: 4, stat: (s) => s.grandSlamEvents.size, format: (v) => v === 4 ? 'Conquistado 🏆' : `${v} de 4` },
             { id: 'goldenSlam', title: 'Career Golden Slam', holder: 'A. Agassi, R. Nadal', value: 5, stat: (s) => s.goldenSlamEvents.size, format: (v) => v === 5 ? 'Conquistado 🏆' : `${v} de 5` },
+            { id: 'singleTournament', title: 'Mais Títulos em um Único Torneio', holder: 'Rafael Nadal', value: 14, stat: (s) => s.maxTitulosUnicoTorneio, format: (v, s) => `${v} (${s.nomeMaxTitulosUnicoTorneio})` },
             { id: 'youngestGS', title: 'Vencedor de GS Mais Jovem', holder: 'Michael Chang', value: 207, isLowerBetter: true, stat: (s) => s.idadeMenorCampeaoGS, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
             { id: 'oldestGS', title: 'Vencedor de GS Mais Velho', holder: 'Ken Rosewall', value: 446, stat: (s) => s.idadeMaiorCampeaoGS, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
-            { id: 'youngestMasters', title: 'Vencedor de Masters 1000 Mais Jovem', holder: 'Michael Chang', value: 218, isLowerBetter: true, stat: (s) => s.idadeMenorCampeaoMasters, format: (v) => v > 0 ? `${Math.floor(v/12)}a ${v%12}m` : 'N/A' },
         ];
 
         // --- MODAL & UI HELPERS ---
@@ -851,7 +874,7 @@
                 rankingPoints: 0, premiacao: 0, titulos: 0, vitoriasATP: 0, derrotasATP: 0, 
                 porTipo: {}, porSuperficie: {}, titulosATP: 0, titulosChallenger: 0,
                 maxTitulosUnicoTorneio: 0, nomeMaxTitulosUnicoTorneio: '-', maxTitulosEmUmAno: 0, 
-                maxPremiacaoEmUmAno: 0,
+                maxPremiacaoEmUmAno: 0, maxVitoriasEmUmAno: 0, maxPorcentagemVitoriasEmUmAno: 0,
                 goldenSlamEvents: new Set(), grandSlamEvents: new Set(), 
                 finaisATP: 0, finaisGrandSlam: 0,
                 idadeMenorCampeaoGS: 0, idadeMaiorCampeaoGS: 0,
@@ -866,6 +889,8 @@
             const titulosPorNome = {};
             const titulosPorAno = {};
             const premiacaoPorAno = {};
+            const vitoriasPorAno = {};
+            const derrotasPorAno = {};
 
             const today = new Date();
             const currentYear = today.getFullYear();
@@ -899,6 +924,9 @@
                 if (isATP) {
                     stats.vitoriasATP += vitorias;
                     stats.derrotasATP += derrotas;
+                    vitoriasPorAno[t.ano] = (vitoriasPorAno[t.ano] || 0) + vitorias;
+                    derrotasPorAno[t.ano] = (derrotasPorAno[t.ano] || 0) + derrotas;
+                    
                     if (t.faseFinal?.includes('Final') || t.faseFinal === 'Campeão') {
                         stats.finaisATP++;
                         if (t.tipo === 'Grand Slam') stats.finaisGrandSlam++;
@@ -941,19 +969,30 @@
                 }
             });
 
-            // Calculate current ranking points (best 19/20 results over 52 weeks)
-            // This is a simplification. A full ATP ranking calculation is complex and usually done server-side.
-            // For this client-side app, we'll sum all points from tournaments within the last 52 weeks.
-            // If the user has more than 19 tournaments, this will be an approximation.
-            const sortedPoints = Object.values(pointsByTournamentId).sort((a, b) => b - a);
-            stats.rankingPoints = sortedPoints.slice(0, 19).reduce((sum, points) => sum + points, 0); // Sum best 19 results
-
+            // Calculate max values for seasons
             if (Object.keys(titulosPorNome).length > 0) {
                 stats.maxTitulosUnicoTorneio = Math.max(...Object.values(titulosPorNome));
                 stats.nomeMaxTitulosUnicoTorneio = Object.keys(titulosPorNome).find(key => titulosPorNome[key] === stats.maxTitulosUnicoTorneio);
             }
             if (Object.keys(titulosPorAno).length > 0) stats.maxTitulosEmUmAno = Math.max(...Object.values(titulosPorAno));
             if (Object.keys(premiacaoPorAno).length > 0) stats.maxPremiacaoEmUmAno = Math.max(...Object.values(premiacaoPorAno));
+            if (Object.keys(vitoriasPorAno).length > 0) stats.maxVitoriasEmUmAno = Math.max(...Object.values(vitoriasPorAno));
+            
+            // Calc best winning percentage in a season (min 10 matches)
+            let bestPerc = 0;
+            Object.keys(vitoriasPorAno).forEach(ano => {
+                const v = vitoriasPorAno[ano] || 0;
+                const d = derrotasPorAno[ano] || 0;
+                if (v + d > 10) {
+                    const perc = (v / (v + d)) * 100;
+                    if (perc > bestPerc) bestPerc = perc;
+                }
+            });
+            stats.maxPorcentagemVitoriasEmUmAno = bestPerc;
+
+            // Calculate current ranking points (best 19/20 results over 52 weeks)
+            const sortedPoints = Object.values(pointsByTournamentId).sort((a, b) => b - a);
+            stats.rankingPoints = sortedPoints.slice(0, 19).reduce((sum, points) => sum + points, 0); // Sum best 19 results
 
             // Calculate projected ranking points
             stats.projectedRankingPoints = stats.rankingPoints - stats.pointsToDefendCurrentWeek;
@@ -977,7 +1016,7 @@
              const atpTypes = tournamentTypes.filter(t => !t.startsWith('CH'));
              const chTypes = tournamentTypes.filter(t => t.startsWith('CH'));
 
-             // CORREÇÃO AQUI: Mostra Challengers na lista, mas o cabeçalho (stats.titulosATP) continua contando só ATP.
+             // REMOVE CHALLENGERS FROM TITLES LIST - Only ATP Types
              let titulosListHTML = atpTypes.map(type => `<p class="flex justify-between items-center"><strong>${type}:</strong> <span>${stats.porTipo[type]?.t || 0} <button class="details-btn" data-filter-type="category" data-filter-value="${type}" data-view="titles" title="Ver detalhes"><i class="fa-solid fa-eye"></i></button></span></p>`).join('');
              
              // Restaurada a seção de Challengers (colapsável)
