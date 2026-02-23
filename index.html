@@ -1148,6 +1148,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -1608,7 +1609,17 @@
                 return total > 200 ? ((s.vitoriasATP / total) * 100) : 0;
             }, format: v => v > 0 ? `${v.toFixed(1)}%` : 'N/A' },
             { id: 'clayTitles', title: 'Títulos no saibro', holder: 'Rafael Nadal', value: 63, stat: s => s.porSuperficie?.['Saibro']?.titulosATP || 0, format: v => `${v}` },
-            { id: 'hardTitles', title: 'Títulos em quadra rápida', holder: 'Novak Djokovic', value: 71, stat: s => s.porSuperficie?.['Rápida']?.titulosATP || 0, format: v => `${v}` }
+            { id: 'hardTitles', title: 'Títulos em quadra rápida', holder: 'Novak Djokovic', value: 71, stat: s => s.porSuperficie?.['Rápida']?.titulosATP || 0, format: v => `${v}` },
+            { id: 'grassTitles', title: 'Títulos na grama', holder: 'Roger Federer', value: 19, stat: s => s.porSuperficie?.['Grama']?.titulosATP || 0, format: v => `${v}` },
+            { id: 'olympicGold', title: 'Medalhas de Ouro Olímpicas', holder: 'Novak Djokovic', value: 1, stat: s => s.porTipo?.['Jogos Olímpicos']?.titulos || 0, format: v => `${v}` },
+            { id: 'davisCup', title: 'Títulos Copa Davis', holder: 'Vários', value: 3, stat: s => 0, format: v => `${v}` },
+            { id: 'consecutiveMatches', title: 'Maior sequência de vitórias', holder: 'Guillermo Vilas', value: 46, stat: s => s.melhorSequencia || 0, format: v => `${v}` },
+            { id: 'frenchOpen', title: 'Títulos Roland Garros', holder: 'Rafael Nadal', value: 14, stat: s => 0, format: v => `${v}` },
+            { id: 'wimbledon', title: 'Títulos Wimbledon', holder: 'Roger Federer', value: 8, stat: s => 0, format: v => `${v}` },
+            { id: 'usOpen', title: 'Títulos US Open', holder: 'Jimmy Connors, Pete Sampras, Roger Federer', value: 5, stat: s => 0, format: v => `${v}` },
+            { id: 'australianOpen', title: 'Títulos Australian Open', holder: 'Novak Djokovic', value: 10, stat: s => 0, format: v => `${v}` },
+            { id: 'doubleCareer', title: 'Grand Slam duplo (carreira)', holder: 'Novak Djokovic', value: 2, stat: s => (s.porTipo?.['Grand Slam']?.titulos || 0) >= 2 ? 1 : 0, format: v => v >= 1 ? 'Sim' : 'Não' },
+            { id: 'goldenMasters', title: 'Golden Masters (todos M1000)', holder: 'Novak Djokovic', value: 9, stat: s => 0, format: v => `${v}/9` }
         ];
 
         // ==================== STATE MANAGEMENT ====================
