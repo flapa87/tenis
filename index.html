@@ -660,7 +660,6 @@
             opacity: 1;
         }
 
-        /* NOVO: Estilos para o layout do confronto */
         .match-card {
             background: var(--background-deep);
             border: 1px solid var(--border-subtle);
@@ -801,7 +800,6 @@
             gap: 0.375rem;
         }
 
-        /* NOVO: Estilo para lista compacta de torneios no modal */
         .tournament-list-item {
             background: var(--background-deep);
             border: 1px solid var(--border-subtle);
@@ -841,6 +839,240 @@
             transform: rotate(180deg);
         }
 
+        .ranking-input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-weight: 800;
+            font-size: 1.5rem;
+            width: 60px;
+            text-align: right;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ranking-input:focus {
+            outline: none;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .ranking-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ranking-edit-btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .ranking-display:hover .ranking-edit-btn {
+            opacity: 1;
+        }
+
+        .ranking-edit-btn:hover {
+            color: var(--primary);
+        }
+
+        /* NOVO: Estilos para H2H melhorado */
+        .h2h-header {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.05));
+            border: 1px solid var(--border-subtle);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .h2h-score-big {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .h2h-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .h2h-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .h2h-avatar.fl {
+            background: linear-gradient(135deg, var(--primary), #0ea5e9);
+            border: 3px solid var(--primary);
+        }
+
+        .h2h-avatar.opp {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            border: 3px solid #ef4444;
+        }
+
+        .h2h-vs {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-muted);
+        }
+
+        .h2h-wins {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .h2h-wins.win {
+            color: var(--secondary);
+        }
+
+        .h2h-wins.loss {
+            color: var(--danger);
+        }
+
+        .h2h-matches-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .h2h-match-card {
+            background: var(--background-deep);
+            border: 1px solid var(--border-subtle);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .h2h-match-card:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .h2h-match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .h2h-tournament-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .h2h-tournament-flag {
+            font-size: 1.5rem;
+        }
+
+        .h2h-tournament-name {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .h2h-tournament-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .h2h-result-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .h2h-result-badge.win {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .h2h-result-badge.loss {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .h2h-match-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .h2h-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .h2h-detail-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .h2h-detail-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .h2h-score-highlight {
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* NOVO: Estilo para ranking destacado na análise */
+        .ranking-highlight {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.1));
+            border: 2px solid var(--primary);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ranking-highlight::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), #0ea5e9);
+        }
+
+        .ranking-highlight .stat-value {
+            color: var(--primary);
+            font-size: 1.75rem;
+        }
+
+        .ranking-number {
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .points-display {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
         @media (max-width: 640px) {
             .player-vs-layout {
                 flex-direction: column;
@@ -853,6 +1085,20 @@
             
             .vs-divider {
                 transform: rotate(90deg);
+            }
+
+            .h2h-score-big {
+                gap: 1rem;
+            }
+
+            .h2h-wins {
+                font-size: 2rem;
+            }
+
+            .h2h-avatar {
+                width: 48px;
+                height: 48px;
+                font-size: 1.25rem;
             }
         }
 
@@ -901,6 +1147,7 @@
             border-width: 0;
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -954,12 +1201,18 @@
                 </div>
                 
                 <div class="space-y-4">
+                    <!-- Ranking com pontos ao lado -->
                     <div class="flex items-center justify-between p-3 rounded-lg bg-background-deep/50">
                         <span class="stat-label">
                             <i class="fas fa-trophy text-primary w-5"></i>
                             Ranking Atual
                         </span>
-                        <span id="ranking" class="stat-value">Sem ranking</span>
+                        <div class="ranking-display">
+                            <input type="number" id="rankingInput" class="ranking-input" value="1" min="1" onchange="updateRanking(this.value)">
+                            <span class="text-text-muted">-</span>
+                            <span id="sidebarPoints" class="points-display">0 pts</span>
+                            <i class="fas fa-pen ranking-edit-btn text-xs" onclick="document.getElementById('rankingInput').focus()"></i>
+                        </div>
                     </div>
                     
                     <div class="flex items-center justify-between p-3 rounded-lg bg-background-deep/50">
@@ -988,11 +1241,25 @@
                 </div>
             </div>
 
-            <!-- Ranking Analysis Card -->
+            <!-- Ranking Analysis Card - COM RANKING DESTACADO -->
             <div class="dashboard-card p-6 space-y-4">
                 <h2 class="text-lg font-bold text-text-main mb-2">Análise de Ranking</h2>
                 
                 <div class="space-y-4">
+                    <!-- RANKING DESTACADO -->
+                    <div class="ranking-highlight">
+                        <div class="flex items-center justify-between">
+                            <span class="stat-label">
+                                <i class="fas fa-crown text-primary w-5"></i>
+                                Posição no Ranking
+                            </span>
+                            <div class="text-right">
+                                <span class="ranking-number stat-value" id="analysisRanking">1</span>
+                                <span class="text-text-muted text-sm ml-2">ATP</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="flex items-center justify-between p-3 rounded-lg bg-background-deep/50">
                         <span class="stat-label">
                             <i class="fas fa-star text-primary w-5"></i>
@@ -1012,9 +1279,9 @@
                     <div class="flex items-center justify-between p-3 rounded-lg bg-background-deep/50 border-l-4 border-sky-400">
                         <span class="stat-label">
                             <i class="fas fa-chart-line text-sky-400 w-5"></i>
-                            Projeção
+                            Projeção de Pontos
                         </span>
-                        <span id="projectedRanking" class="stat-value text-sky-400">Sem Ranking</span>
+                        <span id="projectedPoints" class="stat-value text-sky-400">0 pts</span>
                     </div>
                 </div>
             </div>
@@ -1185,7 +1452,7 @@
                     </div>
                 </div>
 
-                <!-- H2H Tab -->
+                <!-- H2H Tab - COMPLETAMENTE REDESENHADA -->
                 <div id="h2h" class="tab-content" role="tabpanel">
                     <div class="dashboard-card p-6">
                         <h2 class="text-2xl font-extrabold mb-6 text-text-main">Head-to-Head (H2H)</h2>
@@ -1253,7 +1520,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
-        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 
         // ==================== CONFIGURATION ====================
         const firebaseConfig = {
@@ -1349,8 +1616,9 @@
         let charts = {};
         let allOpponents = [];
         let availableCountries = new Set();
+        let currentRanking = 1;
         const playerBirthDate = new Date('2011-02-18');
-        const CURRENT_YEAR = new Date().getFullYear(); // Ano atual para filtro padrão
+        const CURRENT_YEAR = new Date().getFullYear();
 
         // ==================== UTILITY FUNCTIONS ====================
         function showLoading(show = true) {
@@ -1428,107 +1696,38 @@
             document.getElementById('idade').textContent = age;
         }
 
-        // ==================== RANKING ATP REAL (BASEADO EM PONTOS) ====================
-        // Sistema ATP: Ranking é determinado pela soma dos pontos dos 19 melhores torneios
-        // A posição é calculada comparando-se com a distribuição real de pontos do ranking ATP
-        
-        function calculateATPRanking(points) {
-            if (points <= 0) return { position: 'Sem Ranking', exact: 0, points: 0 };
-            
-            // Tabela de referência ATP baseada na distribuição real de pontos (2024/2025)
-            // Cada entrada representa: [posição, pontos mínimos necessários]
-            const atpRankingTable = [
-                [1, 11000],      // Top 3 (Sinner, Alcaraz, Djokovic)
-                [2, 10000],
-                [3, 8500],
-                [4, 7500],       // Zverev ~7500
-                [5, 6500],       // Top 10
-                [6, 5800],
-                [7, 5200],
-                [8, 4800],
-                [9, 4500],
-                [10, 4200],
-                [11, 3900],      // Top 20 (Medvedev ~4000)
-                [12, 3600],
-                [13, 3400],
-                [14, 3200],
-                [15, 3000],
-                [16, 2850],
-                [17, 2700],
-                [18, 2550],
-                [19, 2400],
-                [20, 2250],      // Rublev ~2300
-                [25, 1850],      // Top 30
-                [30, 1550],
-                [35, 1300],
-                [40, 1100],      // Cilic ~1100
-                [45, 950],
-                [50, 800],       // Korda ~1020
-                [55, 700],       // Top 60
-                [60, 600],
-                [65, 520],
-                [70, 450],
-                [75, 390],
-                [80, 340],       // Hanfmann ~695, Comesaña ~694
-                [85, 290],
-                [90, 250],
-                [95, 210],
-                [100, 180],      // Top 100
-                [110, 140],
-                [120, 110],
-                [130, 85],
-                [140, 65],
-                [150, 50],
-                [175, 30],
-                [200, 18],
-                [250, 10],
-                [300, 5],
-                [400, 2],
-                [500, 1]
-            ];
-
-            // Encontrar posição baseada nos pontos
-            let position = 500;
-            let exactPos = 500;
-            
-            for (let i = 0; i < atpRankingTable.length; i++) {
-                const [pos, minPoints] = atpRankingTable[i];
-                
-                if (points >= minPoints) {
-                    exactPos = pos;
-                    position = pos;
-                    
-                    // Interpolar entre posições se estiver no meio
-                    if (i > 0) {
-                        const [prevPos, prevMin] = atpRankingTable[i - 1];
-                        const range = prevMin - minPoints;
-                        const progress = (points - minPoints) / range;
-                        const posDiff = prevPos - pos;
-                        exactPos = pos + (posDiff * (1 - progress));
-                    }
-                    break;
+        // ==================== RANKING MANUAL ====================
+        async function loadRanking() {
+            try {
+                const docRef = doc(db, 'config', 'ranking');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    currentRanking = docSnap.data().position || 1;
+                    document.getElementById('rankingInput').value = currentRanking;
+                    document.getElementById('analysisRanking').textContent = currentRanking;
                 }
+            } catch (error) {
+                console.error('Erro ao carregar ranking:', error);
             }
-            
-            // Se tem menos pontos que o #500
-            if (points < 1) {
-                exactPos = 500 + Math.floor((1 - points) * 10);
-                position = exactPos;
-            }
-
-            // Formatar posição
-            let positionStr;
-            if (exactPos <= 1) positionStr = '#1';
-            else if (exactPos <= 10) positionStr = `#${Math.round(exactPos)}`;
-            else if (exactPos <= 100) positionStr = `#${Math.round(exactPos)}`;
-            else positionStr = `#${Math.round(exactPos)}`;
-
-            return { 
-                position: positionStr, 
-                exact: Math.round(exactPos),
-                points: points
-            };
         }
+
+        window.updateRanking = async function(value) {
+            const newRanking = parseInt(value) || 1;
+            currentRanking = newRanking;
+            
+            document.getElementById('analysisRanking').textContent = newRanking;
+            
+            try {
+                await setDoc(doc(db, 'config', 'ranking'), { 
+                    position: newRanking,
+                    updatedAt: new Date().toISOString()
+                });
+                showToast(`Ranking atualizado para ${newRanking}`, 'success');
+            } catch (error) {
+                console.error('Erro ao salvar ranking:', error);
+                showToast('Erro ao salvar ranking', 'error');
+            }
+        };
 
         // ==================== MODAL SYSTEM ====================
         const modal = {
@@ -1560,6 +1759,8 @@
         async function loadTournaments() {
             showLoading(true);
             try {
+                await loadRanking();
+                
                 const q = query(collection(db, 'torneios'), orderBy('dataInicio', 'desc'));
                 const snapshot = await getDocs(q);
                 allTournaments = snapshot.docs.map(doc => ({
@@ -1708,12 +1909,9 @@
                     if (t.faseFinal === 'Campeão') stats.porTipo[t.tipo].titulos++;
                 }
 
-                // CORREÇÃO: Apenas ATP 250+ contam para estatísticas por superfície
                 if (stats.porSuperficie[t.superficie]) {
-                    // Sempre conta jogos totais
                     stats.porSuperficie[t.superficie].jogos += vitorias + derrotas;
                     
-                    // Apenas ATP 250+ conta para vitórias/derrotas/títulos por superfície
                     if (isATP) {
                         stats.porSuperficie[t.superficie].vitorias += vitorias;
                         stats.porSuperficie[t.superficie].derrotas += derrotas;
@@ -1739,7 +1937,7 @@
             stats.melhorSequencia = melhorSequencia;
             stats.sequenciaAtual = sequenciaAtual;
             
-            // ATP: Soma dos 19 melhores resultados (ou 18 + ATP Finals)
+            // ATP: Soma dos 19 melhores resultados
             const allPoints = allTournaments
                 .map(t => Number(t.pontos) || 0)
                 .filter(p => p > 0)
@@ -1765,18 +1963,18 @@
         }
 
         function updateSidebar(stats) {
-            const ranking = calculateATPRanking(stats.pontosRanking);
-            document.getElementById('ranking').textContent = `${ranking.position} (${stats.pontosRanking.toLocaleString()} pts)`;
+            // Atualizar pontos ao lado do ranking
+            document.getElementById('sidebarPoints').textContent = `${stats.pontosRanking.toLocaleString()} pts`;
             document.getElementById('premiacao').textContent = formatCurrency(stats.premiacao);
             document.getElementById('titulosTotal').textContent = stats.titulosATP;
             document.getElementById('vitoriasDerrotas').textContent = `${stats.vitoriasATP} / ${stats.derrotasATP}`;
             
+            // Análise de ranking
             document.getElementById('currentRankingPoints').textContent = `${stats.pontosRanking.toLocaleString()} pts`;
             document.getElementById('pointsToDefend').textContent = `${stats.pontosDefender.toLocaleString()} pts`;
             
             const projected = Math.max(0, stats.pontosRanking - stats.pontosDefender);
-            const projectedRank = calculateATPRanking(projected);
-            document.getElementById('projectedRanking').textContent = `${projectedRank.position} (${projected.toLocaleString()} pts)`;
+            document.getElementById('projectedPoints').textContent = `${projected.toLocaleString()} pts`;
         }
 
         function updateSeasonsTab(stats, season) {
@@ -1788,17 +1986,14 @@
             const select = document.getElementById('seasonFilter');
             const currentVal = select.value;
             
-            // Preencher opções
             select.innerHTML = '<option value="all">Todas as temporadas</option>' + 
                 years.map(y => `<option value="${y}">${y}</option>`).join('');
             
-            // Se não houver valor selecionado, definir como ano atual
             if (!currentVal || currentVal === 'all') {
-                // Verificar se o ano atual existe nos dados, senão pegar o mais recente
                 if (years.includes(CURRENT_YEAR)) {
                     select.value = CURRENT_YEAR;
                 } else if (years.length > 0) {
-                    select.value = years[0]; // Mais recente
+                    select.value = years[0];
                 } else {
                     select.value = 'all';
                 }
@@ -1806,7 +2001,6 @@
                 select.value = currentVal;
             }
             
-            // Recalcular filtered com o valor definido
             const finalSeason = select.value;
             const finalFiltered = finalSeason === 'all' 
                 ? allTournaments 
@@ -1890,7 +2084,6 @@
             }).join('');
         }
 
-        // ==================== TÍTULOS TAB ====================
         function updateTitulosTab(stats) {
             document.getElementById('titulosTotalResumo').textContent = stats.titulosATP;
 
@@ -1954,7 +2147,6 @@
             `).join('');
         }
 
-        // ==================== VITÓRIAS TAB ====================
         function updateVitoriasTab(stats) {
             document.getElementById('totalVitorias').textContent = stats.vitoriasATP;
             document.getElementById('totalDerrotas').textContent = stats.derrotasATP;
@@ -2017,11 +2209,8 @@
                 </div>
             `;
 
-            // CORREÇÃO: Mostrar apenas ATP 250+ nas superfícies
             document.getElementById('vitoriasSurfaceList').innerHTML = SURFACES.map(surface => {
                 const s = stats.porSuperficie[surface];
-                const totalSurf = (s?.vitorias || 0) + (s?.derrotas || 0);
-                const rateSurf = totalSurf > 0 ? ((s.vitorias / totalSurf) * 100).toFixed(1) : 0;
                 return `
                     <li class="flex justify-between items-center py-1 data-row hover:bg-card-hover">
                         <span>${surface}:</span> 
@@ -2039,7 +2228,6 @@
             }).join('');
         }
 
-        // ==================== FUNÇÕES DE DETALHES COM ACCORDION FECHADO ====================
         window.toggleSublist = function(id, btn) {
             const el = document.getElementById(id);
             const icon = btn.querySelector('i');
@@ -2054,7 +2242,6 @@
             }
         };
 
-        // NOVO: Função para renderizar confronto no layout VS
         function renderVSMatch(j) {
             const isWin = j.resultado === 'V';
             const isLoss = j.resultado === 'D';
@@ -2064,7 +2251,6 @@
                 <div class="match-card">
                     <div class="match-round mb-2">${j.rodada}</div>
                     <div class="player-vs-layout">
-                        <!-- Fernando Lapa -->
                         <div class="player-box ${isWin ? 'winner' : isLoss ? 'loser' : ''}">
                             <div class="player-avatar">FL</div>
                             <div class="player-info">
@@ -2076,7 +2262,6 @@
                         
                         <div class="vs-divider">VS</div>
                         
-                        <!-- Adversário -->
                         <div class="player-box ${isLoss ? 'winner' : isWin ? 'loser' : ''}">
                             <div class="player-avatar" style="background: ${isBye ? 'var(--text-muted)' : 'linear-gradient(135deg, #ef4444, #f97316)'}">
                                 ${isBye ? 'B' : j.adversario.charAt(0)}
@@ -2110,7 +2295,6 @@
                     filtered = allTournaments.filter(t => t.tipo === filterValue);
                 }
             } else if (filterType === 'surface') {
-                // CORREÇÃO: Para superfície, mostrar apenas ATP 250+
                 filtered = allTournaments.filter(t => t.superficie === filterValue && !t.tipo.startsWith('CH'));
             }
             
@@ -2172,7 +2356,6 @@
                     `;
                 }
                 
-                // NOVO: Lista compacta de torneios (fechada por padrão)
                 html += displayFiltered.map((t, index) => {
                     const v = (t.jogos || []).filter(j => j.resultado === 'V').length;
                     const d = (t.jogos || []).filter(j => j.resultado === 'D').length;
@@ -2222,7 +2405,6 @@
             renderContent();
         };
 
-        // NOVO: Função para toggle da lista de torneios
         window.toggleTournamentList = function(index) {
             const item = document.getElementById(`tournament-item-${index}`);
             const content = document.getElementById(`tournament-content-${index}`);
@@ -2231,14 +2413,7 @@
             content.classList.toggle('open');
         };
 
-        window.toggleAccordion = function(header) {
-            const item = header.parentElement;
-            const content = header.nextElementSibling;
-            item.classList.toggle('open');
-            content.classList.toggle('open');
-        };
-
-        // ==================== H2H FUNCTIONS ====================
+        // ==================== H2H - NOVO DESIGN ====================
         function updateH2HTab() {
             const opponentMap = new Map();
             availableCountries = new Set();
@@ -2312,6 +2487,7 @@
 
         document.getElementById('h2hCountryFilter').addEventListener('change', displayH2H);
 
+        // ==================== H2H DISPLAY - NOVO DESIGN MELHORADO ====================
         function displayH2H() {
             const name = h2hSearch.value.trim();
             const country = document.getElementById('h2hCountryFilter').value;
@@ -2388,57 +2564,91 @@
 
             matches.sort((a, b) => b.data - a.data);
 
+            // NOVO DESIGN DO H2H
             container.innerHTML = `
-                <div class="text-center mb-6 p-4 bg-background-deep rounded-xl">
-                    <div class="text-3xl font-extrabold mb-2">
-                        <span class="text-secondary">${wins}</span>
-                        <span class="text-text-muted mx-2">-</span>
-                        <span class="text-red-400">${losses}</span>
+                <!-- Header com placar grande -->
+                <div class="h2h-header">
+                    <div class="h2h-score-big">
+                        <div class="h2h-player">
+                            <div class="h2h-avatar fl">FL</div>
+                            <div class="font-bold text-text-main">Fernando Lapa</div>
+                            <div class="text-xs text-text-muted">Brasil</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="flex items-center gap-4 mb-2">
+                                <span class="h2h-wins win">${wins}</span>
+                                <span class="h2h-vs">vs</span>
+                                <span class="h2h-wins loss">${losses}</span>
+                            </div>
+                            <div class="text-sm text-text-muted">Confrontos Diretos</div>
+                        </div>
+                        
+                        <div class="h2h-player">
+                            <div class="h2h-avatar opp">${name.charAt(0)}</div>
+                            <div class="font-bold text-text-main">${name}</div>
+                            <div class="text-xs text-text-muted">${opponentCountry || 'Unknown'}</div>
+                        </div>
                     </div>
-                    <div class="text-text-muted">
-                        vs ${getFlagEmoji(opponentCountry)} ${name}
+                    
+                    <!-- Estatísticas rápidas -->
+                    <div class="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border-subtle">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-secondary">${wins}</div>
+                            <div class="text-xs text-text-muted">Vitórias</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-text-main">${matches.length}</div>
+                            <div class="text-xs text-text-muted">Jogos</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-danger">${losses}</div>
+                            <div class="text-xs text-text-muted">Derrotas</div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Torneio</th>
-                                <th>Rodada</th>
-                                <th>Superfície</th>
-                                <th>Placar</th>
-                                <th>Resultado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${matches.map(m => `
-                                <tr>
-                                    <td class="whitespace-nowrap">${m.data.toLocaleDateString('pt-BR')}</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            ${getFlagEmoji(m.paisTorneio)}
-                                            <span>${m.nome}</span>
-                                        </div>
-                                    </td>
-                                    <td>${m.rodada}</td>
-                                    <td>${m.superficie}</td>
-                                    <td class="font-mono">${m.placar}</td>
-                                    <td>
-                                        <span class="badge ${m.resultado === 'V' ? 'badge-success' : 'badge-danger'}">
-                                            ${m.resultado === 'V' ? 'Vitória' : 'Derrota'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                <!-- Lista de partidas em cards -->
+                <div class="h2h-matches-grid">
+                    ${matches.map((m, index) => `
+                        <div class="h2h-match-card" style="animation: fadeIn 0.3s ease ${index * 0.1}s both;">
+                            <div class="h2h-match-header">
+                                <div class="h2h-tournament-info">
+                                    <span class="h2h-tournament-flag">${getFlagEmoji(m.paisTorneio)}</span>
+                                    <div>
+                                        <div class="h2h-tournament-name">${m.nome}</div>
+                                        <div class="h2h-tournament-meta">${m.tipo} • ${m.ano}</div>
+                                    </div>
+                                </div>
+                                <span class="h2h-result-badge ${m.resultado === 'V' ? 'win' : 'loss'}">
+                                    ${m.resultado === 'V' ? 'Vitória' : 'Derrota'}
+                                </span>
+                            </div>
+                            
+                            <div class="h2h-match-details">
+                                <div class="h2h-detail-item">
+                                    <span class="h2h-detail-label">Data</span>
+                                    <span class="h2h-detail-value">${m.data.toLocaleDateString('pt-BR')}</span>
+                                </div>
+                                <div class="h2h-detail-item">
+                                    <span class="h2h-detail-label">Rodada</span>
+                                    <span class="h2h-detail-value">${m.rodada}</span>
+                                </div>
+                                <div class="h2h-detail-item">
+                                    <span class="h2h-detail-label">Superfície</span>
+                                    <span class="h2h-detail-value">${m.superficie}</span>
+                                </div>
+                                <div class="h2h-detail-item">
+                                    <span class="h2h-detail-label">Placar</span>
+                                    <span class="h2h-score-highlight">${m.placar}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         }
 
-        // ==================== RECORDES TAB ====================
         function updateRecordsTab(stats) {
             const container = document.getElementById('recordesConquistados');
             
@@ -2478,7 +2688,6 @@
             }).join('');
         }
 
-        // ==================== CHARTS ====================
         function updateCharts(stats) {
             if (charts.titulos) charts.titulos.destroy();
             charts.titulos = new Chart(document.getElementById('titulosChart'), {
@@ -2544,7 +2753,6 @@
             });
         }
 
-        // ==================== MODAL FORMS ====================
         function openCreateTournamentModal() {
             const body = `
                 <form id="createTournamentForm" class="space-y-4">
@@ -2731,7 +2939,6 @@
                     <div class="match-card">
                         <div class="match-round mb-2">${j.rodada}</div>
                         <div class="player-vs-layout">
-                            <!-- Fernando Lapa -->
                             <div class="player-box ${isWin ? 'winner' : isLoss ? 'loser' : ''}">
                                 <div class="player-avatar">FL</div>
                                 <div class="player-info">
@@ -2743,7 +2950,6 @@
                             
                             <div class="vs-divider">VS</div>
                             
-                            <!-- Adversário -->
                             <div class="player-box ${isLoss ? 'winner' : isWin ? 'loser' : ''}">
                                 <div class="player-avatar" style="background: ${isBye ? 'var(--text-muted)' : 'linear-gradient(135deg, #ef4444, #f97316)'}">
                                     ${isBye ? 'B' : j.adversario.charAt(0)}
@@ -2814,7 +3020,6 @@
             }
 
             const body = `
-                <!-- Header do Torneio -->
                 <div class="tournament-header">
                     <div class="tournament-title">
                         <span class="text-3xl">${getFlagEmoji(t.paisTorneio)}</span>
@@ -2835,7 +3040,6 @@
                     </div>
                 </div>
 
-                <!-- Lista de Partidas -->
                 <div class="space-y-3 mb-4">
                     ${matchesHtml}
                 </div>
@@ -2908,7 +3112,6 @@
             modal.close();
         };
 
-        // ==================== EXPORT/IMPORT ====================
         window.exportData = function() {
             const data = {
                 exportDate: new Date().toISOString(),
@@ -2971,7 +3174,6 @@
 
         window.refreshData = loadTournaments;
 
-        // ==================== INITIALIZATION ====================
         function init() {
             calculateAge();
             
@@ -3006,7 +3208,6 @@
 
         document.addEventListener('DOMContentLoaded', init);
 
-        // Expose functions to window
         Object.assign(window, {
             openCreateTournamentModal,
             openTournamentModal: window.openTournamentModal,
@@ -3022,8 +3223,8 @@
             refreshData: window.refreshData,
             showDetails: window.showDetails,
             toggleSublist: window.toggleSublist,
-            toggleAccordion: window.toggleAccordion,
-            toggleTournamentList: window.toggleTournamentList
+            toggleTournamentList: window.toggleTournamentList,
+            updateRanking: window.updateRanking
         });
     </script>
 </body>
