@@ -1073,6 +1073,92 @@
             font-weight: 500;
         }
 
+        /* NOVO: Estilos para o formulário de jogadores */
+        .player-form-section {
+            background: var(--background-deep);
+            border: 1px solid var(--border-subtle);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .player-form-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .player-form-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+
+        .player-form-avatar.fl {
+            background: linear-gradient(135deg, var(--primary), #0ea5e9);
+        }
+
+        .player-form-avatar.opp {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+        }
+
+        .seed-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--accent);
+            color: var(--background-deep);
+        }
+
+        .seed-badge.not-seed {
+            background: var(--border-subtle);
+            color: var(--text-muted);
+        }
+
+        .ranking-input-small {
+            width: 70px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .seed-input-small {
+            width: 60px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .seed-info-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+
         @media (max-width: 640px) {
             .player-vs-layout {
                 flex-direction: column;
@@ -1147,8 +1233,6 @@
             border-width: 0;
         }
     </style>
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -2253,20 +2337,35 @@
             }
         };
 
-        function renderVSMatch(j) {
+        function renderVSMatch(j, flSeedFromFirstMatch = null) {
             const isWin = j.resultado === 'V';
             const isLoss = j.resultado === 'D';
             const isBye = j.resultado === 'Bye';
             
+            // Informações do adversário
+            const opponentRanking = j.adversarioRanking ? `#${j.adversarioRanking}` : '';
+            const opponentSeed = j.adversarioSeed ? `<span class="seed-badge ml-1">(${j.adversarioSeed})</span>` : '';
+            
+            // Informações do Fernando - usa o seed do primeiro jogo se disponível
+            const flRanking = j.flRanking ? `#${j.flRanking}` : '';
+            const flSeed = j.flSeed ? `<span class="seed-badge ml-1">(${j.flSeed})</span>` : (flSeedFromFirstMatch ? `<span class="seed-badge ml-1">(${flSeedFromFirstMatch})</span>` : '');
+            
             return `
                 <div class="match-card">
-                    <div class="match-round mb-2">${j.rodada}</div>
+                    <div class="match-round mb-2 flex justify-between items-center">
+                        <span>${j.rodada}</span>
+                        ${j.adversarioRanking || j.flRanking ? `
+                            <span class="text-xs text-text-muted">
+                                Ranking: ${flRanking || 'N/A'} vs ${opponentRanking || 'N/A'}
+                            </span>
+                        ` : ''}
+                    </div>
                     <div class="player-vs-layout">
                         <div class="player-box ${isWin ? 'winner' : isLoss ? 'loser' : ''}">
                             <div class="player-avatar">FL</div>
                             <div class="player-info">
-                                <div class="player-name">Fernando Lapa</div>
-                                <div class="text-xs text-text-muted">Brasil</div>
+                                <div class="player-name">Fernando Lapa ${flSeed}</div>
+                                <div class="text-xs text-text-muted">Brasil ${flRanking}</div>
                             </div>
                             <span class="player-flag">${getFlagEmoji('BRA')}</span>
                         </div>
@@ -2278,8 +2377,8 @@
                                 ${isBye ? 'B' : j.adversario.charAt(0)}
                             </div>
                             <div class="player-info">
-                                <div class="player-name">${j.adversario}</div>
-                                <div class="text-xs text-text-muted">${isBye ? 'Bye' : j.nacionalidade}</div>
+                                <div class="player-name">${j.adversario} ${opponentSeed}</div>
+                                <div class="text-xs text-text-muted">${isBye ? 'Bye' : j.nacionalidade} ${opponentRanking}</div>
                             </div>
                             ${!isBye ? `<span class="player-flag">${getFlagEmoji(j.nacionalidade)}</span>` : ''}
                         </div>
@@ -2371,6 +2470,10 @@
                     const v = (t.jogos || []).filter(j => j.resultado === 'V').length;
                     const d = (t.jogos || []).filter(j => j.resultado === 'D').length;
                     
+                    // Pega o seed do Fernando do primeiro jogo real (não bye)
+                    const firstRealMatch = (t.jogos || []).find(j => j.resultado !== 'Bye');
+                    const flSeedFromFirstMatch = firstRealMatch?.flSeed || null;
+                    
                     return `
                         <div class="tournament-list-item" id="tournament-item-${index}">
                             <div class="tournament-list-header" onclick="toggleTournamentList(${index})">
@@ -2400,7 +2503,7 @@
                                         ` : '<span class="badge badge-warning">Em Andamento</span>'}
                                     </div>
                                     <div class="space-y-3">
-                                        ${(t.jogos || []).map(j => renderVSMatch(j)).join('')}
+                                        ${(t.jogos || []).map(j => renderVSMatch(j, flSeedFromFirstMatch)).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -2764,6 +2867,7 @@
             });
         }
 
+        // ==================== NOVO FORMULÁRIO DE TORNEIO COM NÚMERO DO CABEÇA DE CHAVE ====================
         function openCreateTournamentModal() {
             const body = `
                 <form id="createTournamentForm" class="space-y-4">
@@ -2808,23 +2912,68 @@
                         </div>
                     </div>
                     
-                    <div class="border-t border-border-subtle pt-4 mt-4">
-                        <h4 class="font-semibold text-text-main mb-3">Primeira Partida</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- SEÇÃO: INFORMAÇÕES DO FERNANDO LAPA - APENAS NO PRIMEIRO JOGO -->
+                    <div class="player-form-section">
+                        <div class="player-form-header">
+                            <div class="player-form-avatar fl">FL</div>
+                            <div class="flex-1">
+                                <div class="font-bold text-text-main">Fernando Lapa</div>
+                                <div class="text-xs text-text-muted">Brasil • Você</div>
+                            </div>
+                            <span class="text-xs text-accent font-semibold">Primeiro Jogo</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Adversário *</label>
-                                <input type="text" id="jAdversario" class="form-input" required placeholder="Nome do adversário">
+                                <label class="block text-xs font-medium text-text-muted mb-1">Seu Ranking</label>
+                                <input type="number" id="flRanking" class="form-input ranking-input-small" value="${currentRanking}" min="1" placeholder="#">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Nacionalidade</label>
-                                <input type="text" id="jNacionalidade" class="form-input" maxlength="3" placeholder="Ex: SRB">
+                                <label class="block text-xs font-medium text-text-muted mb-1">Cabeça de Chave Nº</label>
+                                <input type="number" id="flSeed" class="form-input seed-input-small" min="1" max="32" placeholder="Ex: 3">
+                            </div>
+                        </div>
+                        <p class="seed-info-text">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            O número do cabeça de chave será mantido para todo o torneio
+                        </p>
+                    </div>
+                    
+                    <!-- SEÇÃO: INFORMAÇÕES DO ADVERSÁRIO -->
+                    <div class="player-form-section">
+                        <div class="player-form-header">
+                            <div class="player-form-avatar opp">?</div>
+                            <div class="flex-1">
+                                <div class="font-bold text-text-main">Adversário</div>
+                                <div class="text-xs text-text-muted">Informações do oponente</div>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-text-muted mb-1">Nome do Adversário *</label>
+                                    <input type="text" id="jAdversario" class="form-input" required placeholder="Nome do adversário">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-text-muted mb-1">Nacionalidade</label>
+                                    <input type="text" id="jNacionalidade" class="form-input" maxlength="3" placeholder="Ex: SRB">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-text-muted mb-1">Ranking do Adversário</label>
+                                    <input type="number" id="adversarioRanking" class="form-input ranking-input-small" min="1" placeholder="#">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-text-muted mb-1">Cabeça de Chave Nº</label>
+                                    <input type="number" id="adversarioSeed" class="form-input seed-input-small" min="1" max="32" placeholder="Ex: 1">
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Placar *</label>
+                                <label class="block text-xs font-medium text-text-muted mb-1">Placar *</label>
                                 <input type="text" id="jPlacar" class="form-input" required placeholder="Ex: 6-4, 3-6, 6-3">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Resultado *</label>
+                                <label class="block text-xs font-medium text-text-muted mb-1">Resultado *</label>
                                 <select id="jResultado" class="form-select" onchange="toggleFinalFields()">
                                     <option value="V">Vitória</option>
                                     <option value="D">Derrota</option>
@@ -2908,12 +3057,26 @@
             const isBye = document.getElementById('jAdversario').value.toLowerCase() === 'bye';
             const resultado = isBye ? 'Bye' : document.getElementById('jResultado').value;
             
+            // Coletar dados do Fernando Lapa (apenas no primeiro jogo)
+            const flRanking = document.getElementById('flRanking').value;
+            const flSeed = document.getElementById('flSeed').value;
+            
+            // Coletar dados do adversário
+            const adversarioRanking = document.getElementById('adversarioRanking').value;
+            const adversarioSeed = document.getElementById('adversarioSeed').value;
+            
             jogos.push({
                 rodada: startRound,
                 adversario: isBye ? 'Bye' : document.getElementById('jAdversario').value,
                 nacionalidade: isBye ? 'ATP' : document.getElementById('jNacionalidade').value.toUpperCase(),
                 placar: isBye ? 'Bye' : document.getElementById('jPlacar').value,
-                resultado: resultado
+                resultado: resultado,
+                // Dados do Fernando Lapa (apenas no primeiro jogo)
+                flRanking: flRanking ? parseInt(flRanking) : null,
+                flSeed: flSeed ? parseInt(flSeed) : null,
+                // Dados do adversário
+                adversarioRanking: adversarioRanking ? parseInt(adversarioRanking) : null,
+                adversarioSeed: adversarioSeed ? parseInt(adversarioSeed) : null
             });
 
             const isLoss = resultado === 'D';
@@ -2941,48 +3104,11 @@
             const t = allTournaments.find(x => x.id === id);
             if (!t) return;
 
-            const matchesHtml = (t.jogos || []).map((j, i) => {
-                const isWin = j.resultado === 'V';
-                const isLoss = j.resultado === 'D';
-                const isBye = j.resultado === 'Bye';
-                
-                return `
-                    <div class="match-card">
-                        <div class="match-round mb-2">${j.rodada}</div>
-                        <div class="player-vs-layout">
-                            <div class="player-box ${isWin ? 'winner' : isLoss ? 'loser' : ''}">
-                                <div class="player-avatar">FL</div>
-                                <div class="player-info">
-                                    <div class="player-name">Fernando Lapa</div>
-                                    <div class="text-xs text-text-muted">Brasil</div>
-                                </div>
-                                <span class="player-flag">${getFlagEmoji('BRA')}</span>
-                            </div>
-                            
-                            <div class="vs-divider">VS</div>
-                            
-                            <div class="player-box ${isLoss ? 'winner' : isWin ? 'loser' : ''}">
-                                <div class="player-avatar" style="background: ${isBye ? 'var(--text-muted)' : 'linear-gradient(135deg, #ef4444, #f97316)'}">
-                                    ${isBye ? 'B' : j.adversario.charAt(0)}
-                                </div>
-                                <div class="player-info">
-                                    <div class="player-name">${j.adversario}</div>
-                                    <div class="text-xs text-text-muted">${isBye ? 'Bye' : j.nacionalidade}</div>
-                                </div>
-                                ${!isBye ? `<span class="player-flag">${getFlagEmoji(j.nacionalidade)}</span>` : ''}
-                            </div>
-                        </div>
-                        
-                        <div class="match-details">
-                            <span class="match-round">Placar</span>
-                            <span class="match-score">${j.placar}</span>
-                            <span class="badge ${isWin ? 'badge-success' : isLoss ? 'badge-danger' : 'badge-info'}">
-                                ${isWin ? 'Vitória' : isLoss ? 'Derrota' : 'Bye'}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            // Pega o seed do Fernando do primeiro jogo real (não bye)
+            const firstRealMatch = (t.jogos || []).find(j => j.resultado !== 'Bye');
+            const flSeedFromFirstMatch = firstRealMatch?.flSeed || null;
+
+            const matchesHtml = (t.jogos || []).map((j, i) => renderVSMatch(j, flSeedFromFirstMatch)).join('');
 
             const isFinished = t.status === 'Finalizado';
             const canAddMatch = !isFinished && t.faseFinal !== 'Campeão';
@@ -2998,16 +3124,66 @@
                     addMatchForm = `
                         <div class="border-t border-border-subtle pt-4 mt-4">
                             <h4 class="font-semibold text-text-main mb-3">Adicionar Próxima Partida</h4>
-                            <div class="grid grid-cols-2 gap-3 mb-3">
-                                <select id="nextRound" class="form-select">
-                                    ${nextRounds.map(r => `<option value="${r}">${r}</option>`).join('')}
-                                </select>
-                                <input type="text" id="nextAdversario" class="form-input" placeholder="Adversário">
+                            
+                            <!-- Dados do Fernando Lapa - HERDADO DO PRIMEIRO JOGO -->
+                            <div class="player-form-section mb-3">
+                                <div class="player-form-header">
+                                    <div class="player-form-avatar fl">FL</div>
+                                    <div class="flex-1">
+                                        <div class="font-bold text-text-main">Fernando Lapa</div>
+                                        <div class="text-xs text-text-muted">
+                                            ${flSeedFromFirstMatch ? `Cabeça de Chave (${flSeedFromFirstMatch})` : 'Sem seed'}
+                                            • Ranking: #${currentRanking}
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="nextFlSeed" value="${flSeedFromFirstMatch || ''}">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-text-muted mb-1">Seu Ranking nesta partida</label>
+                                        <input type="number" id="nextFlRanking" class="form-input ranking-input-small" value="${currentRanking}" min="1">
+                                    </div>
+                                </div>
+                                <p class="seed-info-text">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    ${flSeedFromFirstMatch 
+                                        ? `Cabeça de chave (${flSeedFromFirstMatch}) herdado do primeiro jogo` 
+                                        : 'Você não era cabeça de chave neste torneio'}
+                                </p>
                             </div>
-                            <div class="grid grid-cols-2 gap-3 mb-3">
-                                <input type="text" id="nextNacionalidade" class="form-input" placeholder="País (Ex: ESP)" maxlength="3">
-                                <input type="text" id="nextPlacar" class="form-input" placeholder="Placar">
+                            
+                            <!-- Dados do Adversário -->
+                            <div class="player-form-section mb-3">
+                                <div class="player-form-header">
+                                    <div class="player-form-avatar opp">?</div>
+                                    <div class="flex-1">
+                                        <div class="font-bold text-text-main">Novo Adversário</div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <select id="nextRound" class="form-select">
+                                            ${nextRounds.map(r => `<option value="${r}">${r}</option>`).join('')}
+                                        </select>
+                                        <input type="text" id="nextAdversario" class="form-input" placeholder="Adversário">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <input type="text" id="nextNacionalidade" class="form-input" placeholder="País (Ex: ESP)" maxlength="3">
+                                        <input type="text" id="nextPlacar" class="form-input" placeholder="Placar">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-text-muted mb-1">Ranking do Adversário</label>
+                                            <input type="number" id="nextAdversarioRanking" class="form-input ranking-input-small" min="1" placeholder="#">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-text-muted mb-1">Cabeça de Chave Nº</label>
+                                            <input type="number" id="nextAdversarioSeed" class="form-input seed-input-small" min="1" max="32" placeholder="Ex: 1">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            
                             <div class="flex gap-3">
                                 <button onclick="addMatch('${id}', 'V')" class="btn btn-secondary flex-1">
                                     <i class="fas fa-check mr-2"></i>Vitória
@@ -3083,12 +3259,27 @@
             }
 
             const t = allTournaments.find(x => x.id === id);
+            
+            // Coletar dados do Fernando Lapa (apenas ranking, seed vem do primeiro jogo)
+            const flRanking = document.getElementById('nextFlRanking').value;
+            const flSeed = document.getElementById('nextFlSeed').value; // Herdado do primeiro jogo
+            
+            // Coletar dados do adversário
+            const adversarioRanking = document.getElementById('nextAdversarioRanking').value;
+            const adversarioSeed = document.getElementById('nextAdversarioSeed').value;
+            
             const newMatch = {
                 rodada: round,
                 adversario,
                 nacionalidade: nacionalidade || 'UNK',
                 placar,
-                resultado: result
+                resultado: result,
+                // Dados do Fernando Lapa (seed herdado do primeiro jogo, se existir)
+                flRanking: flRanking ? parseInt(flRanking) : null,
+                flSeed: flSeed ? parseInt(flSeed) : null,
+                // Dados do adversário
+                adversarioRanking: adversarioRanking ? parseInt(adversarioRanking) : null,
+                adversarioSeed: adversarioSeed ? parseInt(adversarioSeed) : null
             };
             
             const updatedJogos = [...(t.jogos || []), newMatch];
