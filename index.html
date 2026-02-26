@@ -1159,6 +1159,38 @@
             margin-top: 0.25rem;
         }
 
+        /* NOVO: Estilos para ranking badge nos cards */
+        .ranking-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .ranking-badge.opponent {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .ranking-badge .ranking-number {
+            font-weight: 800;
+        }
+
+        .player-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+
         @media (max-width: 640px) {
             .player-vs-layout {
                 flex-direction: column;
@@ -1233,6 +1265,7 @@
             border-width: 0;
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -2337,35 +2370,37 @@
             }
         };
 
+        // ==================== NOVO: FUNÇÃO PARA RENDERIZAR PARTIDA COM RANKING BONITO ====================
         function renderVSMatch(j, flSeedFromFirstMatch = null) {
             const isWin = j.resultado === 'V';
             const isLoss = j.resultado === 'D';
             const isBye = j.resultado === 'Bye';
             
-            // Informações do adversário
-            const opponentRanking = j.adversarioRanking ? `#${j.adversarioRanking}` : '';
+            // Informações do adversário - RANKING BONITO SEM #
+            const opponentRankingHtml = j.adversarioRanking ? 
+                `<span class="ranking-badge opponent"><i class="fas fa-chart-line text-xs"></i> <span class="ranking-number">${j.adversarioRanking}</span></span>` : '';
             const opponentSeed = j.adversarioSeed ? `<span class="seed-badge ml-1">(${j.adversarioSeed})</span>` : '';
             
             // Informações do Fernando - usa o seed do primeiro jogo se disponível
-            const flRanking = j.flRanking ? `#${j.flRanking}` : '';
+            const flRankingHtml = j.flRanking ? 
+                `<span class="ranking-badge"><i class="fas fa-chart-line text-xs"></i> <span class="ranking-number">${j.flRanking}</span></span>` : 
+                (currentRanking ? `<span class="ranking-badge"><i class="fas fa-chart-line text-xs"></i> <span class="ranking-number">${currentRanking}</span></span>` : '');
             const flSeed = j.flSeed ? `<span class="seed-badge ml-1">(${j.flSeed})</span>` : (flSeedFromFirstMatch ? `<span class="seed-badge ml-1">(${flSeedFromFirstMatch})</span>` : '');
             
             return `
                 <div class="match-card">
                     <div class="match-round mb-2 flex justify-between items-center">
                         <span>${j.rodada}</span>
-                        ${j.adversarioRanking || j.flRanking ? `
-                            <span class="text-xs text-text-muted">
-                                Ranking: ${flRanking || 'N/A'} vs ${opponentRanking || 'N/A'}
-                            </span>
-                        ` : ''}
                     </div>
                     <div class="player-vs-layout">
                         <div class="player-box ${isWin ? 'winner' : isLoss ? 'loser' : ''}">
                             <div class="player-avatar">FL</div>
                             <div class="player-info">
                                 <div class="player-name">Fernando Lapa ${flSeed}</div>
-                                <div class="text-xs text-text-muted">Brasil ${flRanking}</div>
+                                <div class="player-meta">
+                                    <span class="text-xs text-text-muted">Brasil</span>
+                                    ${flRankingHtml}
+                                </div>
                             </div>
                             <span class="player-flag">${getFlagEmoji('BRA')}</span>
                         </div>
@@ -2378,7 +2413,10 @@
                             </div>
                             <div class="player-info">
                                 <div class="player-name">${j.adversario} ${opponentSeed}</div>
-                                <div class="text-xs text-text-muted">${isBye ? 'Bye' : j.nacionalidade} ${opponentRanking}</div>
+                                <div class="player-meta">
+                                    <span class="text-xs text-text-muted">${isBye ? 'Bye' : j.nacionalidade}</span>
+                                    ${opponentRankingHtml}
+                                </div>
                             </div>
                             ${!isBye ? `<span class="player-flag">${getFlagEmoji(j.nacionalidade)}</span>` : ''}
                         </div>
@@ -2867,7 +2905,7 @@
             });
         }
 
-        // ==================== NOVO FORMULÁRIO DE TORNEIO COM NÚMERO DO CABEÇA DE CHAVE ====================
+        // ==================== FORMULÁRIO SIMPLIFICADO - SEM RANKING DO FL ====================
         function openCreateTournamentModal() {
             const body = `
                 <form id="createTournamentForm" class="space-y-4">
@@ -2912,21 +2950,17 @@
                         </div>
                     </div>
                     
-                    <!-- SEÇÃO: INFORMAÇÕES DO FERNANDO LAPA - APENAS NO PRIMEIRO JOGO -->
+                    <!-- SEÇÃO: CABEÇA DE CHAVE DO FERNANDO (APENAS NO PRIMEIRO JOGO) -->
                     <div class="player-form-section">
                         <div class="player-form-header">
                             <div class="player-form-avatar fl">FL</div>
                             <div class="flex-1">
                                 <div class="font-bold text-text-main">Fernando Lapa</div>
-                                <div class="text-xs text-text-muted">Brasil • Você</div>
+                                <div class="text-xs text-text-muted">Ranking ATP: <span class="text-primary font-bold">${currentRanking}</span></div>
                             </div>
                             <span class="text-xs text-accent font-semibold">Primeiro Jogo</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-medium text-text-muted mb-1">Seu Ranking</label>
-                                <input type="number" id="flRanking" class="form-input ranking-input-small" value="${currentRanking}" min="1" placeholder="#">
-                            </div>
+                        <div class="grid grid-cols-1 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-text-muted mb-1">Cabeça de Chave Nº</label>
                                 <input type="number" id="flSeed" class="form-input seed-input-small" min="1" max="32" placeholder="Ex: 3">
@@ -2934,7 +2968,7 @@
                         </div>
                         <p class="seed-info-text">
                             <i class="fas fa-info-circle mr-1"></i>
-                            O número do cabeça de chave será mantido para todo o torneio
+                            O número do cabeça de chave será mantido para todo o torneio. Seu ranking atual (${currentRanking}) será usado automaticamente.
                         </p>
                     </div>
                     
@@ -2961,7 +2995,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-text-muted mb-1">Ranking do Adversário</label>
-                                    <input type="number" id="adversarioRanking" class="form-input ranking-input-small" min="1" placeholder="#">
+                                    <input type="number" id="adversarioRanking" class="form-input ranking-input-small" min="1" placeholder="Ex: 45">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-text-muted mb-1">Cabeça de Chave Nº</label>
@@ -3057,8 +3091,7 @@
             const isBye = document.getElementById('jAdversario').value.toLowerCase() === 'bye';
             const resultado = isBye ? 'Bye' : document.getElementById('jResultado').value;
             
-            // Coletar dados do Fernando Lapa (apenas no primeiro jogo)
-            const flRanking = document.getElementById('flRanking').value;
+            // Coletar dados do Fernando Lapa - RANKING AUTOMÁTICO DO SISTEMA
             const flSeed = document.getElementById('flSeed').value;
             
             // Coletar dados do adversário
@@ -3071,8 +3104,8 @@
                 nacionalidade: isBye ? 'ATP' : document.getElementById('jNacionalidade').value.toUpperCase(),
                 placar: isBye ? 'Bye' : document.getElementById('jPlacar').value,
                 resultado: resultado,
-                // Dados do Fernando Lapa (apenas no primeiro jogo)
-                flRanking: flRanking ? parseInt(flRanking) : null,
+                // Dados do Fernando Lapa - RANKING PEGA AUTOMATICAMENTE DO SISTEMA
+                flRanking: currentRanking, // <-- AQUI: Pega do sistema automaticamente
                 flSeed: flSeed ? parseInt(flSeed) : null,
                 // Dados do adversário
                 adversarioRanking: adversarioRanking ? parseInt(adversarioRanking) : null,
@@ -3133,22 +3166,17 @@
                                         <div class="font-bold text-text-main">Fernando Lapa</div>
                                         <div class="text-xs text-text-muted">
                                             ${flSeedFromFirstMatch ? `Cabeça de Chave (${flSeedFromFirstMatch})` : 'Sem seed'}
-                                            • Ranking: #${currentRanking}
+                                            • Ranking: <span class="text-primary font-bold">${currentRanking}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <input type="hidden" id="nextFlSeed" value="${flSeedFromFirstMatch || ''}">
-                                <div class="grid grid-cols-1 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-medium text-text-muted mb-1">Seu Ranking nesta partida</label>
-                                        <input type="number" id="nextFlRanking" class="form-input ranking-input-small" value="${currentRanking}" min="1">
-                                    </div>
-                                </div>
                                 <p class="seed-info-text">
                                     <i class="fas fa-info-circle mr-1"></i>
                                     ${flSeedFromFirstMatch 
                                         ? `Cabeça de chave (${flSeedFromFirstMatch}) herdado do primeiro jogo` 
                                         : 'Você não era cabeça de chave neste torneio'}
+                                    • Seu ranking atual (${currentRanking}) será usado automaticamente
                                 </p>
                             </div>
                             
@@ -3174,7 +3202,7 @@
                                     <div class="grid grid-cols-2 gap-3">
                                         <div>
                                             <label class="block text-xs font-medium text-text-muted mb-1">Ranking do Adversário</label>
-                                            <input type="number" id="nextAdversarioRanking" class="form-input ranking-input-small" min="1" placeholder="#">
+                                            <input type="number" id="nextAdversarioRanking" class="form-input ranking-input-small" min="1" placeholder="Ex: 45">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-text-muted mb-1">Cabeça de Chave Nº</label>
@@ -3260,8 +3288,7 @@
 
             const t = allTournaments.find(x => x.id === id);
             
-            // Coletar dados do Fernando Lapa (apenas ranking, seed vem do primeiro jogo)
-            const flRanking = document.getElementById('nextFlRanking').value;
+            // Coletar dados do Fernando Lapa - RANKING AUTOMÁTICO DO SISTEMA
             const flSeed = document.getElementById('nextFlSeed').value; // Herdado do primeiro jogo
             
             // Coletar dados do adversário
@@ -3274,8 +3301,8 @@
                 nacionalidade: nacionalidade || 'UNK',
                 placar,
                 resultado: result,
-                // Dados do Fernando Lapa (seed herdado do primeiro jogo, se existir)
-                flRanking: flRanking ? parseInt(flRanking) : null,
+                // Dados do Fernando Lapa - RANKING PEGA AUTOMATICAMENTE DO SISTEMA
+                flRanking: currentRanking, // <-- AQUI: Pega do sistema automaticamente
                 flSeed: flSeed ? parseInt(flSeed) : null,
                 // Dados do adversário
                 adversarioRanking: adversarioRanking ? parseInt(adversarioRanking) : null,
