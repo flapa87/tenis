@@ -1811,11 +1811,12 @@
         
         const SURFACES = ['Saibro', 'Rápida', 'Grama'];
         
+        // MODIFICAÇÃO: ATP 250 agora pode começar em R32 ou R16
         const ROUNDS_BY_TYPE = {
             'Grand Slam': ['R128', 'R64', 'R32', 'R16', 'QF', 'SF', 'F'],
             'ATP Masters 1000': ['R128', 'R64', 'R32', 'R16', 'QF', 'SF', 'F'],
             'ATP 500': ['R32', 'R16', 'QF', 'SF', 'F'],
-            'ATP 250': ['R32', 'R16', 'QF', 'SF', 'F'],
+            'ATP 250': ['R32', 'R16', 'QF', 'SF', 'F'], // Agora inclui R32 e R16
             'Jogos Olímpicos': ['R32', 'R16', 'QF', 'SF', 'Bronze', 'F'],
             'ATP Finals': ['RR1', 'RR2', 'RR3', 'SF', 'F'],
             'Next Gen Finals': ['RR1', 'RR2', 'RR3', 'RR4', 'SF', 'F'],
@@ -2150,7 +2151,6 @@
                     ...doc.data()
                 }));
                 
-                // CORREÇÃO: Definir temporada atual como padrão APÓS carregar os dados
                 initializeSeasonFilter();
                 
                 updateUI();
@@ -2163,26 +2163,20 @@
             }
         }
 
-        // NOVA FUNÇÃO: Inicializar o filtro de temporada com o ano atual selecionado
         function initializeSeasonFilter() {
             const years = [...new Set(allTournaments.map(t => t.ano))].sort((a, b) => b - a);
             const seasonSelect = document.getElementById('seasonFilter');
             
-            // Preencher as opções
             seasonSelect.innerHTML = '<option value="all">Toda a Carreira</option>' + 
                 years.map(y => `<option value="${y}">${y}</option>`).join('');
             
-            // Verificar se existe dados para o ano atual
             const hasCurrentYear = years.includes(CURRENT_YEAR);
             
             if (hasCurrentYear) {
-                // Se existir torneios no ano atual, selecionar o ano atual
                 seasonSelect.value = CURRENT_YEAR.toString();
             } else if (years.length > 0) {
-                // Se não existir ano atual, selecionar o ano mais recente disponível
                 seasonSelect.value = years[0].toString();
             } else {
-                // Se não houver nenhum torneio, deixar em "Toda a Carreira"
                 seasonSelect.value = 'all';
             }
         }
@@ -2239,6 +2233,7 @@
         }
 
         // ==================== CALCULATIONS ====================
+        // MODIFICAÇÃO: Função atualizada para reconhecer múltiplas vitórias no mesmo torneio
         function calculateStats() {
             const stats = {
                 premiacao: 0,
@@ -2255,7 +2250,9 @@
                 pontosRanking: 0,
                 pontosDefender: 0,
                 melhorSequencia: 0,
-                sequenciaAtual: 0
+                sequenciaAtual: 0,
+                // NOVO: Contador de títulos por torneio específico (nome + tipo)
+                titulosPorTorneio: {}
             };
 
             TOURNAMENT_TYPES.forEach(t => {
@@ -2281,6 +2278,7 @@
                 const derrotas = jogos.filter(j => j.resultado === 'D').length;
                 const isATP = !t.tipo?.startsWith('CH');
                 const isFinal = t.faseFinal === 'Campeão' || t.faseFinal?.includes('Final');
+                const isChampion = t.faseFinal === 'Campeão';
 
                 stats.premiacao += Number(t.premiacao) || 0;
 
@@ -2299,15 +2297,29 @@
 
                     if (isFinal) {
                         stats.finaisATP++;
-                        if (t.faseFinal === 'Campeão') stats.finaisVencidas++;
+                        if (isChampion) stats.finaisVencidas++;
                     }
 
-                    if (t.faseFinal === 'Campeão') {
+                    // MODIFICAÇÃO: Contar títulos ATP considerando múltiplas vitórias no mesmo torneio
+                    if (isChampion) {
                         stats.titulosATP++;
                         if (t.tipo === 'Grand Slam') stats.titulosGrandSlam++;
                         if (t.tipo === 'ATP Masters 1000') stats.titulosMasters++;
+                        
+                        // NOVO: Registrar título por torneio específico (nome + tipo)
+                        const torneioKey = `${t.nome}|${t.tipo}`;
+                        if (!stats.titulosPorTorneio[torneioKey]) {
+                            stats.titulosPorTorneio[torneioKey] = {
+                                nome: t.nome,
+                                tipo: t.tipo,
+                                count: 0,
+                                anos: []
+                            };
+                        }
+                        stats.titulosPorTorneio[torneioKey].count++;
+                        stats.titulosPorTorneio[torneioKey].anos.push(t.ano);
                     }
-                } else if (t.faseFinal === 'Campeão') {
+                } else if (isChampion) {
                     stats.titulosChallenger++;
                 }
 
@@ -2315,7 +2327,7 @@
                     stats.porTipo[t.tipo].vitorias += vitorias;
                     stats.porTipo[t.tipo].derrotas += derrotas;
                     stats.porTipo[t.tipo].jogos += vitorias + derrotas;
-                    if (t.faseFinal === 'Campeão') stats.porTipo[t.tipo].titulos++;
+                    if (isChampion) stats.porTipo[t.tipo].titulos++;
                 }
 
                 if (stats.porSuperficie[t.superficie]) {
@@ -2324,7 +2336,7 @@
                     if (isATP) {
                         stats.porSuperficie[t.superficie].vitorias += vitorias;
                         stats.porSuperficie[t.superficie].derrotas += derrotas;
-                        if (t.faseFinal === 'Campeão') {
+                        if (isChampion) {
                             stats.porSuperficie[t.superficie].titulos++;
                             stats.porSuperficie[t.superficie].titulosATP++;
                         }
@@ -2388,15 +2400,12 @@
             const typeFilter = document.getElementById('typeFilter').value;
             const surfaceFilter = document.getElementById('surfaceFilter').value;
 
-            // Aplicar filtros
             let filtered = [...allTournaments];
 
-            // Filtro de temporada
             if (seasonFilter !== 'all') {
                 filtered = filtered.filter(t => t.ano == seasonFilter);
             }
 
-            // Filtro de tipo
             if (typeFilter !== 'all') {
                 if (typeFilter === 'Challenger') {
                     filtered = filtered.filter(t => t.tipo?.startsWith('CH'));
@@ -2405,15 +2414,12 @@
                 }
             }
 
-            // Filtro de superfície
             if (surfaceFilter !== 'all') {
                 filtered = filtered.filter(t => t.superficie === surfaceFilter);
             }
 
-            // Atualizar tags de filtros ativos
             updateActiveFilters();
 
-            // Calcular estatísticas dos filtrados
             let vitorias = 0, derrotas = 0, titulos = 0, premiacao = 0;
             filtered.forEach(t => {
                 const isATP = !t.tipo?.startsWith('CH');
@@ -2524,7 +2530,6 @@
         };
 
         window.clearFilters = function() {
-            // CORREÇÃO: Voltar para o ano atual em vez de "all"
             const years = [...new Set(allTournaments.map(t => t.ano))].sort((a, b) => b - a);
             const hasCurrentYear = years.includes(CURRENT_YEAR);
             
@@ -2543,10 +2548,13 @@
             showToast('Filtros resetados para temporada atual', 'info');
         };
 
+        // MODIFICAÇÃO: Função atualizada para mostrar títulos com contagem de múltiplas vitórias
         function updateTitulosTab(stats) {
             document.getElementById('titulosTotalResumo').textContent = stats.titulosATP;
 
             const atpTypes = TOURNAMENT_TYPES.filter(t => !t.startsWith('CH'));
+            
+            // Agrupar títulos por tipo para mostrar detalhes
             document.getElementById('titulosList').innerHTML = atpTypes.map(type => {
                 const count = stats.porTipo[type]?.titulos || 0;
                 return `
@@ -2606,6 +2614,7 @@
             `).join('');
         }
 
+        // MODIFICAÇÃO: Função atualizada para mostrar vitórias/derrotas com reconhecimento de múltiplas campanhas
         function updateVitoriasTab(stats) {
             document.getElementById('totalVitorias').textContent = stats.vitoriasATP;
             document.getElementById('totalDerrotas').textContent = stats.derrotasATP;
@@ -2701,18 +2710,16 @@
             }
         };
 
-        // ==================== FUNÇÃO PARA RENDERIZAR PARTIDA COM RANKING HISTÓRICO ====================
+        // MODIFICAÇÃO: Função atualizada para renderizar partida com informações de múltiplos títulos
         function renderVSMatch(j, flSeedFromFirstMatch = null) {
             const isWin = j.resultado === 'V';
             const isLoss = j.resultado === 'D';
             const isBye = j.resultado === 'Bye';
             
-            // CORREÇÃO: Usa o ranking salvo no jogo (histórico), não o ranking atual do sistema
             const opponentRankingHtml = j.adversarioRanking ? 
                 `<span class="ranking-badge opponent"><i class="fas fa-chart-line text-xs"></i> <span class="ranking-number">${j.adversarioRanking}</span></span>` : '';
             const opponentSeed = j.adversarioSeed ? `<span class="seed-badge ml-1">(${j.adversarioSeed})</span>` : '';
             
-            // CORREÇÃO: Usa o ranking salvo no jogo (histórico), não o ranking atual do sistema
             const flRankingHtml = j.flRanking ? 
                 `<span class="ranking-badge"><i class="fas fa-chart-line text-xs"></i> <span class="ranking-number">${j.flRanking}</span></span>` : '';
             const flSeed = j.flSeed ? `<span class="seed-badge ml-1">(${j.flSeed})</span>` : (flSeedFromFirstMatch ? `<span class="seed-badge ml-1">(${flSeedFromFirstMatch})</span>` : '');
@@ -2763,6 +2770,7 @@
             `;
         }
 
+        // MODIFICAÇÃO: Função atualizada para mostrar detalhes com reconhecimento de múltiplas vitórias no mesmo torneio
         window.showDetails = function(filterType, filterValue, viewType) {
             let filtered = [];
             
@@ -2819,17 +2827,32 @@
                 
                 let html = '';
                 
+                // NOVO: Se filtrado por torneio específico, mostrar resumo com contagem de títulos
                 if (tournamentFilter !== 'all' && seasonFilter === 'all') {
                     let aggWins = 0, aggLosses = 0, aggTitles = 0;
+                    const titleYears = [];
+                    
                     displayFiltered.forEach(t => {
                         aggWins += (t.jogos || []).filter(j => j.resultado === 'V').length;
                         aggLosses += (t.jogos || []).filter(j => j.resultado === 'D').length;
-                        if (t.faseFinal === 'Campeão') aggTitles++;
+                        if (t.faseFinal === 'Campeão') {
+                            aggTitles++;
+                            titleYears.push(t.ano);
+                        }
                     });
+                    
+                    const titleCountText = aggTitles > 1 ? `${aggTitles}x Campeão` : (aggTitles === 1 ? '1x Campeão' : 'Sem títulos');
+                    const yearsText = titleYears.length > 0 ? `(${titleYears.join(', ')})` : '';
+                    
                     html += `
                         <div class="p-3 bg-card-base/50 rounded-lg mb-4 text-center border border-border-subtle">
-                            <h4 class="font-bold text-text-main">Resumo em ${tournamentFilter}</h4>
-                            <p class="text-text-muted">${aggTitles} Título(s) | <span class="text-secondary">${aggWins}V</span> / <span class="text-red-400">${aggLosses}D</span></p>
+                            <h4 class="font-bold text-text-main text-lg">${tournamentFilter}</h4>
+                            <p class="text-accent font-bold text-xl mb-1">${titleCountText} ${yearsText}</p>
+                            <p class="text-text-muted text-sm">
+                                <span class="text-secondary">${aggWins}V</span> / 
+                                <span class="text-red-400">${aggLosses}D</span> | 
+                                ${displayFiltered.length} edições jogadas
+                            </p>
                         </div>
                     `;
                 }
@@ -2841,13 +2864,19 @@
                     const firstRealMatch = (t.jogos || []).find(j => j.resultado !== 'Bye');
                     const flSeedFromFirstMatch = firstRealMatch?.flSeed || null;
                     
+                    // NOVO: Indicar se foi campeão nesta edição
+                    const isChampion = t.faseFinal === 'Campeão';
+                    const championBadge = isChampion ? '<span class="badge badge-warning ml-2"><i class="fas fa-crown"></i> Campeão</span>' : '';
+                    
                     return `
                         <div class="tournament-list-item" id="tournament-item-${index}">
                             <div class="tournament-list-header" onclick="toggleTournamentList(${index})">
                                 <div class="flex items-center gap-3">
                                     <span class="text-2xl">${getFlagEmoji(t.paisTorneio)}</span>
                                     <div>
-                                        <div class="font-bold text-text-main">${t.nome}</div>
+                                        <div class="font-bold text-text-main flex items-center">
+                                            ${t.nome} ${championBadge}
+                                        </div>
                                         <div class="text-xs text-text-muted">${t.tipo} • ${t.superficie} • ${t.ano}</div>
                                     </div>
                                 </div>
@@ -3228,6 +3257,7 @@
             });
         }
 
+        // MODIFICAÇÃO: Função atualizada para ATP 250 permitir R32 ou R16
         function openCreateTournamentModal() {
             const body = `
                 <form id="createTournamentForm" class="space-y-4">
@@ -3367,13 +3397,21 @@
             document.getElementById('tDataFim').valueAsDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
         }
 
+        // MODIFICAÇÃO: Função atualizada para ATP 250 permitir R32 ou R16 como início
         window.updateRounds = function() {
             const tipo = document.getElementById('tTipo').value;
             const rounds = ROUNDS_BY_TYPE[tipo] || ROUNDS_BY_TYPE['Default'];
             const select = document.getElementById('tRodadaInicio');
             
-            const hasByes = ['ATP Masters 1000', 'ATP 500'].includes(tipo);
-            const maxRound = hasByes ? (tipo === 'ATP Masters 1000' ? 2 : 1) : 0;
+            // MODIFICAÇÃO: ATP 250 agora pode começar em R32 ou R16 (índices 0 e 1)
+            let maxRound;
+            if (tipo === 'ATP 250') {
+                maxRound = 1; // Permite R32 (0) e R16 (1)
+            } else if (['ATP Masters 1000', 'ATP 500'].includes(tipo)) {
+                maxRound = tipo === 'ATP Masters 1000' ? 2 : 1;
+            } else {
+                maxRound = 0; // Outros torneios começam na primeira rodada disponível
+            }
             
             select.innerHTML = rounds.slice(0, maxRound + 1).map((r, i) => 
                 `<option value="${r}">${r}</option>`
@@ -3727,7 +3765,6 @@
                 });
             });
 
-            // Event listeners para os filtros da aba Temporadas
             document.getElementById('seasonFilter').addEventListener('change', updateSeasonsTab);
             document.getElementById('typeFilter').addEventListener('change', updateSeasonsTab);
             document.getElementById('surfaceFilter').addEventListener('change', updateSeasonsTab);
