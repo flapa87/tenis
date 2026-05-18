@@ -1520,7 +1520,7 @@
                 </button>
                 
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="exportData()" class="btn btn-ghost w-full">
+                    <button onclick="exportToCSV()" class="btn btn-ghost w-full bg-secondary/10 hover:bg-secondary/20 text-secondary border-secondary/30">
                         <i class="fas fa-download mr-2"></i>
                         Exportar
                     </button>
@@ -1537,32 +1537,35 @@
         <main class="space-y-6 min-w-0 animate-fade-in" style="animation-delay: 0.1s;">
             <!-- Tab Navigation -->
             <div class="tab-nav-container" role="tablist">
-                <button class="tab-button active" data-tab="temporadas" role="tab" aria-selected="true">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Temporadas</span>
+                <button class="tab-button active" data-tab="temporadas" role="tab">
+                    <i class="fas fa-calendar-alt"></i> Temporadas
                 </button>
-                <button class="tab-button" data-tab="titulos" role="tab" aria-selected="false">
-                    <i class="fas fa-trophy"></i>
-                    <span>Títulos</span>
+                <button class="tab-button" data-tab="titulos" role="tab">
+                    <i class="fas fa-trophy"></i> Títulos
                 </button>
-                <button class="tab-button" data-tab="vitorias" role="tab" aria-selected="false">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>V/D</span>
+                <button class="tab-button" data-tab="vitorias" role="tab">
+                    <i class="fas fa- chart-line"></i> Vitórias/Derrotas
                 </button>
-                <button class="tab-button" data-tab="h2h" role="tab" aria-selected="false">
-                    <i class="fas fa-handshake"></i>
-                    <span>H2H</span>
+                <button class="tab-button" data-tab="ranking_atp" role="tab">
+                    <i class="fas fa-list-ol"></i> Ranking ATP
                 </button>
-                <button class="tab-button" data-tab="recordes" role="tab" aria-selected="false">
-                    <i class="fas fa-medal"></i>
-                    <span>Recordes</span>
+                <button class="tab-button" data-tab="h2h" role="tab">
+                    <i class="fas fa-users"></i> Head-to-Head
                 </button>
-            </div>
+</div>
 
             <!-- Tab Contents -->
             <div>
                 <!-- Temporadas Tab -->
                 <div id="temporadas" class="tab-content active" role="tabpanel">
+
+        <div class="dashboard-card p-6 mt-6">
+            <h3 class="text-xl font-bold mb-4 text-text-main text-center">Evolução de Ranking</h3>
+            <div class="relative h-64">
+                <canvas id="rankingEvolutionChart"></canvas>
+            </div>
+        </div>
+    
                     <div class="dashboard-card p-6">
                         <div class="flex flex-col gap-4 mb-6">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1667,6 +1670,14 @@
 
                 <!-- Títulos Tab -->
                 <div id="titulos" class="tab-content" role="tabpanel">
+
+        <div class="dashboard-card p-6 mt-6">
+            <h3 class="text-xl font-bold mb-4 text-text-main text-center">Evolução de Ranking</h3>
+            <div class="relative h-64">
+                <canvas id="rankingEvolutionChart_titulos"></canvas>
+            </div>
+        </div>
+    
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="dashboard-card p-6">
                             <h2 class="text-2xl font-extrabold mb-6 text-text-main">Resumo de Títulos</h2>
@@ -1694,6 +1705,14 @@
 
                 <!-- Vitórias Tab -->
                 <div id="vitorias" class="tab-content" role="tabpanel">
+
+        <div class="dashboard-card p-6 mt-6">
+            <h3 class="text-xl font-bold mb-4 text-text-main text-center">Evolução de Ranking</h3>
+            <div class="relative h-64">
+                <canvas id="rankingEvolutionChart_vitorias"></canvas>
+            </div>
+        </div>
+    
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="dashboard-card p-6">
                             <h2 class="text-2xl font-extrabold mb-6 text-text-main">Vitórias e Derrotas</h2>
@@ -1721,7 +1740,33 @@
                 </div>
 
                 <!-- H2H Tab -->
-                <div id="h2h" class="tab-content" role="tabpanel">
+                
+        <!-- ABA RANKING ATP -->
+        <div id="ranking_atp" class="tab-content" role="tabpanel">
+            <div class="dashboard-card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-black text-text-main">Ranking Mundial ATP</h3>
+                    <div class="text-sm text-text-muted">Atualizado semanalmente</div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-border-subtle text-text-muted text-xs uppercase tracking-widest">
+                                <th class="py-4 px-2">Pos</th>
+                                <th class="py-4 px-2">Jogador</th>
+                                <th class="py-4 px-2">País</th>
+                                <th class="py-4 px-2 text-right">Pontos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="atpRankingTableBody">
+                            <!-- Inserido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="h2h" class="tab-content" role="tabpanel">
                     <div class="dashboard-card p-6">
                         <h2 class="text-2xl font-extrabold mb-6 text-text-main">Head-to-Head (H2H)</h2>
                         
@@ -2029,6 +2074,7 @@
             
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => {
+        fetchCurrentRanking();
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
@@ -2826,6 +2872,53 @@
                 if (tournamentFilter !== 'all') displayFiltered = displayFiltered.filter(t => t.nome === tournamentFilter);
                 
                 let html = '';
+
+                
+                // NOVO: Resumo de estatísticas separado por tipo de visualização
+                let totalWins = 0, totalLosses = 0, totalTitles = 0, totalFinals = 0;
+                displayFiltered.forEach(t => {
+                    totalWins += (t.jogos || []).filter(j => j.resultado === 'V').length;
+                    totalLosses += (t.jogos || []).filter(j => j.resultado === 'D').length;
+                    if (t.faseFinal === 'Campeão') {
+                        totalTitles++;
+                        totalFinals++;
+                    } else if (t.faseFinal === 'F') {
+                        totalFinals++;
+                    }
+                });
+                
+                let summaryHtml = '';
+                if (viewType === 'titles') {
+                    summaryHtml = `
+                        <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-card-base rounded-xl border border-accent/20 shadow-lg">
+                            <div class="text-center border-r border-border-subtle">
+                                <p class="text-xs text-text-muted uppercase tracking-wider">Finais</p>
+                                <p class="text-2xl font-black text-orange-400">${totalFinals}</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-text-muted uppercase tracking-wider">Títulos</p>
+                                <p class="text-2xl font-black text-accent">${totalTitles}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    summaryHtml = `
+                        <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-card-base rounded-xl border border-secondary/20 shadow-lg">
+                            <div class="text-center border-r border-border-subtle">
+                                <p class="text-xs text-text-muted uppercase tracking-wider">Vitórias</p>
+                                <p class="text-2xl font-black text-secondary">${totalWins}</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-text-muted uppercase tracking-wider">Derrotas</p>
+                                <p class="text-2xl font-black text-red-400">${totalLosses}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                html = summaryHtml + html;
+
+
+    
                 
                 // NOVO: Se filtrado por torneio específico, mostrar resumo com contagem de títulos
                 if (tournamentFilter !== 'all' && seasonFilter === 'all') {
@@ -2963,6 +3056,7 @@
             }
 
             searchTimeout = setTimeout(() => {
+        fetchCurrentRanking();
                 const countryFilter = document.getElementById('h2hCountryFilter').value;
                 let filtered = allOpponents.filter(o => o.name.toLowerCase().includes(query));
                 
@@ -3803,5 +3897,161 @@
             clearFilters: window.clearFilters
         });
     </script>
+<script>
+
+        // PERSISTÊNCIA DE FILTROS
+        function saveFilters() {
+            const filters = {
+                season: document.getElementById('seasonFilter')?.value,
+                type: document.getElementById('typeFilter')?.value,
+                surface: document.getElementById('surfaceFilter')?.value
+            };
+            localStorage.setItem('tennis_dashboard_filters', JSON.stringify(filters));
+        }
+
+        function loadFilters() {
+            const saved = localStorage.getItem('tennis_dashboard_filters');
+            if (saved) {
+                const filters = JSON.parse(saved);
+                if (document.getElementById('seasonFilter')) document.getElementById('seasonFilter').value = filters.season || 'all';
+                if (document.getElementById('typeFilter')) document.getElementById('typeFilter').value = filters.type || 'all';
+                if (document.getElementById('surfaceFilter')) document.getElementById('surfaceFilter').value = filters.surface || 'all';
+            }
+        }
+        
+        // Interceptar a função original de atualização para salvar filtros
+        if (typeof window.updateSeasonsTab === 'function') {
+            const originalUpdateSeasonsTab = window.updateSeasonsTab;
+            window.updateSeasonsTab = function() {
+                saveFilters();
+                originalUpdateSeasonsTab();
+                // Atualizar gráfico de ranking quando os filtros mudarem
+                if (typeof updateRankingChart === 'function' && typeof allTournaments !== 'undefined') {
+                    updateRankingChart(allTournaments);
+                }
+            };
+        }
+    
+
+        // EXPORTAÇÃO PARA CSV
+        window.exportToCSV = function() {
+            if (typeof allTournaments === 'undefined' || allTournaments.length === 0) {
+                if (typeof showToast === 'function') showToast('Não há dados para exportar', 'error');
+                return;
+            }
+            
+            let csv = 'Data,Torneio,Tipo,Superfície,Resultado,Placar\n';
+            allTournaments.forEach(t => {
+                csv += `${t.data},"${t.nome}",${t.tipo},${t.superficie},${t.resultado},"${t.placar}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'estatisticas_tenis.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            if (typeof showToast === 'function') showToast('Dados exportados com sucesso!', 'success');
+        };
+    
+
+        let rankingChart = null;
+        window.updateRankingChart = function(tournaments) {
+            const canvas = document.getElementById('rankingEvolutionChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // Filtrar apenas torneios que têm ranking registrado e ordenar por data
+            const sorted = [...tournaments]
+                .filter(t => t.flRanking)
+                .sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            if (sorted.length === 0) return;
+
+            const labels = sorted.map(t => t.data);
+            const data = sorted.map(t => parseInt(t.flRanking));
+            
+            if (rankingChart) rankingChart.destroy();
+            
+            rankingChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ranking ATP',
+                        data: data,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#06b6d4'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            reverse: true, // Ranking menor é melhor
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Ranking: ' + context.raw;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    
+
+
+        
+        // Redesenhar gráfico ao trocar de aba
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                setTimeout(() => {
+                    if (typeof allTournaments !== 'undefined') {
+                        updateRankingChart(allTournaments);
+                        if (tabId === 'ranking_atp') renderATPRanking();
+                    }
+                }, 100);
+            });
+        });
+
+        });
+
+
+// Inicializar melhorias
+document.addEventListener('DOMContentLoaded', () => { 
+    setTimeout(() => {
+        fetchCurrentRanking(); 
+        loadFilters(); 
+        if (typeof allTournaments !== 'undefined') { updateRankingChart(allTournaments); renderATPRanking(); }
+    }, 1000);
+});
+</script>
 </body>
 </html>
